@@ -1,0 +1,8 @@
+{
+  "username": "admin",
+  "salt": "aee391916457473686f691468366cb509052e24578d7a58aa6101997f5281971",
+  "passwordHash": "cd6b361ab2bd7e3038dd63b25e91be466f52894c9813b58c0a3873590c50db01880c32e43f05bfde77c56c739b6837f9fdab5dfeaf4ca838020d0fc877aa452e",
+  "role": "owner",
+  "updatedAt": "2026-10-14T08:03:36.601Z",
+  "isInitialPassword": true
+}
