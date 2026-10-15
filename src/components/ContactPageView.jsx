@@ -616,7 +616,7 @@ export default function ContactPageView({ onNavigate }) {
           </div>
         </div>
 
-        {/* Section: Official Nidhi Pramanpatra Certificate Card */}
+        {/* Section: Official ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र Certificate Card */}
         <div className="bg-white rounded-3xl border border-stone p-6 sm:p-10 lg:p-12 mb-12 shadow-card">
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10">
             {/* Certificate Preview Image */}
@@ -626,11 +626,11 @@ export default function ContactPageView({ onNavigate }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group block relative rounded-2xl overflow-hidden border-2 border-stone hover:border-royal transition-all duration-300 shadow-md hover:shadow-xl bg-ivory"
-                title="Click to view full Nidhi Pramanpatra certificate PDF"
+                title="Click to view full ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र PDF"
               >
                 <img
                   src="/certificate/certificate-preview.jpg"
-                  alt="Nidhi Pramanpatra - Estate Consultant Vikas Mandal Registration Certificate"
+                  alt="ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र"
                   className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-300"
                   loading="lazy"
                 />
@@ -652,7 +652,7 @@ export default function ContactPageView({ onNavigate }) {
                 </div>
 
                 <h3 className="font-serif text-2xl sm:text-3xl text-navy font-normal tracking-tight mb-2">
-                  Nidhi Pramanpatra
+                  ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र
                 </h3>
 
                 <p className="text-muted text-sm sm:text-base leading-relaxed mb-4">

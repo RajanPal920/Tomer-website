@@ -160,11 +160,11 @@ export default function Navbar({
       items: [
         { label: 'Why Choose Tomar Enterprises', path: null, section: 'why-us', icon: Shield, desc: 'Corridor understanding & verified advisory' },
         {
-          label: 'Nidhi Pramanpatra',
+          label: 'नोंदणी प्रमाणपत्र',
           path: null,
           onClick: () => window.open('/certificate/nidhi-pramanpatra.pdf', '_blank'),
           icon: Award,
-          desc: 'Official registration certificate (PDF)',
+          desc: 'ई-स्टेट कन्सल्टंट विकास मंडळ (PDF)',
         },
         { label: 'Frequently Asked Questions', path: null, section: 'faqs', icon: HelpCircle, desc: 'Guidance on buying, plotting & leases' },
         { label: 'Contact Advisory Desk', path: '/contact', icon: PhoneCall, desc: 'Reach Sanjay Tomar & advisory team' },

@@ -162,10 +162,10 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-blue-200 hover:text-white font-semibold transition-colors"
-                  title="View Official Nidhi Pramanpatra Certificate (PDF)"
+                  title="नोंदणी प्रमाणपत्र (PDF)"
                 >
-                  <Award className="w-3.5 h-3.5 text-royal-light" />
-                  <span>Nidhi Pramanpatra (PDF)</span>
+                  <Award className="w-3.5 h-3.5 text-royal-light flex-shrink-0" />
+                  <span className="truncate">नोंदणी प्रमाणपत्र</span>
                 </a>
               </li>
               <li className="pt-1">
