@@ -586,9 +586,18 @@ export async function handleApiRequest(req, res) {
       }
     }
 
+    // GET /api/properties/stats (Returns listing quota & capacity statistics)
+    if (pathname === '/api/properties/stats' && method === 'GET') {
+      const capacity = await getListingCapacity();
+      return sendJson(res, 200, {
+        success: true,
+        capacity,
+      });
+    }
+
     // Single Property Routes: /api/properties/:id
     const propIdMatch = pathname.match(/^\/api\/properties\/([^/]+)$/);
-    if (propIdMatch) {
+    if (propIdMatch && propIdMatch[1] !== 'stats') {
       const propId = propIdMatch[1];
 
       // GET /api/properties/:id
