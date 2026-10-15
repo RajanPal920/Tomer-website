@@ -1,5 +1,15 @@
 import React from 'react';
-import { Compass, CheckCircle2, Users, Building, Shield } from 'lucide-react';
+import {
+  Compass,
+  CheckCircle2,
+  Users,
+  Building,
+  Shield,
+  FileText,
+  Download,
+  ExternalLink,
+  Award,
+} from 'lucide-react';
 
 export default function WhyChooseUs() {
   const valueProps = [
@@ -73,6 +83,86 @@ export default function WhyChooseUs() {
               </div>
             );
           })}
+        </div>
+
+        {/* Official Agency Registration Certificate Card */}
+        <div className="mt-14 bg-white rounded-3xl border border-stone/80 p-6 sm:p-8 lg:p-10 shadow-card">
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10">
+            {/* Certificate Preview Image */}
+            <div className="w-full lg:w-5/12 flex-shrink-0">
+              <a
+                href="/certificate/nidhi-pramanpatra.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block relative rounded-2xl overflow-hidden border-2 border-stone hover:border-royal transition-all duration-300 shadow-md hover:shadow-xl bg-ivory"
+                title="Click to view full Nidhi Pramanpatra certificate PDF"
+              >
+                <img
+                  src="/certificate/certificate-preview.jpg"
+                  alt="Nidhi Pramanpatra - Estate Consultant Vikas Mandal Registration Certificate"
+                  className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-navy-950/0 group-hover:bg-navy-950/20 transition-colors flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 rounded-xl bg-navy/90 text-white text-xs font-bold uppercase tracking-wider backdrop-blur-xs flex items-center gap-1.5 shadow-lg">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Open Full PDF</span>
+                  </span>
+                </div>
+              </a>
+            </div>
+
+            {/* Certificate Details & Actions */}
+            <div className="w-full lg:w-7/12 flex flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-royal/10 text-royal text-xs font-bold uppercase tracking-wider mb-3">
+                  <Award className="w-3.5 h-3.5" />
+                  <span>Verified Agency Registration</span>
+                </div>
+
+                <h3 className="font-serif text-2xl sm:text-3xl text-navy font-normal tracking-tight mb-2">
+                  Nidhi Pramanpatra
+                </h3>
+
+                <p className="text-muted text-sm sm:text-base leading-relaxed mb-4">
+                  Official membership registration certificate issued by <strong>Estate Consultant Vikas Mandal</strong> (इस्टेट कन्सल्टंट विकास मंडळ) recognizing Tomar Enterprises as an authorized agency.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 rounded-xl bg-ivory border border-stone/60 text-xs">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-brandRed flex-shrink-0" />
+                    <span className="text-charcoal"><strong>Document:</strong> Official PDF Certificate</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span className="text-charcoal"><strong>Status:</strong> Verified & Valid</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons: View & Download */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <a
+                  href="/certificate/nidhi-pramanpatra.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>View Certificate</span>
+                </a>
+
+                <a
+                  href="/certificate/nidhi-pramanpatra.pdf"
+                  download="nidhi-pramanpatra.pdf"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white hover:bg-ivory text-navy font-bold text-xs uppercase tracking-wider border border-stone hover:border-navy/40 transition-all shadow-xs"
+                >
+                  <Download className="w-4 h-4 text-royal" />
+                  <span>Download Certificate</span>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -29,6 +29,7 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.mp4': 'video/mp4',
+  '.pdf': 'application/pdf',
 };
 
 // Bootstrap database on server startup

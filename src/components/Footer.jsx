@@ -7,6 +7,7 @@ import {
   Calculator,
   Landmark,
   Shield,
+  Award,
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import BrandLogo from './BrandLogo';
@@ -156,6 +157,18 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
                 </button>
               </li>
               <li className="pt-2">
+                <a
+                  href="/certificate/nidhi-pramanpatra.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-blue-200 hover:text-white font-semibold transition-colors"
+                  title="View Official Nidhi Pramanpatra Certificate (PDF)"
+                >
+                  <Award className="w-3.5 h-3.5 text-royal-light" />
+                  <span>Nidhi Pramanpatra (PDF)</span>
+                </a>
+              </li>
+              <li className="pt-1">
                 <button
                   onClick={() => {
                     if (onNavigate) onNavigate('/owner-login');

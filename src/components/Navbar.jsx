@@ -17,6 +17,7 @@ import {
   Shield,
   HelpCircle,
   Briefcase,
+  Award,
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -158,6 +159,13 @@ export default function Navbar({
       heading: 'Agency & Support',
       items: [
         { label: 'Why Choose Tomar Enterprises', path: null, section: 'why-us', icon: Shield, desc: 'Corridor understanding & verified advisory' },
+        {
+          label: 'Nidhi Pramanpatra',
+          path: null,
+          onClick: () => window.open('/certificate/nidhi-pramanpatra.pdf', '_blank'),
+          icon: Award,
+          desc: 'Official registration certificate (PDF)',
+        },
         { label: 'Frequently Asked Questions', path: null, section: 'faqs', icon: HelpCircle, desc: 'Guidance on buying, plotting & leases' },
         { label: 'Contact Advisory Desk', path: '/contact', icon: PhoneCall, desc: 'Reach Sanjay Tomar & advisory team' },
       ],
