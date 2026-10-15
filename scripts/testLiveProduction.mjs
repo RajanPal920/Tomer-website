@@ -73,7 +73,7 @@ async function runLiveAudit() {
     }
 
     // 5. Test Authenticated Owner Property Update (Confirm NO 403 Forbidden)
-    console.log('\n[5/5] Testing PATCH /api/properties/:id (Testing Owner Update Permissions) ...');
+    console.log('\n[5/6] Testing PATCH /api/properties/:id (Testing Owner Update Permissions) ...');
     const firstProp = propsData.properties[0];
     const originalPrice = firstProp.priceDisplay || firstProp.price;
     console.log(`  -> Updating Property: "${firstProp.title}" (ID: ${firstProp.id})`);
@@ -94,6 +94,57 @@ async function runLiveAudit() {
     console.log(`  -> Success: ${updateData?.success}`);
     if (updateRes.status !== 200 || !updateData?.success) {
       throw new Error(`Owner property update failed with status ${updateRes.status}: ${updateData?.error || 'Unknown'}`);
+    }
+
+    // 6. Test Change Password Endpoint & Security Validations on Live Production
+    console.log('\n[6/6] Testing POST /api/auth/change-password Security Rules on Live Production...');
+
+    // 6A. Test Rejection of Wrong Current Password
+    const wrongCurrentRes = await fetch(`${BASE_URL}/api/auth/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'admin',
+        currentPassword: 'WrongCurrentPassword123!',
+        newPassword: 'BrandNewStrongPass2026#',
+        confirmPassword: 'BrandNewStrongPass2026#',
+      }),
+    });
+    console.log(`  -> 6A (Wrong Current Password): Status ${wrongCurrentRes.status} (Expected 401)`);
+    if (wrongCurrentRes.status !== 401) {
+      throw new Error(`Expected 401 for wrong current password on live site, got ${wrongCurrentRes.status}`);
+    }
+
+    // 6B. Test Rejection of Short Password (< 12 chars)
+    const shortPassRes = await fetch(`${BASE_URL}/api/auth/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'admin',
+        currentPassword: 'Tomar@Admin2026!',
+        newPassword: 'ShortPass1!',
+        confirmPassword: 'ShortPass1!',
+      }),
+    });
+    console.log(`  -> 6B (Short Password < 12 chars): Status ${shortPassRes.status} (Expected 400)`);
+    if (shortPassRes.status !== 400) {
+      throw new Error(`Expected 400 for short password on live site, got ${shortPassRes.status}`);
+    }
+
+    // 6C. Test Rejection of Mismatched Passwords
+    const mismatchPassRes = await fetch(`${BASE_URL}/api/auth/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'admin',
+        currentPassword: 'Tomar@Admin2026!',
+        newPassword: 'BrandNewStrongPass2026#',
+        confirmPassword: 'DifferentStrongPass2026#',
+      }),
+    });
+    console.log(`  -> 6C (Mismatched New Passwords): Status ${mismatchPassRes.status} (Expected 400)`);
+    if (mismatchPassRes.status !== 400) {
+      throw new Error(`Expected 400 for mismatched passwords on live site, got ${mismatchPassRes.status}`);
     }
 
     console.log(`\n====================================================`);
