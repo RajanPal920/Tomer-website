@@ -305,8 +305,24 @@ export default function OwnerDashboard({ onNavigate, user }) {
     }
   };
 
-  // Handle Status Toggle (Quick change / status transitions)
+  // Handle Status Toggle (Quick change / status transitions) with confirmation
   const handleQuickStatusChange = async (property, newStatus) => {
+    const actionDesc =
+      newStatus === 'sold_out'
+        ? 'mark as SOLD OUT (frees 1 active listing slot)'
+        : newStatus === 'archived'
+        ? 'ARCHIVE (preserved in records, removed from public view)'
+        : newStatus === 'available'
+        ? 'RESTORE to AVAILABLE (consumes 1 active listing slot)'
+        : newStatus === 'draft'
+        ? 'move to DRAFT (counts toward 30 active listings limit)'
+        : `change status to ${newStatus.toUpperCase()}`;
+
+    const confirmed = window.confirm(
+      `Confirm Listing Status Change:\n\nAre you sure you want to ${actionDesc} for:\n"${property.title}"?`
+    );
+    if (!confirmed) return;
+
     setErrorNotice(null);
     setSuccessNotice(null);
     try {
@@ -317,8 +333,10 @@ export default function OwnerDashboard({ onNavigate, user }) {
           ? 'SOLD OUT'
           : newStatus === 'available'
           ? 'AVAILABLE'
+          : newStatus === 'draft'
+          ? 'DRAFT'
           : newStatus.toUpperCase();
-      setSuccessNotice(`Property "${property.title}" status updated to ${readable}.`);
+      setSuccessNotice(`Property "${property.title}" status successfully updated to ${readable}.`);
       // Refresh capacity in background
       fetchListingStats().then((c) => c && setListingCapacity(c)).catch(() => {});
     } catch (err) {
@@ -782,45 +800,47 @@ export default function OwnerDashboard({ onNavigate, user }) {
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Total Listings
+                        Active Listings
                       </span>
-                      <div className="text-2xl sm:text-3xl font-serif font-bold text-navy">{stats.total}</div>
-                      <span className="text-[10px] text-muted mt-1 block">Full stored inventory</span>
+                      <div className="text-2xl sm:text-3xl font-serif font-bold text-navy">
+                        {listingCapacity ? listingCapacity.active : stats.active} <span className="text-sm font-sans text-muted">/ {listingCapacity ? listingCapacity.maxLimit : 30}</span>
+                      </div>
+                      <span className="text-[10px] text-muted mt-1 block">Available + Drafts</span>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Available (Live)
+                        Available Properties
                       </span>
                       <div className="text-2xl sm:text-3xl font-serif font-bold text-emerald-600">
                         {stats.available}
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Publicly searchable</span>
+                      <span className="text-[10px] text-muted mt-1 block">Live on website</span>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Drafts
+                        Draft Properties
                       </span>
                       <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-600">
                         {stats.drafts}
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Counts towards limit</span>
+                      <span className="text-[10px] text-muted mt-1 block">Counts toward limit</span>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Sold Out
+                        Sold Out Properties
                       </span>
                       <div className="text-2xl sm:text-3xl font-serif font-bold text-rose-600">
                         {stats.soldOut}
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Preserved, inactive</span>
+                      <span className="text-[10px] text-muted mt-1 block">Frees active slot</span>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Archived
+                        Archived Properties
                       </span>
                       <div className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">
                         {stats.archived}
@@ -830,14 +850,12 @@ export default function OwnerDashboard({ onNavigate, user }) {
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Customer Inquiries
+                        Remaining Active Slots
                       </span>
-                      <div className="text-2xl sm:text-3xl font-serif font-bold text-blue-600">
-                        {stats.totalEnquiries}
+                      <div className="text-2xl sm:text-3xl font-serif font-bold text-royal">
+                        {listingCapacity ? listingCapacity.remaining : Math.max(0, 30 - stats.active)}
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">
-                        {stats.newEnquiries} New Leads
-                      </span>
+                      <span className="text-[10px] text-muted mt-1 block">Slots available to add</span>
                     </div>
                   </div>
                 </div>
@@ -1252,7 +1270,14 @@ export default function OwnerDashboard({ onNavigate, user }) {
                                   />
                                   <div className="min-w-0">
                                     <div className="font-bold text-navy line-clamp-1">{prop.title}</div>
-                                    <span className="text-[10px] text-muted font-mono">Ref: {prop.id}</span>
+                                    <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted">
+                                      <span className="font-mono">Ref: {prop.id}</span>
+                                      {(prop.updatedAt || prop.createdAt) && (
+                                        <span>
+                                          • Updated: {new Date(prop.updatedAt || prop.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </span>
+                                      )}
+                                    </div>
                                     {prop.internalNotes && (
                                       <p className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded mt-0.5 line-clamp-1 max-w-xs font-mono">
                                         Notes: {prop.internalNotes}

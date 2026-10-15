@@ -290,14 +290,165 @@ export async function invalidateSession(token) {
 }
 
 /**
+ * Change owner password with rigorous server-side identity & current password verification.
+ * Enforces:
+ *   - Current password verification against stored bcrypt/legacy hash
+ *   - Strong password requirement (>= 12 characters, letter + number/symbol)
+ *   - Rejection of identical previous password
+ *   - Matching newPassword and confirmPassword
+ *   - Rate limiting protection
+ *   - Invalidation of previous sessions and establishment of new authenticated session
+ */
+export async function changeOwnerPassword({
+  username,
+  currentPassword,
+  newPassword,
+  confirmPassword,
+  ip = '127.0.0.1',
+  userAgent = null,
+  currentSessionUserId = null,
+}) {
+  // 1. Basic presence checks
+  const cleanUser = username ? String(username).trim() : '';
+  if (!cleanUser && !currentSessionUserId) {
+    return { success: false, status: 400, error: 'Owner username is required.' };
+  }
+  if (!currentPassword) {
+    return { success: false, status: 400, error: 'Current password is required.' };
+  }
+  if (!newPassword || !confirmPassword) {
+    return { success: false, status: 400, error: 'New password and password confirmation are required.' };
+  }
+
+  // 2. Matching confirmation check
+  if (newPassword !== confirmPassword) {
+    return { success: false, status: 400, error: 'New password and confirmation password do not match.' };
+  }
+
+  // 3. Password Strength Policy (>= 12 characters, letters + numbers/symbols)
+  if (typeof newPassword !== 'string' || newPassword.length < 12) {
+    return {
+      success: false,
+      status: 400,
+      error: 'New password must be at least 12 characters long for owner security.',
+    };
+  }
+
+  const hasLetter = /[a-zA-Z]/.test(newPassword);
+  const hasDigitOrSpecial = /[\d!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(newPassword);
+  if (!hasLetter || !hasDigitOrSpecial) {
+    return {
+      success: false,
+      status: 400,
+      error: 'New password must contain both letters and numbers or special symbols.',
+    };
+  }
+
+  if (newPassword === currentPassword) {
+    return {
+      success: false,
+      status: 400,
+      error: 'New password cannot be the same as your current password.',
+    };
+  }
+
+  // 4. Rate limiting on password changes
+  const rateLimitKey = `pwdchange:${cleanUser.toLowerCase() || currentSessionUserId}:${ip}`;
+  const rateCheck = await checkRateLimit(rateLimitKey);
+  if (!rateCheck.allowed) {
+    return {
+      success: false,
+      status: 429,
+      error: rateCheck.message,
+      retryAfterSeconds: rateCheck.retryAfterSeconds,
+    };
+  }
+
+  // 5. Lookup user
+  let user = null;
+  if (currentSessionUserId) {
+    user = await get('SELECT * FROM owner_users WHERE id = ?', [currentSessionUserId]);
+  }
+  if (!user && cleanUser) {
+    user = await get('SELECT * FROM owner_users WHERE LOWER(username) = LOWER(?)', [cleanUser]);
+  }
+  if (!user) {
+    // If username didn't match and table has only 1 owner, check if cleanUser matches or fallback safely
+    const fallbackUser = await get('SELECT * FROM owner_users LIMIT 1');
+    if (fallbackUser && fallbackUser.username.toLowerCase() === cleanUser.toLowerCase()) {
+      user = fallbackUser;
+    }
+  }
+
+  if (!user) {
+    await recordFailedLogin(rateLimitKey);
+    return {
+      success: false,
+      status: 401,
+      error: 'Invalid credentials. Owner account not found.',
+    };
+  }
+
+  // 6. Verify current password
+  const { valid } = await verifyPassword(currentPassword, user.password_hash);
+  if (!valid) {
+    const failedInfo = await recordFailedLogin(rateLimitKey);
+    return {
+      success: false,
+      status: 401,
+      error: 'Current password is incorrect. Identity verification failed.',
+      remainingAttempts: failedInfo.remainingAttempts,
+    };
+  }
+
+  // Verification succeeded - clear rate limits
+  await clearRateLimit(rateLimitKey);
+
+  // 7. Hash new password with bcrypt (12 rounds)
+  const newHash = await hashPassword(newPassword);
+  const now = new Date().toISOString();
+
+  await run(
+    'UPDATE owner_users SET password_hash = ?, updated_at = ?, is_initial_password = 0 WHERE id = ?',
+    [newHash, now, user.id]
+  );
+
+  // 8. Invalidate previous sessions
+  await run('DELETE FROM owner_sessions WHERE user_id = ?', [user.id]);
+
+  // 9. Create fresh authenticated session for automatic login (30 days)
+  const token = crypto.randomBytes(32).toString('hex');
+  const nowMs = Date.now();
+  const durationMs = 30 * 24 * 60 * 60 * 1000;
+  const expiresAt = nowMs + durationMs;
+
+  await run(
+    'INSERT INTO owner_sessions (token, user_id, username, role, created_at, expires_at, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [token, user.id, user.username, user.role, nowMs, expiresAt, ip, userAgent || null]
+  );
+
+  return {
+    success: true,
+    message: 'Owner password changed successfully. Authenticated session established.',
+    token,
+    user: {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    },
+    expiresAt,
+  };
+}
+
+/**
  * Update owner credentials
  */
 export async function updateOwnerCredentials(newUsername, newPassword) {
   if (newUsername && newUsername.trim().length < 3) {
     throw new Error('Username must be at least 3 characters long');
   }
-  if (!newPassword || newPassword.length < 8) {
-    throw new Error('Password must be at least 8 characters long for security');
+  if (!newPassword || newPassword.length < 12) {
+    throw new Error('Password must be at least 12 characters long for security');
   }
 
   const user = await get('SELECT * FROM owner_users LIMIT 1');

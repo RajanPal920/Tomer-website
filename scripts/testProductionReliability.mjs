@@ -497,6 +497,7 @@ async function runSuite() {
     );
 
     // -------------------------------------------------------------
+    // -------------------------------------------------------------
     // TEST 9: Capacity Stats API Endpoint
     // -------------------------------------------------------------
     const statsRes = await callApi('GET', '/api/properties/stats', null, authHeaders);
@@ -506,6 +507,118 @@ async function runSuite() {
         statsRes.data?.capacity?.active !== undefined,
       'TEST 9: GET /api/properties/stats returns live breakdown: maxLimit, active, available, draft, soldOut, archived',
       `Active: ${statsRes.data?.capacity?.active}, Max: ${statsRes.data?.capacity?.maxLimit}, Remaining: ${statsRes.data?.capacity?.remaining}`
+    );
+
+    // -------------------------------------------------------------
+    // TEST 10: Change Password Feature & Automatic Authenticated Login
+    // -------------------------------------------------------------
+    console.log('\n--- TEST 10: Owner Password Change & Automatic Session Verification ---');
+    await run('DELETE FROM login_rate_limits');
+
+    // 10A: Missing parameters rejected
+    const emptyPwdRes = await callApi('POST', '/api/auth/change-password', {
+      username: ownerUsername,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    assert(
+      emptyPwdRes.status === 400,
+      'TEST 10A: Empty password fields rejected with HTTP 400',
+      `Status: ${emptyPwdRes.status}`
+    );
+
+    // 10B: Invalid current password rejected
+    const wrongCurrentRes = await callApi('POST', '/api/auth/change-password', {
+      username: ownerUsername,
+      currentPassword: 'CompletelyWrongCurrentPass!',
+      newPassword: 'BrandNewSecurePass2026#',
+      confirmPassword: 'BrandNewSecurePass2026#',
+    });
+    assert(
+      wrongCurrentRes.status === 401,
+      'TEST 10B: Invalid current password rejected with HTTP 401 identity verification failed',
+      `Status: ${wrongCurrentRes.status}`
+    );
+
+    // 10C: New password under 12 characters rejected
+    const shortPwdRes = await callApi('POST', '/api/auth/change-password', {
+      username: ownerUsername,
+      currentPassword: 'Tomar@Admin2026!',
+      newPassword: 'ShortPass1!',
+      confirmPassword: 'ShortPass1!',
+    });
+    assert(
+      shortPwdRes.status === 400 && shortPwdRes.data?.error?.includes('12 characters'),
+      'TEST 10C: Weak password (< 12 chars) rejected with HTTP 400',
+      `Status: ${shortPwdRes.status}, Error: ${shortPwdRes.data?.error}`
+    );
+
+    // 10D: Mismatched new passwords rejected
+    const mismatchRes = await callApi('POST', '/api/auth/change-password', {
+      username: ownerUsername,
+      currentPassword: 'Tomar@Admin2026!',
+      newPassword: 'BrandNewSecurePass2026#',
+      confirmPassword: 'DifferentSecurePass2026#',
+    });
+    assert(
+      mismatchRes.status === 400 && mismatchRes.data?.error?.includes('do not match'),
+      'TEST 10D: Mismatched new passwords rejected with HTTP 400',
+      `Status: ${mismatchRes.status}`
+    );
+
+    // 10E: Password identical to current rejected
+    const identicalRes = await callApi('POST', '/api/auth/change-password', {
+      username: ownerUsername,
+      currentPassword: 'Tomar@Admin2026!',
+      newPassword: 'Tomar@Admin2026!',
+      confirmPassword: 'Tomar@Admin2026!',
+    });
+    assert(
+      identicalRes.status === 400 && identicalRes.data?.error?.includes('same'),
+      'TEST 10E: Identical previous password rejected with HTTP 400',
+      `Status: ${identicalRes.status}`
+    );
+
+    // 10F: Valid password change succeeds, establishes new session, and returns HttpOnly cookie
+    const tempNewPassword = 'Tomar@TempPass2026!';
+    const changeSuccessRes = await callApi('POST', '/api/auth/change-password', {
+      username: ownerUsername,
+      currentPassword: 'Tomar@Admin2026!',
+      newPassword: tempNewPassword,
+      confirmPassword: tempNewPassword,
+    });
+    assert(
+      changeSuccessRes.status === 200 &&
+        changeSuccessRes.data?.success === true &&
+        Boolean(changeSuccessRes.data?.token) &&
+        Boolean(changeSuccessRes.headers['Set-Cookie']),
+      'TEST 10F: Valid password change succeeds (200), establishes session token & HttpOnly cookie',
+      `Status: ${changeSuccessRes.status}, Token: ${Boolean(changeSuccessRes.data?.token)}`
+    );
+
+    // 10G: Verify auto-established session works immediately without re-login
+    const newSessionToken = changeSuccessRes.data.token;
+    const autoSessionVerify = await callApi('GET', '/api/auth/session', null, {
+      cookie: `tomar_session=${newSessionToken}`,
+    });
+    assert(
+      autoSessionVerify.status === 200 && autoSessionVerify.data?.authenticated === true,
+      'TEST 10G: Automatic login verified: session persists and owner profile returns 200 without re-login',
+      `Status: ${autoSessionVerify.status}`
+    );
+
+    // 10H: Restore original password so environment credentials remain unchanged
+    const restoreOriginalRes = await callApi('POST', '/api/auth/change-password', {
+      username: ownerUsername,
+      currentPassword: tempNewPassword,
+      newPassword: 'Tomar@Admin2026!',
+      confirmPassword: 'Tomar@Admin2026!',
+    });
+    assert(
+      restoreOriginalRes.status === 200 && restoreOriginalRes.data?.success === true,
+      'TEST 10H: Owner password securely restored to canonical production credential (Tomar@Admin2026!)',
+      `Status: ${restoreOriginalRes.status}`
     );
 
     // -------------------------------------------------------------

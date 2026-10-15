@@ -13,6 +13,7 @@ import {
   invalidateSession,
   getAuthStatus,
   updateOwnerCredentials,
+  changeOwnerPassword,
   initializeOwnerAuthIfNeeded,
 } from './auth.js';
 
@@ -354,43 +355,55 @@ export async function handleApiRequest(req, res) {
       return sendJson(res, 200, status);
     }
 
-    // POST /api/auth/change-password (Owner Only)
+    // POST /api/auth/change-password (Requires identity & current password verification)
     if (pathname === '/api/auth/change-password' && method === 'POST') {
-      const auth = requireOwnerAuth(session, isOwner, 'change owner credentials');
-      if (!auth.allowed) {
-        return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
-      }
-
       const body = await parseBody(req);
-      const { newUsername, newPassword } = body;
+      const { username, currentPassword, newPassword, confirmPassword } = body;
 
-      if (!newPassword || newPassword.length < 8) {
-        return sendJson(res, 400, {
+      const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
+      const userAgent = req.headers['user-agent'] || '';
+
+      const targetUsername = (username || (session ? session.username : '')).trim();
+
+      const result = await changeOwnerPassword({
+        username: targetUsername,
+        currentPassword,
+        newPassword,
+        confirmPassword,
+        ip,
+        userAgent,
+        currentSessionUserId: session ? session.userId : null,
+      });
+
+      if (!result.success) {
+        return sendJson(res, result.status || 400, {
           success: false,
-          error: 'New password must be at least 8 characters long.',
-          code: 'VALIDATION_ERROR',
+          error: result.error,
+          remainingAttempts: result.remainingAttempts,
         });
       }
 
-      try {
-        await updateOwnerCredentials(newUsername, newPassword);
-        const clearCookie = 'tomar_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax';
-        return sendJson(
-          res,
-          200,
-          {
-            success: true,
-            message: 'Owner credentials updated successfully. Please sign in with your updated credentials.',
-          },
-          { 'Set-Cookie': clearCookie }
-        );
-      } catch (err) {
-        return sendJson(res, 400, {
-          success: false,
-          error: err.message || 'Failed to update owner credentials.',
-          code: 'UPDATE_FAILED',
-        });
-      }
+      // Build secure HttpOnly Cookie for the newly established session
+      const maxAge = 30 * 24 * 3600; // 30 days
+      const isSecure = Boolean(
+        process.env.VERCEL ||
+        req.headers['x-forwarded-proto'] === 'https' ||
+        process.env.NODE_ENV === 'production'
+      );
+      const cookieVal = `tomar_session=${result.token}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+
+      return sendJson(
+        res,
+        200,
+        {
+          success: true,
+          message: result.message,
+          token: result.token,
+          user: result.user,
+          expiresAt: result.expiresAt,
+        },
+        { 'Set-Cookie': cookieVal }
+      );
     }
 
     // -----------------------------------------------------------------------
