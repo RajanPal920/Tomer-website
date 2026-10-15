@@ -78,3 +78,11 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #041B44;
 }
+
+/* Ensure sticky header always has solid pure white background with zero blur/transparency */
+header.sticky {
+  background-color: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+

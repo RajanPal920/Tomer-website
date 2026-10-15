@@ -175,11 +175,14 @@ export default function Navbar({
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-200 ${
-          isScrolled
-            ? 'bg-white/98 backdrop-blur-md shadow-md border-b border-stone/80'
-            : 'bg-white border-b border-stone/60'
+        className={`sticky top-0 z-40 w-full bg-white border-b transition-shadow duration-200 ${
+          isScrolled ? 'shadow-sm border-stone/80' : 'border-stone/60'
         }`}
+        style={{
+          backgroundColor: '#FFFFFF',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
+        }}
       >
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* ========================================================================= */}
@@ -248,7 +251,10 @@ export default function Navbar({
                 </button>
 
                 {openDropdown === 'properties' && (
-                  <div className="absolute left-0 mt-1 w-80 bg-white rounded-2xl shadow-elevated border border-stone p-2.5 z-50 animate-fadeIn">
+                  <div
+                    className="absolute left-0 mt-1 w-80 bg-white rounded-2xl shadow-elevated border border-stone p-2.5 z-50 animate-fadeIn"
+                    style={{ backgroundColor: '#FFFFFF' }}
+                  >
                     <div className="px-3 py-1.5 border-b border-stone/50 mb-1 flex items-center justify-between">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
                         All Portfolios
@@ -352,7 +358,10 @@ export default function Navbar({
                 </button>
 
                 {openDropdown === 'locations' && (
-                  <div className="absolute left-0 mt-1 w-80 bg-white rounded-2xl shadow-elevated border border-stone p-2.5 z-50 animate-fadeIn">
+                  <div
+                    className="absolute left-0 mt-1 w-80 bg-white rounded-2xl shadow-elevated border border-stone p-2.5 z-50 animate-fadeIn"
+                    style={{ backgroundColor: '#FFFFFF' }}
+                  >
                     <div className="px-3 py-1.5 border-b border-stone/50 mb-1 flex items-center justify-between">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
                         Railway Corridor
@@ -409,7 +418,10 @@ export default function Navbar({
                 </button>
 
                 {openDropdown === 'more' && (
-                  <div className="absolute right-0 mt-1 w-80 bg-white rounded-2xl shadow-elevated border border-stone p-3 z-50 animate-fadeIn space-y-3">
+                  <div
+                    className="absolute right-0 mt-1 w-80 bg-white rounded-2xl shadow-elevated border border-stone p-3 z-50 animate-fadeIn space-y-3"
+                    style={{ backgroundColor: '#FFFFFF' }}
+                  >
                     {moreDropdownSections.map((sec, sIdx) => (
                       <div key={sIdx}>
                         <div className="text-[10px] font-bold uppercase tracking-wider text-muted px-2 mb-1">
@@ -516,14 +528,17 @@ export default function Navbar({
           aria-modal="true"
           aria-label="Mobile Navigation Menu"
         >
-          {/* Backdrop Blur Overlay */}
+          {/* Solid Backdrop Overlay */}
           <div
-            className="fixed inset-0 bg-navy-950/70 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-navy-950/70 transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
 
           {/* Drawer Slide-Over Panel (Zero horizontal overflow) */}
-          <div className="relative w-full max-w-sm sm:max-w-md h-full bg-white shadow-2xl flex flex-col z-10 animate-fadeIn overflow-hidden">
+          <div
+            className="relative w-full max-w-sm sm:max-w-md h-full bg-white shadow-2xl flex flex-col z-10 animate-fadeIn overflow-hidden"
+            style={{ backgroundColor: '#FFFFFF' }}
+          >
             {/* Drawer Top Header */}
             <div className="p-4 sm:p-5 border-b border-stone/70 flex items-center justify-between bg-ivory/50 flex-shrink-0">
               <a
