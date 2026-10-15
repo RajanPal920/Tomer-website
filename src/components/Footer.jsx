@@ -7,14 +7,13 @@ import {
   Calculator,
   Landmark,
   Shield,
-  FileCheck2,
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import BrandLogo from './BrandLogo';
 import { contactInfo } from '../data/contactInfo';
 import { APPROVED_STATIONS } from '../data/locations';
 
-export default function Footer({ onSelectCategory, onSelectLocality, onOpenListModal, onNavigate }) {
+export default function Footer({ onSelectCategory, onSelectLocality, onNavigate }) {
   const currentYear = new Date().getFullYear();
 
   const scrollToTop = () => {

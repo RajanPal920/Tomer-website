@@ -2,10 +2,10 @@ import React from 'react';
 import { PlusCircle, Handshake, ArrowRight, ShieldCheck, Check } from 'lucide-react';
 import { isAuthenticated } from '../services/authService';
 
-export default function PropertyOwnerCTA({ onOpenListModal, onNavigate }) {
+export default function PropertyOwnerCTA({ onNavigate }) {
   const isOwner = isAuthenticated();
 
-  const handleSellClick = () => {
+  const handleConsultClick = () => {
     if (isOwner) {
       if (onNavigate) onNavigate('/owner/dashboard/add');
     } else {
@@ -84,11 +84,11 @@ export default function PropertyOwnerCTA({ onOpenListModal, onNavigate }) {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4">
                 <button
                   type="button"
-                  onClick={handleSellClick}
+                  onClick={handleConsultClick}
                   className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg bg-brandRed hover:bg-brandRed-700 text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-md cursor-pointer"
                 >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>{isOwner ? 'Add Property to Inventory' : 'Enquire to Sell or Rent'}</span>
+                  <Handshake className="w-4 h-4" />
+                  <span>{isOwner ? 'Add Property to Inventory' : 'Consult Advisory Desk'}</span>
                 </button>
 
                 <button
@@ -96,7 +96,7 @@ export default function PropertyOwnerCTA({ onOpenListModal, onNavigate }) {
                   onClick={handleLeaseClick}
                   className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold text-xs uppercase tracking-wider border border-white/25 transition-all duration-200 cursor-pointer"
                 >
-                  <span>{isOwner ? 'Manage Owner Inventory' : 'Discuss Lease Opportunities'}</span>
+                  <span>{isOwner ? 'Manage Owner Inventory' : 'Reach Sanjay Tomar'}</span>
                   <ArrowRight className="w-4 h-4 text-white" />
                 </button>
               </div>

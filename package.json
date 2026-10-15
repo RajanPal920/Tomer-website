@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "setup-owner": "node scripts/setupOwnerAccount.mjs",
+    "audit:owner": "node scripts/testOwnerWorkflow.mjs"
   },
   "dependencies": {
     "framer-motion": "^14.2.0",

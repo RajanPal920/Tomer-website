@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ChevronRight,
   Filter,
@@ -9,6 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { getAllProperties } from '../data/properties';
+import { fetchLiveProperties, subscribeToProperties } from '../services/propertyStore';
 import {
   filterProperties,
   CATEGORY_TABS,
@@ -24,7 +25,17 @@ export default function ListingPageView({
   onNavigate,
   onEnquire,
 }) {
-  const allProperties = getAllProperties();
+  const [allProperties, setAllProperties] = useState(() => getAllProperties());
+
+  // Subscribe to live property store
+  useEffect(() => {
+    fetchLiveProperties().catch(() => { });
+    return subscribeToProperties((liveProps) => {
+      if (Array.isArray(liveProps) && liveProps.length > 0) {
+        setAllProperties(liveProps);
+      }
+    });
+  }, []);
 
   // Active filters state
   const [prevTabProp, setPrevTabProp] = useState(initialTab);
@@ -157,11 +168,10 @@ export default function ListingPageView({
                     }
                     setVisibleCount(9);
                   }}
-                  className={`px-4 py-2 rounded-full text-xs font-bold tracking-wide whitespace-nowrap transition-all ${
-                    isActive
+                  className={`px-4 py-2 rounded-full text-xs font-bold tracking-wide whitespace-nowrap transition-all ${isActive
                       ? 'bg-navy text-white shadow-2xs'
                       : 'bg-ivory text-charcoal hover:bg-stone/50 border border-stone/60'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>

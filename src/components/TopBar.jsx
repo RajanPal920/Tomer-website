@@ -19,11 +19,14 @@ export default function TopBar({ onOpenFavourites, onOpenCompare, onNavigate }) 
     <div className="bg-navy-950 text-stone text-xs border-b border-white/10 relative z-50">
       <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between gap-4">
         {/* Left: Office Location & Service Corridor */}
-        <div className="flex items-center gap-3 overflow-hidden text-ellipsis whitespace-nowrap">
-          <div className="flex items-center gap-1.5 text-stone/90 font-medium flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+          <div className="flex items-center gap-1.5 text-stone/90 font-medium truncate">
             <MapPin className="w-3.5 h-3.5 text-brandRed flex-shrink-0" />
-            <span className="font-semibold text-white">Office:</span>
-            <span className="text-white/95 truncate">Virar East (Nakshatra Apt, Viva Jangid Complex)</span>
+            <span className="font-semibold text-white hidden sm:inline">Office:</span>
+            <span className="text-white/95 truncate">
+              <span className="hidden md:inline">Virar East (Nakshatra Apt, Viva Jangid Complex)</span>
+              <span className="md:hidden">Virar East</span>
+            </span>
           </div>
 
           <span className="hidden xl:inline text-white/20 flex-shrink-0">|</span>
@@ -33,7 +36,7 @@ export default function TopBar({ onOpenFavourites, onOpenCompare, onNavigate }) 
         </div>
 
         {/* Right: Saved, Compare, Phones, WhatsApp & Owner Portal */}
-        <div className="flex items-center gap-2.5 sm:gap-3.5 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {/* Saved Favourites */}
           {onOpenFavourites && (
             <button
@@ -76,11 +79,11 @@ export default function TopBar({ onOpenFavourites, onOpenCompare, onNavigate }) 
           <a
             href={`tel:${contactInfo.phoneSanjay1Raw}`}
             className="flex items-center gap-1 text-stone hover:text-white transition-colors duration-200"
-            title="Call Sanjay Tomar"
+            title={`Call Sanjay Tomar: ${contactInfo.phoneSanjay1Display || '+91 82370 92224'}`}
           >
             <Phone className="w-3.5 h-3.5 text-blue-300 flex-shrink-0" />
-            <span className="font-semibold text-xs tracking-wide hidden md:inline">Sanjay: {contactInfo.phoneSanjay1Display || '+91 82370 92224'}</span>
-            <span className="font-semibold text-xs tracking-wide md:hidden">{contactInfo.phoneSanjay1Display || '+91 82370 92224'}</span>
+            <span className="font-semibold text-xs tracking-wide hidden lg:inline">Sanjay: {contactInfo.phoneSanjay1Display || '+91 82370 92224'}</span>
+            <span className="font-semibold text-xs tracking-wide hidden sm:inline lg:hidden">{contactInfo.phoneSanjay1Display || '+91 82370 92224'}</span>
           </a>
 
           {/* WhatsApp Link (Sanjay Tomar) */}
@@ -88,25 +91,26 @@ export default function TopBar({ onOpenFavourites, onOpenCompare, onNavigate }) 
             href={contactInfo.whatsappLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition-colors duration-200 bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10"
+            className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition-colors duration-200 bg-white/5 hover:bg-white/10 px-1.5 sm:px-2 py-0.5 rounded border border-white/10"
             title="Chat with Sanjay Tomar on WhatsApp"
           >
             <WhatsAppIcon className="w-3.5 h-3.5 flex-shrink-0" />
             <span className="hidden sm:inline font-semibold">WhatsApp</span>
           </a>
 
-          <span className="text-white/20">|</span>
+          <span className="hidden sm:inline text-white/20">|</span>
 
           {/* Owner Portal Link */}
           {onNavigate && (
             <button
               type="button"
               onClick={() => onNavigate('/owner-login')}
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-white/10 hover:bg-brandRed text-white text-[11px] font-bold uppercase tracking-wider transition-colors border border-white/20 hover:border-brandRed"
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-md bg-white/10 hover:bg-brandRed text-white text-[11px] font-bold uppercase tracking-wider transition-colors border border-white/20 hover:border-brandRed"
               title="Owner & Admin Secure Portal"
             >
-              <Shield className="w-3 h-3 text-blue-300 group-hover:text-white" />
-              <span>Owner Portal</span>
+              <Shield className="w-3 h-3 text-blue-300 group-hover:text-white flex-shrink-0" />
+              <span className="hidden sm:inline">Owner Portal</span>
+              <span className="sm:hidden">Owner</span>
             </button>
           )}
         </div>

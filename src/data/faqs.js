@@ -38,6 +38,6 @@ export const faqs = [
   {
     id: "faq-8",
     question: "How do I submit my property for sale, rent or lease?",
-    answer: "Property owners can click the 'List Your Property' button on our navigation or owner section. Provide your contact details, property locality, configuration, and requirement (Sell, Rent, Lease, or Discuss Development), and our team will get in touch with you."
+    answer: "Property owners and landlords can connect directly with our advisory desk via phone, WhatsApp (+91 99227 55203), or our Contact page. Our team conducts an on-site physical valuation, verifies clear title documentation, and manages prospective buyers and tenants directly."
   }
 ];

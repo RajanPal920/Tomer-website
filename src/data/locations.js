@@ -150,12 +150,17 @@ export const FLAGGED_LOCATIONS = [
  * Dropdown options list for search panels and form dropdowns
  */
 export const LOCATION_DROPDOWN_OPTIONS = [
-  { id: 'all', label: 'All Locations (Vasai to Palghar)' },
+  { id: 'all', label: 'All Locations (Vasai to Palghar Corridor)' },
   ...APPROVED_STATIONS.map((loc) => ({
     id: loc.locationId,
     label: loc.displayName,
     canonicalName: loc.canonicalName,
   })),
+  {
+    id: 'boisar',
+    label: 'Boisar (MIDC & Residential)',
+    canonicalName: 'Boisar',
+  },
 ];
 
 /**

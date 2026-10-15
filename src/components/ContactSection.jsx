@@ -7,14 +7,13 @@ import {
   CheckCircle2,
   AlertCircle,
   Shield,
-  Building2,
   FileCheck2,
   ExternalLink,
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { contactInfo } from '../data/contactInfo';
 import { submitEnquiry } from '../services/propertyStore';
-import { buildGmailComposeUrl, buildMailtoUrl, openGmailCompose } from '../services/emailService';
+import { buildGmailComposeUrl, openGmailCompose } from '../services/emailService';
 
 export default function ContactSection({ prefilledInterest = '', prefilledLocation = '' }) {
   const [formData, setFormData] = useState({

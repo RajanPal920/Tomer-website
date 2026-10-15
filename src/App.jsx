@@ -31,7 +31,6 @@ import FloatingContactButtons from './components/FloatingContactButtons';
 // Modals
 import PropertyDetailModal from './components/PropertyDetailModal';
 import EnquiryModal from './components/EnquiryModal';
-import PropertyListModal from './components/PropertyListModal';
 import PropertyComparisonModal from './components/PropertyComparisonModal';
 import FavouritesModal from './components/FavouritesModal';
 
@@ -56,8 +55,6 @@ export default function App() {
   // Modals state
   const [selectedPropertyForModal, setSelectedPropertyForModal] = useState(null);
   const [enquiryModalData, setEnquiryModalData] = useState(null);
-  const [listPropertyModalOpen, setListPropertyModalOpen] = useState(false);
-  const [listModalInitialReq, setListModalInitialReq] = useState('Sell');
   const [compareModalOpen, setCompareModalOpen] = useState(false);
   const [favouritesModalOpen, setFavouritesModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
@@ -94,11 +91,11 @@ export default function App() {
       setFavouritesModalOpen(true);
     } else if (route.view === 'compare') {
       setCompareModalOpen(true);
-    } else if (route.view === 'list-your-property') {
+    } else if (route.view === 'list-your-property' || route.view === 'list-property') {
       if (isAuthenticated()) {
         goTo('/owner/dashboard/add');
       } else {
-        goTo('/contact');
+        goTo('/owner-login');
       }
     }
   }, [route.view, goTo]);
@@ -274,10 +271,6 @@ export default function App() {
 
       {/* SECTION B — Main Navigation with 7-Station Dropdown & Tools */}
       <Navbar
-        onOpenListModal={() => {
-          setListModalInitialReq('Sell');
-          setListPropertyModalOpen(true);
-        }}
         onSelectCategory={(filterData) => {
           handleApplyFilters(filterData);
         }}
@@ -294,8 +287,6 @@ export default function App() {
           }
         }}
         onNavigate={goTo}
-        onOpenFavourites={() => setFavouritesModalOpen(true)}
-        onOpenCompare={() => setCompareModalOpen(true)}
       />
 
       {/* MAIN VIEW ROUTING */}
@@ -375,16 +366,7 @@ export default function App() {
             <WhyChooseUs />
 
             {/* SECTION L — Property Owner / Landlord Advisory */}
-            <PropertyOwnerCTA
-              onNavigate={goTo}
-              onOpenListModal={(requirement) => {
-                if (isAuthenticated()) {
-                  goTo('/owner/dashboard/add');
-                } else {
-                  goTo('/contact');
-                }
-              }}
-            />
+            <PropertyOwnerCTA onNavigate={goTo} />
 
             {/* SECTION M — Customer Enquiry & Advisory Contact Desk */}
             <ContactSection />
@@ -458,10 +440,6 @@ export default function App() {
           handleApplyFilters(filter, true);
         }}
         onSelectLocality={handleLocalitySelect}
-        onOpenListModal={() => {
-          setListModalInitialReq('Sell');
-          setListPropertyModalOpen(true);
-        }}
         onNavigate={goTo}
       />
 
@@ -478,13 +456,6 @@ export default function App() {
         <EnquiryModal
           initialData={enquiryModalData}
           onClose={() => setEnquiryModalData(null)}
-        />
-      )}
-
-      {listPropertyModalOpen && (
-        <PropertyListModal
-          initialRequirement={listModalInitialReq}
-          onClose={() => setListPropertyModalOpen(false)}
         />
       )}
 

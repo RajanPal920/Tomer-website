@@ -1,8 +1,8 @@
 {
   "username": "admin",
-  "salt": "aee391916457473686f691468366cb509052e24578d7a58aa6101997f5281971",
-  "passwordHash": "cd6b361ab2bd7e3038dd63b25e91be466f52894c9813b58c0a3873590c50db01880c32e43f05bfde77c56c739b6837f9fdab5dfeaf4ca838020d0fc877aa452e",
+  "salt": "fa0ad69401c24166b1c43ee972548dcdeebab9e0974df3e480048f4471b6a750",
+  "passwordHash": "9949b3d7ecf9c94af4870cb9e4b8bb6e9bcaa10694aa09f0574e9442efff6a013d4143a8a48dabc387b056a77e912ee92886305da3adfafd9db16cff698561d8",
   "role": "owner",
-  "updatedAt": "2026-10-14T08:03:36.601Z",
-  "isInitialPassword": true
+  "updatedAt": "2026-10-15T06:19:45.806Z",
+  "isInitialPassword": false
 }

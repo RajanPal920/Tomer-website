@@ -11,14 +11,53 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, 'data');
 const AUTH_FILE = path.join(DATA_DIR, 'owner_auth.json');
+const SESSION_FILE = path.join(DATA_DIR, 'owner_sessions.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// In-memory active sessions map: token -> { username, role, expiresAt }
-const activeSessions = new Map();
+/**
+ * Load persisted active sessions from disk so rebooting laptop or restarting
+ * dev server does not log out the authenticated owner.
+ */
+function loadSavedSessions() {
+  const map = new Map();
+  if (fs.existsSync(SESSION_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf-8'));
+      const now = Date.now();
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (item && item.token && item.expiresAt > now) {
+            map.set(item.token, item);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[AUTH] Failed to load saved sessions:', err.message);
+    }
+  }
+  return map;
+}
+
+/**
+ * Atomically persist active sessions to disk
+ */
+function persistSessions(map) {
+  try {
+    const valid = Array.from(map.values()).filter((s) => s && s.expiresAt > Date.now());
+    const tempFile = `${SESSION_FILE}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(valid, null, 2), 'utf-8');
+    fs.renameSync(tempFile, SESSION_FILE);
+  } catch (err) {
+    console.warn('[AUTH] Failed to save sessions:', err.message);
+  }
+}
+
+// Active sessions map: token -> { username, role, expiresAt }
+const activeSessions = loadSavedSessions();
 
 /**
  * Hash a password using PBKDF2 with SHA-512
@@ -33,7 +72,10 @@ export function hashPassword(password, salt) {
 function initializeAuthStore() {
   if (fs.existsSync(AUTH_FILE)) {
     try {
-      return JSON.parse(fs.readFileSync(AUTH_FILE, 'utf-8'));
+      const parsed = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf-8'));
+      if (parsed && parsed.username && parsed.passwordHash && parsed.salt) {
+        return parsed;
+      }
     } catch {
       // Re-initialize if corrupted
     }
@@ -77,8 +119,13 @@ export function authenticateOwner(username, password) {
     }
   }
 
+  if (!ownerAuthRecord) {
+    return null;
+  }
+
   const cleanUsername = String(username).trim();
-  if (cleanUsername !== ownerAuthRecord.username) {
+  // Case-insensitive comparison prevents auto-capitalization issues on phones/tablets
+  if (cleanUsername.toLowerCase() !== String(ownerAuthRecord.username).trim().toLowerCase()) {
     return null;
   }
 
@@ -98,6 +145,7 @@ export function authenticateOwner(username, password) {
   };
 
   activeSessions.set(token, session);
+  persistSessions(activeSessions);
   return session;
 }
 
@@ -113,6 +161,7 @@ export function validateSession(token) {
 
   if (Date.now() > session.expiresAt) {
     activeSessions.delete(cleanToken);
+    persistSessions(activeSessions);
     return null;
   }
 
@@ -125,13 +174,27 @@ export function validateSession(token) {
 export function invalidateSession(token) {
   if (!token) return false;
   const cleanToken = token.startsWith('Bearer ') ? token.slice(7).trim() : token.trim();
-  return activeSessions.delete(cleanToken);
+  const deleted = activeSessions.delete(cleanToken);
+  if (deleted) {
+    persistSessions(activeSessions);
+  }
+  return deleted;
 }
 
 /**
  * Update owner password
  */
 export function updateOwnerPassword(newPassword) {
+  return updateOwnerCredentials(null, newPassword);
+}
+
+/**
+ * Update owner username and password securely
+ */
+export function updateOwnerCredentials(newUsername, newPassword) {
+  if (newUsername && newUsername.trim().length < 3) {
+    throw new Error('Username must be at least 3 characters long');
+  }
   if (!newPassword || newPassword.length < 8) {
     throw new Error('Password must be at least 8 characters long');
   }
@@ -141,6 +204,7 @@ export function updateOwnerPassword(newPassword) {
 
   ownerAuthRecord = {
     ...ownerAuthRecord,
+    username: newUsername ? newUsername.trim() : ownerAuthRecord.username,
     salt,
     passwordHash,
     updatedAt: new Date().toISOString(),
@@ -150,6 +214,7 @@ export function updateOwnerPassword(newPassword) {
   fs.writeFileSync(AUTH_FILE, JSON.stringify(ownerAuthRecord, null, 2), 'utf-8');
   // Clear all existing sessions for security
   activeSessions.clear();
+  persistSessions(activeSessions);
   return true;
 }
 
@@ -157,10 +222,25 @@ export function updateOwnerPassword(newPassword) {
  * Get public auth info (does not expose hash or salt)
  */
 export function getAuthStatus() {
+  if (fs.existsSync(AUTH_FILE)) {
+    try {
+      ownerAuthRecord = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf-8'));
+    } catch {}
+  }
+
+  if (!ownerAuthRecord) {
+    return {
+      hasConfiguredAuth: false,
+      isInitialPassword: true,
+      username: null,
+      role: null,
+    };
+  }
+
   return {
     username: ownerAuthRecord.username,
     role: ownerAuthRecord.role,
-    isInitialPassword: ownerAuthRecord.isInitialPassword,
-    hasConfiguredAuth: true,
+    isInitialPassword: Boolean(ownerAuthRecord.isInitialPassword),
+    hasConfiguredAuth: !ownerAuthRecord.isInitialPassword,
   };
 }

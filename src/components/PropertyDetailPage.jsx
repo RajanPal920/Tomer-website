@@ -26,12 +26,13 @@ import {
   trackRecentlyViewed,
   subscribeToPreferences,
 } from '../services/userPreferences';
-import { submitEnquiry } from '../services/propertyStore';
+import { submitEnquiry, fetchLiveProperties, subscribeToProperties } from '../services/propertyStore';
 import { buildGmailComposeUrl, buildMailtoUrl, openGmailCompose } from '../services/emailService';
 import PropertyCard from './PropertyCard';
 
 export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
-  const property = getPropertyBySlug(slug);
+  const [property, setProperty] = useState(() => getPropertyBySlug(slug));
+  const [isLoading, setIsLoading] = useState(!property);
   const propId = property?.id;
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -46,9 +47,62 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
   });
   const [formErrors, setFormErrors] = useState({});
 
+  // Ensure property resolves even on fresh browser page refresh
+  useEffect(() => {
+    const existing = getPropertyBySlug(slug);
+    if (existing) {
+      setProperty(existing);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    let isMounted = true;
+
+    // Fetch live properties from backend API
+    fetchLiveProperties(true)
+      .then(() => {
+        if (!isMounted) return;
+        const liveProp = getPropertyBySlug(slug);
+        if (liveProp) {
+          setProperty(liveProp);
+          setIsLoading(false);
+        } else {
+          // Direct API query for individual property ID or slug
+          fetch(`/api/properties/${encodeURIComponent(slug)}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (isMounted && data?.property) {
+                setProperty(data.property);
+              }
+            })
+            .catch(() => {})
+            .finally(() => {
+              if (isMounted) setIsLoading(false);
+            });
+        }
+      })
+      .catch(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    const unsubscribe = subscribeToProperties(() => {
+      if (!isMounted) return;
+      const updated = getPropertyBySlug(slug);
+      if (updated) setProperty(updated);
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [slug]);
+
   useEffect(() => {
     if (propId) {
       trackRecentlyViewed(propId);
+      setIsFav(isFavourite(propId));
+      setInComp(isInCompare(propId));
     }
   }, [propId]);
 
@@ -59,6 +113,19 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
       if (type === 'compare') setInComp(isInCompare(propId));
     });
   }, [propId]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center py-20 px-4 bg-ivory">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 border-2 border-brandRed border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted text-xs font-semibold uppercase tracking-wider">
+            Loading Property Details...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!property) {
     return (

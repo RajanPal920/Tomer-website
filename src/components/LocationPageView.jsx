@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   MapPin,
   ChevronRight,
@@ -11,6 +11,7 @@ import {
 import WhatsAppIcon from './WhatsAppIcon';
 import { resolveCanonicalLocation, APPROVED_STATIONS } from '../data/locations';
 import { getAllProperties } from '../data/properties';
+import { fetchLiveProperties, subscribeToProperties } from '../services/propertyStore';
 import { filterProperties } from '../services/propertySearch';
 import { contactInfo } from '../data/contactInfo';
 import PropertyCard from './PropertyCard';
@@ -20,8 +21,16 @@ export default function LocationPageView({ slug, onNavigate, onEnquire }) {
 
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
   const [activeSort, setActiveSort] = useState('recommended');
+  const [allProps, setAllProps] = useState(() => getAllProperties());
 
-  const allProps = getAllProperties();
+  useEffect(() => {
+    fetchLiveProperties().catch(() => {});
+    return subscribeToProperties((liveProps) => {
+      if (Array.isArray(liveProps) && liveProps.length > 0) {
+        setAllProps(liveProps);
+      }
+    });
+  }, []);
 
   // Filter listings strictly matching this canonical location
   const locationListings = useMemo(() => {

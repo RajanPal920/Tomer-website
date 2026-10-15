@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { contactInfo } from '../data/contactInfo';
 import { submitEnquiry } from '../services/propertyStore';
-import { buildGmailComposeUrl, buildMailtoUrl, openGmailCompose } from '../services/emailService';
+import { buildGmailComposeUrl, openGmailCompose } from '../services/emailService';
 
 import WhatsAppIcon from './WhatsAppIcon';
 export { WhatsAppIcon };

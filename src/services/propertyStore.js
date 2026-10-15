@@ -179,6 +179,85 @@ export async function deleteOwnerListing(id) {
 }
 
 /**
+ * Upload an image file for a property listing (Owner Only)
+ * Converts File to base64 and uploads to /api/upload
+ */
+export async function uploadPropertyImage(file) {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Owner authorization required to upload property images');
+  }
+
+  if (!file) {
+    throw new Error('No file provided for upload');
+  }
+
+  // Validate file type
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  if (!validTypes.includes(file.type.toLowerCase())) {
+    throw new Error('Unsupported image format. Allowed formats: JPEG, PNG, WebP.');
+  }
+
+  // Validate size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error(`File size ${(file.size / (1024 * 1024)).toFixed(1)}MB exceeds the 5MB limit.`);
+  }
+
+  // Read as base64 data URL
+  const base64Data = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.readAsDataURL(file);
+  });
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      data: base64Data,
+      filename: file.name,
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || 'Failed to upload property image');
+  }
+
+  return data;
+}
+
+/**
+ * Change owner credentials (Owner Only)
+ */
+export async function changeOwnerCredentials(newUsername, newPassword) {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Owner authorization required to update credentials');
+  }
+
+  const res = await fetch('/api/auth/change-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ newUsername, newPassword }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || 'Failed to update owner credentials');
+  }
+
+  return data;
+}
+
+/**
  * Submit a public customer enquiry (Does NOT create a listing)
  */
 export async function submitEnquiry(enquiryData) {

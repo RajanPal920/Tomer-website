@@ -2,11 +2,17 @@
 // Enforces Server-Side Role-Based Authorization
 // Normal visitors cannot create, update, or delete properties via API.
 
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+
 import {
   authenticateOwner,
   validateSession,
   invalidateSession,
   getAuthStatus,
+  updateOwnerCredentials,
 } from './auth.js';
 
 import {
@@ -24,11 +30,28 @@ import {
 } from './dataStore.js';
 import { sampleProperties } from '../src/data/properties.js';
 
-// Helper to parse JSON body from incoming Node.js request
-function parseBody(req) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PUBLIC_PROPS_DIR = path.join(__dirname, '..', 'public', 'images', 'properties');
+const DIST_PROPS_DIR = path.join(__dirname, '..', 'dist', 'images', 'properties');
+
+// Ensure image upload directories exist
+if (!fs.existsSync(PUBLIC_PROPS_DIR)) {
+  fs.mkdirSync(PUBLIC_PROPS_DIR, { recursive: true });
+}
+
+// Helper to parse JSON body from incoming Node.js request with configurable size limit
+function parseBody(req, limit = 15 * 1024 * 1024) {
   return new Promise((resolve) => {
     let body = '';
+    let size = 0;
     req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > limit) {
+        req.destroy();
+        resolve({});
+        return;
+      }
       body += chunk;
     });
     req.on('end', () => {
@@ -132,6 +155,103 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
     // GET /api/auth/status
     if (pathname === '/api/auth/status' && method === 'GET') {
       return sendJson(res, 200, getAuthStatus());
+    }
+
+    // POST /api/auth/change-password (Owner Only)
+    if (pathname === '/api/auth/change-password' && method === 'POST') {
+      if (!isOwner) {
+        return sendJson(res, 403, {
+          error: 'Forbidden: Owner authorization required to change credentials.',
+        });
+      }
+
+      const body = await parseBody(req);
+      const { newUsername, newPassword } = body;
+
+      if (!newPassword || newPassword.length < 8) {
+        return sendJson(res, 400, {
+          error: 'New password must be at least 8 characters long.',
+        });
+      }
+
+      try {
+        updateOwnerCredentials(newUsername, newPassword);
+        return sendJson(res, 200, {
+          success: true,
+          message: 'Owner credentials updated successfully. Please sign in with your updated credentials.',
+        });
+      } catch (err) {
+        return sendJson(res, 400, {
+          error: err.message || 'Failed to update owner credentials.',
+        });
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // IMAGE UPLOAD ROUTE (Owner Only)
+    // -----------------------------------------------------------------------
+
+    // POST /api/upload (Owner Only)
+    if (pathname === '/api/upload' && method === 'POST') {
+      if (!isOwner) {
+        return sendJson(res, 403, {
+          error: 'Forbidden: Owner authentication required to upload property images.',
+        });
+      }
+
+      const body = await parseBody(req);
+      const rawData = body.image || body.data;
+      if (!rawData) {
+        return sendJson(res, 400, {
+          error: 'Missing image data. Please provide base64 data string.',
+        });
+      }
+
+      // Match data URL prefix (e.g. data:image/jpeg;base64,...)
+      const match = String(rawData).match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i);
+      if (!match) {
+        return sendJson(res, 400, {
+          error: 'Invalid image format. Supported formats: JPEG, PNG, WebP.',
+        });
+      }
+
+      const rawExt = match[1].toLowerCase();
+      const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+      const base64Data = match[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      // Max size: 5MB
+      if (buffer.length > 5 * 1024 * 1024) {
+        return sendJson(res, 400, {
+          error: 'Image file size exceeds maximum allowed limit of 5MB.',
+        });
+      }
+
+      if (!fs.existsSync(PUBLIC_PROPS_DIR)) {
+        fs.mkdirSync(PUBLIC_PROPS_DIR, { recursive: true });
+      }
+
+      const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+      const filename = `prop-${uniqueSuffix}.${ext}`;
+      const targetPath = path.join(PUBLIC_PROPS_DIR, filename);
+      fs.writeFileSync(targetPath, buffer);
+
+      // If dist folder exists (production build), write there too so static server has it immediately
+      if (fs.existsSync(path.join(__dirname, '..', 'dist'))) {
+        if (!fs.existsSync(DIST_PROPS_DIR)) {
+          fs.mkdirSync(DIST_PROPS_DIR, { recursive: true });
+        }
+        fs.writeFileSync(path.join(DIST_PROPS_DIR, filename), buffer);
+      }
+
+      const publicUrl = `/images/properties/${filename}`;
+      return sendJson(res, 201, {
+        success: true,
+        message: 'Property image uploaded and stored successfully',
+        url: publicUrl,
+        filename,
+        sizeBytes: buffer.length,
+      });
     }
 
     // -----------------------------------------------------------------------

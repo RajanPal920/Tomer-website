@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Lock, User, ArrowLeft, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Shield, Lock, User, ArrowLeft, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import BrandLogo from '../BrandLogo';
 import { login } from '../../services/authService';
 
@@ -94,6 +94,9 @@ export default function OwnerLoginPage({ onNavigate, onLoginSuccess }) {
                   name="username"
                   type="text"
                   autoComplete="username"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   required
                   placeholder="Enter administrator username"
                   value={username}
@@ -172,6 +175,9 @@ export default function OwnerLoginPage({ onNavigate, onLoginSuccess }) {
             </div>
             <p className="text-[10px] text-muted">
               Only authorized personnel can add, edit, or publish properties on Tomar Enterprises.
+            </p>
+            <p className="text-[10px] text-muted/80 pt-1">
+              Authorized Owner: Run <code className="text-navy font-mono font-semibold bg-stone/40 px-1.5 py-0.5 rounded">npm run setup-owner</code> in your terminal to initialize or reset your account.
             </p>
           </div>
         </div>

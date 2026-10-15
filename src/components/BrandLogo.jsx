@@ -14,10 +14,10 @@ export default function BrandLogo({
 
   // Responsive height scale ensuring the ~2.94:1 logo proportions stay visually balanced, prominent, and crisp
   const heightClasses = {
-    large: 'h-[64px] sm:h-[76px] md:h-[84px] lg:h-[92px] 2xl:h-[102px]',
-    default: 'h-[48px] sm:h-[58px] md:h-[66px]',
-    small: 'h-[38px] sm:h-[44px] md:h-[50px]',
-  }[size] || 'h-[64px] sm:h-[76px] md:h-[84px]';
+    large: 'h-[58px] sm:h-[66px] md:h-[72px] lg:h-[78px] xl:h-[82px]',
+    default: 'h-[44px] sm:h-[52px] md:h-[58px] lg:h-[64px]',
+    small: 'h-[36px] sm:h-[40px] md:h-[46px]',
+  }[size] || 'h-[58px] sm:h-[66px] md:h-[74px]';
 
   const logoImg = (
     <img

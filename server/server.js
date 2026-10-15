@@ -34,8 +34,15 @@ const server = http.createServer(async (req, res) => {
     return handleApiRequest(req, res);
   }
 
-  // 2. Static File Serving from dist/
+  // 2. Static File Serving from dist/ or public/
   let filePath = path.join(DIST_DIR, pathname === '/' ? 'index.html' : pathname);
+
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    const publicPath = path.join(__dirname, '..', 'public', pathname);
+    if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
+      filePath = publicPath;
+    }
+  }
 
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
     const ext = path.extname(filePath).toLowerCase();

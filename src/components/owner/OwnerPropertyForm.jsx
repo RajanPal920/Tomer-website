@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Save,
   X,
@@ -7,9 +7,7 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   AlertCircle,
-  Eye,
   ArrowLeft,
-  Sparkles,
   Building2,
   MapPin,
   IndianRupee,
@@ -17,9 +15,14 @@ import {
   FileText,
   Star,
   Check,
+  UploadCloud,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { APPROVED_STATIONS } from '../../data/locations';
-import { PROPERTY_TYPES_BY_CATEGORY, REQUIREMENT_OPTIONS } from '../../data/listingModalData';
+import { PROPERTY_TYPES_BY_CATEGORY } from '../../data/listingModalData';
+import { uploadPropertyImage } from '../../services/propertyStore';
 
 const COMMON_AMENITIES = [
   '24x7 Municipal Water Supply',
@@ -96,16 +99,26 @@ export default function OwnerPropertyForm({
         ]
   );
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef(null);
 
   const [errors, setErrors] = useState({});
 
   // Categorization helpers
   const isPlot = category.includes('plot') || category.includes('land') || transactionType === 'plots-land';
-  const isCommercial = category.startsWith('commercial') || transactionType === 'commercial';
+  const isCommercial =
+    category.startsWith('commercial') ||
+    category.includes('shop') ||
+    category.includes('office') ||
+    transactionType === 'commercial';
   const isRental = transactionType === 'rent' || category.includes('rent');
   const isLease = transactionType === 'lease' || category.includes('lease');
-  const isHeavyDeposit = category.includes('heavy') || transactionType === 'lease';
-  const isRedevelopment = category.includes('redevelopment') || category.includes('development');
+  const isHeavyDeposit = category.includes('heavy') || transactionType === 'heavy-deposit';
+  const isRedevelopment = category.includes('redevelopment') || transactionType === 'redevelopment';
+  const showLivingSpecs = !isPlot && !isCommercial && !isRedevelopment;
 
   // Auto-adjust default area unit
   useEffect(() => {
@@ -114,7 +127,7 @@ export default function OwnerPropertyForm({
     } else if (!isPlot && areaUnit === 'guntha') {
       setAreaUnit('sq.ft');
     }
-  }, [isPlot]);
+  }, [isPlot, areaUnit]);
 
   // Toggle amenity tag
   const toggleFeature = (feat) => {
@@ -131,13 +144,124 @@ export default function OwnerPropertyForm({
     }
   };
 
-  // Add image URL to gallery
+  // Upload image file via backend API
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(null);
+
+    const uploadedUrls = [];
+    const uploadErrors = [];
+
+    for (const file of files) {
+      try {
+        const res = await uploadPropertyImage(file);
+        if (res && res.url) {
+          uploadedUrls.push(res.url);
+        }
+      } catch (err) {
+        uploadErrors.push(`${file.name}: ${err.message}`);
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      setGallery((prev) => {
+        // If current gallery has only placeholder, replace with uploaded
+        const isDefaultPlaceholder =
+          prev.length === 1 && prev[0].includes('photo-1545324418-cc1a3fa10c00');
+        const nextGallery = isDefaultPlaceholder ? uploadedUrls : [...prev, ...uploadedUrls];
+        if (!coverImage || isDefaultPlaceholder) {
+          setCoverImage(uploadedUrls[0]);
+        }
+        return nextGallery;
+      });
+      setUploadSuccess(`Successfully stored ${uploadedUrls.length} property photo(s) on server.`);
+    }
+
+    if (uploadErrors.length > 0) {
+      setUploadError(uploadErrors.join(' | '));
+    }
+
+    setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Drag and drop image upload
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files || []).filter((f) =>
+      f.type.startsWith('image/')
+    );
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(null);
+
+    const uploadedUrls = [];
+    const uploadErrors = [];
+
+    for (const file of files) {
+      try {
+        const res = await uploadPropertyImage(file);
+        if (res && res.url) {
+          uploadedUrls.push(res.url);
+        }
+      } catch (err) {
+        uploadErrors.push(`${file.name}: ${err.message}`);
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      setGallery((prev) => {
+        const isDefaultPlaceholder =
+          prev.length === 1 && prev[0].includes('photo-1545324418-cc1a3fa10c00');
+        const nextGallery = isDefaultPlaceholder ? uploadedUrls : [...prev, ...uploadedUrls];
+        if (!coverImage || isDefaultPlaceholder) {
+          setCoverImage(uploadedUrls[0]);
+        }
+        return nextGallery;
+      });
+      setUploadSuccess(`Successfully stored ${uploadedUrls.length} property photo(s) on server.`);
+    }
+
+    if (uploadErrors.length > 0) {
+      setUploadError(uploadErrors.join(' | '));
+    }
+
+    setIsUploading(false);
+  };
+
+  // Add image URL manually to gallery
   const handleAddImage = () => {
     if (newImageUrl.trim()) {
-      setGallery((prev) => [...prev, newImageUrl.trim()]);
-      if (!coverImage) setCoverImage(newImageUrl.trim());
+      setGallery((prev) => {
+        const isDefaultPlaceholder =
+          prev.length === 1 && prev[0].includes('photo-1545324418-cc1a3fa10c00');
+        const nextGallery = isDefaultPlaceholder ? [newImageUrl.trim()] : [...prev, newImageUrl.trim()];
+        if (!coverImage || isDefaultPlaceholder) {
+          setCoverImage(newImageUrl.trim());
+        }
+        return nextGallery;
+      });
       setNewImageUrl('');
     }
+  };
+
+  // Reorder images
+  const moveImage = (index, delta) => {
+    const targetIndex = index + delta;
+    if (targetIndex < 0 || targetIndex >= gallery.length) return;
+    const updated = [...gallery];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    setGallery(updated);
   };
 
   // Remove image from gallery
@@ -552,7 +676,7 @@ export default function OwnerPropertyForm({
             </select>
           </div>
 
-          {!isPlot && (
+          {showLivingSpecs && (
             <>
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-charcoal mb-1.5">
@@ -651,81 +775,228 @@ export default function OwnerPropertyForm({
         </div>
       </div>
 
-      {/* SECTION 5: Image Management */}
+      {/* SECTION 5: Image Management (Direct Uploads & Persistent Storage) */}
       <div className="bg-white rounded-2xl border border-stone p-5 sm:p-7 shadow-xs space-y-5">
-        <h3 className="font-serif text-lg text-navy font-bold flex items-center gap-2 border-b border-stone/60 pb-3">
-          <ImageIcon className="w-5 h-5 text-royal" />
-          <span>5. Property Images & Cover Photo</span>
-        </h3>
+        <div className="flex items-center justify-between border-b border-stone/60 pb-3">
+          <h3 className="font-serif text-lg text-navy font-bold flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-royal" />
+            <span>5. Property Images & Cover Photo</span>
+          </h3>
+          <span className="text-xs text-muted font-medium">
+            {gallery.length} photo{gallery.length === 1 ? '' : 's'} attached
+          </span>
+        </div>
 
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="url"
-              placeholder="Enter Image URL (e.g. https://images.unsplash.com/...)"
-              value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              className="flex-1 bg-white border border-stone rounded-xl px-4 py-2.5 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-royal transition-colors"
-            />
+        {uploadError && (
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-600" />
+            <div className="flex-1">
+              <span className="font-bold">Upload Notice:</span> {uploadError}
+            </div>
             <button
               type="button"
-              onClick={handleAddImage}
-              className="px-5 py-2.5 bg-navy text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-navy-900 transition-colors inline-flex items-center justify-center gap-1.5"
+              onClick={() => setUploadError(null)}
+              className="text-rose-500 hover:text-rose-700"
             >
-              <Plus className="w-4 h-4 text-white" />
-              <span>Add Image</span>
+              <X className="w-4 h-4" />
             </button>
           </div>
+        )}
 
-          {/* Gallery Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-2">
-            {gallery.map((imgUrl, idx) => {
-              const isCover = imgUrl === coverImage;
-              return (
-                <div
-                  key={idx}
-                  className={`relative rounded-xl overflow-hidden border-2 transition-all group ${
-                    isCover ? 'border-brandRed shadow-md ring-2 ring-brandRed/20' : 'border-stone hover:border-navy'
-                  }`}
-                >
-                  <img
-                    src={imgUrl}
-                    alt={`Preview ${idx + 1}`}
-                    className="w-full aspect-[4/3] object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src =
-                        'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80';
-                    }}
-                  />
-                  {isCover && (
-                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-brandRed text-white font-bold text-[10px] uppercase tracking-wider">
-                      Cover
-                    </div>
-                  )}
+        {uploadSuccess && (
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2.5 animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span className="flex-1">{uploadSuccess}</span>
+            <button
+              type="button"
+              onClick={() => setUploadSuccess(null)}
+              className="text-emerald-600 hover:text-emerald-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
-                  <div className="absolute inset-0 bg-navy/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-                    {!isCover && (
-                      <button
-                        type="button"
-                        onClick={() => setCoverImage(imgUrl)}
-                        className="p-1.5 rounded-lg bg-white/90 text-navy hover:bg-white text-xs font-semibold"
-                        title="Set as Cover Photo"
-                      >
-                        Set Cover
-                      </button>
+        <div className="space-y-4">
+          {/* Drag & Drop Upload Dropzone */}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer ${
+              isDragOver
+                ? 'border-royal bg-royal/5 ring-4 ring-royal/10'
+                : 'border-stone hover:border-navy hover:bg-ivory/50 bg-stone/5'
+            }`}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div className="w-12 h-12 rounded-2xl bg-royal/10 text-royal flex items-center justify-center mb-1">
+                {isUploading ? (
+                  <Loader2 className="w-6 h-6 animate-spin text-royal" />
+                ) : (
+                  <UploadCloud className="w-6 h-6" />
+                )}
+              </div>
+
+              <div className="text-sm font-bold text-navy">
+                {isUploading ? 'Uploading and Storing Image on Server...' : 'Click to Upload Property Photos or Drag & Drop'}
+              </div>
+              <p className="text-xs text-muted max-w-sm">
+                Supports JPEG, PNG, and WebP (up to 5MB each). Photos are stored securely on the Tomar Enterprises server.
+              </p>
+
+              <button
+                type="button"
+                disabled={isUploading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                className="mt-2 px-4 py-2 bg-navy text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-navy-900 transition-colors inline-flex items-center gap-2 shadow-sm"
+              >
+                <UploadCloud className="w-4 h-4" />
+                <span>Browse Files</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Or Add from Image URL */}
+          <div className="pt-2 border-t border-stone/60">
+            <label className="block text-xs font-semibold text-charcoal mb-1.5">
+              Or attach by web Image URL:
+            </label>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <input
+                type="url"
+                placeholder="Paste Image URL (e.g. https://images.unsplash.com/...)"
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddImage();
+                  }
+                }}
+                className="flex-1 bg-white border border-stone rounded-xl px-4 py-2.5 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-royal transition-colors"
+              />
+              <button
+                type="button"
+                onClick={handleAddImage}
+                className="px-5 py-2.5 bg-stone/70 hover:bg-navy hover:text-white text-charcoal text-xs font-bold uppercase tracking-wider rounded-xl transition-colors inline-flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Attach URL</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Gallery Grid with Reordering & Cover Selection */}
+          <div className="pt-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-charcoal">
+                Listing Image Gallery ({gallery.length})
+              </span>
+              <span className="text-[11px] text-muted">
+                Tip: Click "Cover" to set primary display image. Use arrows to reorder.
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {gallery.map((imgUrl, idx) => {
+                const isCover = imgUrl === coverImage;
+                return (
+                  <div
+                    key={`${imgUrl}-${idx}`}
+                    className={`relative rounded-xl overflow-hidden border-2 transition-all group bg-white shadow-xs ${
+                      isCover
+                        ? 'border-brandRed shadow-md ring-2 ring-brandRed/20'
+                        : 'border-stone hover:border-navy'
+                    }`}
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={`Photo ${idx + 1}`}
+                      className="w-full aspect-[4/3] object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80';
+                      }}
+                    />
+
+                    {/* Cover badge */}
+                    {isCover && (
+                      <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-brandRed text-white font-bold text-[10px] uppercase tracking-wider shadow-sm flex items-center gap-1">
+                        <Star className="w-2.5 h-2.5 fill-current" />
+                        <span>Cover</span>
+                      </div>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(idx)}
-                      className="p-1.5 rounded-lg bg-rose-500 text-white hover:bg-rose-600"
-                      title="Remove image"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+
+                    {/* Order index */}
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/60 text-white font-mono text-[10px]">
+                      #{idx + 1}
+                    </div>
+
+                    {/* Hover actions overlay */}
+                    <div className="absolute inset-0 bg-navy/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => moveImage(idx, -1)}
+                            className="p-1.5 rounded-lg bg-white/90 text-navy hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            title="Move Earlier"
+                          >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === gallery.length - 1}
+                            onClick={() => moveImage(idx, 1)}
+                            className="p-1.5 rounded-lg bg-white/90 text-navy hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            title="Move Later"
+                          >
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="p-1.5 rounded-lg bg-rose-500 text-white hover:bg-rose-600 transition-colors shadow-sm"
+                          title="Remove photo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {!isCover && (
+                        <button
+                          type="button"
+                          onClick={() => setCoverImage(imgUrl)}
+                          className="w-full py-1.5 rounded-lg bg-white text-navy hover:bg-ivory text-xs font-bold uppercase tracking-wider text-center shadow transition-colors"
+                        >
+                          Set as Cover
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

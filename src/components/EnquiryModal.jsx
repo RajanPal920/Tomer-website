@@ -267,10 +267,11 @@ export default function EnquiryModal({ initialData, onClose }) {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded bg-brandRed hover:bg-brandRed-700 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
+                  disabled={isSubmitting}
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded bg-brandRed hover:bg-brandRed-700 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   <Send className="w-4 h-4 text-white" />
-                  <span>Submit Enquiry Request</span>
+                  <span>{isSubmitting ? 'Submitting...' : 'Submit Enquiry Request'}</span>
                 </button>
               </div>
 

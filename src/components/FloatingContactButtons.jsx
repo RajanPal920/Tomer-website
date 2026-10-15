@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Phone, X } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { contactInfo } from '../data/contactInfo';
-import { WhatsAppIcon } from './ContactPageView';
+import WhatsAppIcon from './WhatsAppIcon';
 
 export default function FloatingContactButtons() {
   const [showCallTooltip, setShowCallTooltip] = useState(false);
@@ -17,9 +17,8 @@ export default function FloatingContactButtons() {
       <div className="relative flex items-center">
         {/* Desktop Tooltip */}
         <span
-          className={`hidden md:inline-block absolute right-full mr-3 px-3 py-1.5 rounded-lg bg-navy-950/90 text-white text-xs font-semibold whitespace-nowrap shadow-lg border border-white/10 pointer-events-none transition-all duration-200 ${
-            showWaTooltip ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
-          }`}
+          className={`hidden md:inline-block absolute right-full mr-3 px-3 py-1.5 rounded-lg bg-navy-950/90 text-white text-xs font-semibold whitespace-nowrap shadow-lg border border-white/10 pointer-events-none transition-all duration-200 ${showWaTooltip ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
+            }`}
         >
           Chat with Advisor on WhatsApp
         </span>
@@ -40,12 +39,11 @@ export default function FloatingContactButtons() {
       </div>
 
       {/* 2. Floating Call Button */}
-      <div className="relative flex items-center">
+      <div className="relative flex items-center bg-brandblue-500">
         {/* Desktop Tooltip */}
         <span
-          className={`hidden md:inline-block absolute right-full mr-3 px-3 py-1.5 rounded-lg bg-navy-950/90 text-white text-xs font-semibold whitespace-nowrap shadow-lg border border-white/10 pointer-events-none transition-all duration-200 ${
-            showCallTooltip ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
-          }`}
+          className={`hidden md:inline-block absolute right-full mr-3 px-3 py-1.5 rounded-lg bg-navy-950/90 text-white text-xs font-semibold whitespace-nowrap shadow-lg border border-white/10 pointer-events-none transition-all duration-200 ${showCallTooltip ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
+            }`}
         >
           Call Advisory Desk (+91 82370 92224)
         </span>

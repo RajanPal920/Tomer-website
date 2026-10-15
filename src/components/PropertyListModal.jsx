@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Shield,
-  Building2,
   MapPin,
   IndianRupee,
   Phone,
@@ -137,7 +136,7 @@ export default function PropertyListModal({ initialRequirement = 'Sell', onClose
     } else if (!isPlotOrLand && areaUnit !== 'sq.ft' && areaUnit !== 'sq.mtr') {
       setAreaUnit('sq.ft');
     }
-  }, [isPlotOrLand]);
+  }, [isPlotOrLand, areaUnit]);
 
   // Handle image file selection
   const handleImageChange = (e) => {

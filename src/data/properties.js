@@ -1003,7 +1003,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "3-Year Commercial Lease",
     "parking": "Shopfront Customer Space",
-    "image": "/images/buildingImages/build1.png",
+    "image": "/images/buildingImages/image copy 5.png",
     "gallery": [
       "/images/buildingImages/build1.png",
       "/images/buildingImages/image copy 6.png",
@@ -1041,7 +1041,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready Possession",
     "parking": "Customer Frontage Parking",
-    "image": "/images/buildingImages/image copy 7.png",
+    "image": "/images/buildingImages/image copy 2.png",
     "gallery": [
       "/images/buildingImages/image copy 7.png",
       "/images/buildingImages/image copy 16.png",
@@ -1079,7 +1079,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate Possession",
     "parking": "Paved Customer Parking",
-    "image": "/images/buildingImages/image copy 16.png",
+    "image": "/images/hero/hero-commercial.jpg",
     "gallery": [
       "/images/buildingImages/image copy 16.png",
       "/images/buildingImages/image copy 27.png",
@@ -1155,7 +1155,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready to Move",
     "parking": "2 Dedicated Covered Slots",
-    "image": "/images/buildingImages/image copy 8.png",
+    "image": "/images/hero/hero-interior.jpg",
     "gallery": [
       "/images/buildingImages/image copy 8.png",
       "/images/buildingImages/image copy 17.png",
@@ -1193,7 +1193,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready to Move",
     "parking": "1 Reserved Car Stilt Parking",
-    "image": "/images/buildingImages/image copy 17.png",
+    "image": "/images/hero/hero-commercial.jpg",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 9.png",
@@ -1231,7 +1231,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready Possession",
     "parking": "Open Parking Bay",
-    "image": "/images/buildingImages/image copy 9.png",
+    "image": "/images/hero/hero-development.jpg",
     "gallery": [
       "/images/buildingImages/image copy 9.png",
       "/images/buildingImages/image copy 17.png",
@@ -1269,7 +1269,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready Possession",
     "parking": "Dedicated Customer Parking Zone",
-    "image": "/images/buildingImages/image copy 17.png",
+    "image": "/images/hero/hero-development.jpg",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 16.png",
@@ -1311,7 +1311,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready Handover",
     "parking": "4 Paved Parking Bays",
-    "image": "/images/buildingImages/image copy 17.png",
+    "image": "/images/buildingImages/image copy 5.png",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 16.png",
@@ -1353,7 +1353,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready to Move",
     "parking": "Spacious Visitor Parking",
-    "image": "/images/buildingImages/image copy 17.png",
+    "image": "/images/buildingImages/image copy 6.png",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 16.png",
@@ -1547,7 +1547,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready to Register",
     "parking": "Open Approach Road",
-    "image": "/images/buildingImages/image copy 20.png",
+    "image": "/images/buildingImages/image copy 22.png",
     "gallery": [
       "/images/buildingImages/image copy 20.png",
       "/images/buildingImages/image copy 24.png",
@@ -1585,7 +1585,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate Registry",
     "parking": "Independent Gate Entry",
-    "image": "/images/buildingImages/image copy 24.png",
+    "image": "/images/buildingImages/image copy 23.png",
     "gallery": [
       "/images/buildingImages/image copy 24.png",
       "/images/buildingImages/image copy 20.png",
@@ -1623,7 +1623,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate Transfer",
     "parking": "Heavy Vehicle & Container Turning Bay",
-    "image": "/images/buildingImages/image copy 25.png",
+    "image": "/images/hero/hero-land.jpg",
     "gallery": [
       "/images/buildingImages/image copy 25.png",
       "/images/buildingImages/image copy 20.png",
@@ -1661,7 +1661,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready for Plant Setup",
     "parking": "Dedicated Container Loading Dock",
-    "image": "/images/buildingImages/image copy 21.png",
+    "image": "/images/buildingImages/image copy 22.png",
     "gallery": [
       "/images/buildingImages/image copy 21.png",
       "/images/buildingImages/image copy 20.png",
@@ -1699,7 +1699,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate Handover",
     "parking": "Trailer Parking Yard",
-    "image": "/images/buildingImages/image copy 20.png",
+    "image": "/images/hero/hero-land.jpg",
     "gallery": [
       "/images/buildingImages/image copy 20.png",
       "/images/buildingImages/image copy 24.png",
@@ -1738,7 +1738,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate 3 to 5 Year Lease",
     "parking": "Shared Complex Parking",
-    "image": "/images/buildingImages/image copy 17.png",
+    "image": "/images/hero/hero-commercial.jpg",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 16.png",
@@ -1781,7 +1781,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "5-Year Commercial Lease",
     "parking": "Dedicated Car Slots",
-    "image": "/images/buildingImages/image copy 17.png",
+    "image": "/images/hero/hero-apartments.jpg",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 16.png",
@@ -1824,7 +1824,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate Handover",
     "parking": "Heavy Vehicle Frontage",
-    "image": "/images/buildingImages/image copy 17.png",
+    "image": "/images/buildingImages/image copy 6.png",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 16.png",
@@ -1867,7 +1867,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "3-Year Contract",
     "parking": "Front Customer Space",
-    "image": "/images/buildingImages/image copy 8.png",
+    "image": "/images/buildingImages/image copy 5.png",
     "gallery": [
       "/images/buildingImages/image copy 8.png",
       "/images/buildingImages/image copy 16.png",
@@ -1906,7 +1906,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate",
     "parking": "Market Frontage",
-    "image": "/images/buildingImages/image copy 7.png",
+    "image": "/images/buildingImages/image copy 6.png",
     "gallery": [
       "/images/buildingImages/image copy 7.png",
       "/images/buildingImages/image copy 16.png",
@@ -1945,7 +1945,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate",
     "parking": "Shopfront Bike Space",
-    "image": "/images/buildingImages/image copy 16.png",
+    "image": "/images/buildingImages/image copy 27.png",
     "gallery": [
       "/images/buildingImages/image copy 16.png",
       "/images/buildingImages/image copy 27.png",
@@ -1984,7 +1984,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "3-5 Year Registered Lease",
     "parking": "1 Reserved Car Slot",
-    "image": "/images/buildingImages/image copy 7.png",
+    "image": "/images/hero/hero-interior.jpg",
     "gallery": [
       "/images/buildingImages/image copy 7.png",
       "/images/buildingImages/image copy 17.png",
@@ -2023,7 +2023,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate",
     "parking": "Complex Parking",
-    "image": "/images/buildingImages/image copy 8.png",
+    "image": "/images/hero/hero-apartments.jpg",
     "gallery": [
       "/images/buildingImages/image copy 8.png",
       "/images/buildingImages/image copy 17.png",
@@ -2062,7 +2062,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate",
     "parking": "Ample Open Parking",
-    "image": "/images/buildingImages/image copy 17.png",
+    "image": "/images/buildingImages/image copy 2.png",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 9.png",
@@ -2101,7 +2101,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "3-Year Registered Lease",
     "parking": "Shopfront Two-Wheeler Space",
-    "image": "/images/buildingImages/build2.png",
+    "image": "/images/buildingImages/image copy 6.png",
     "gallery": [
       "/images/buildingImages/build2.png",
       "/images/buildingImages/image copy 9.png",
@@ -2140,7 +2140,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "3-5 Year Agreement",
     "parking": "Covered Parking Slot",
-    "image": "/images/buildingImages/image copy 10.png",
+    "image": "/images/hero/hero-interior.jpg",
     "gallery": [
       "/images/buildingImages/image copy 10.png",
       "/images/buildingImages/image copy 22.png",
@@ -2179,7 +2179,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate 3-Year Contract",
     "parking": "1 Open Car Parking",
-    "image": "/images/buildingImages/image copy 11.png",
+    "image": "/images/buildingImages/image copy 2.png",
     "gallery": [
       "/images/buildingImages/image copy 11.png",
       "/images/buildingImages/image copy 23.png",
