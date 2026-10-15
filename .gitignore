@@ -5,9 +5,10 @@
 !.env.example
 
 # Persistent Databases & Runtime Data
-server/data/*.db
-server/data/*.db*
 server/data/*.tmp
+server/data/*.db-journal
+server/data/*.db-wal
+server/data/*.db-shm
 server/data/owner_sessions.json
 server/data/owner_auth.json
 

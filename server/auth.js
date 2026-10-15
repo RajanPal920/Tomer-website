@@ -133,6 +133,18 @@ export async function initializeOwnerAuthIfNeeded() {
 
   const existing = await get('SELECT * FROM owner_users LIMIT 1');
   if (existing) {
+    // If an initial temporary password was in place and a secure TOMAR_OWNER_PASS is provided, synchronize it securely
+    if (process.env.TOMAR_OWNER_PASS && (existing.is_initial_password === 1 || process.env.TOMAR_FORCE_SYNC_OWNER === 'true')) {
+      const newHash = await hashPassword(process.env.TOMAR_OWNER_PASS);
+      const targetUser = (process.env.TOMAR_OWNER_USER || existing.username).trim();
+      const now = new Date().toISOString();
+      await run(
+        'UPDATE owner_users SET username = ?, password_hash = ?, updated_at = ?, is_initial_password = 0 WHERE id = ?',
+        [targetUser, newHash, now, existing.id]
+      );
+      console.log(`[AUTH] Synchronized owner account "${targetUser}" from secure environment variable.`);
+      return { id: existing.id, username: targetUser, role: 'owner' };
+    }
     // Owner already provisioned. Do NOT overwrite.
     return existing;
   }

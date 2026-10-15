@@ -222,7 +222,11 @@ export async function handleApiRequest(req, res) {
 
       // Build secure HttpOnly Cookie
       const maxAge = remember ? 30 * 24 * 3600 : 24 * 3600; // 30 days vs 24 hours
-      const isSecure = process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] === 'https';
+      const isSecure = Boolean(
+        process.env.VERCEL ||
+        req.headers['x-forwarded-proto'] === 'https' ||
+        process.env.NODE_ENV === 'production'
+      );
       const cookieVal = `tomar_session=${authResult.token}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${isSecure ? '; Secure' : ''}`;
 
       return sendJson(
@@ -244,7 +248,12 @@ export async function handleApiRequest(req, res) {
       if (token) {
         await invalidateSession(token);
       }
-      const clearCookie = 'tomar_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax';
+      const isSecure = Boolean(
+        process.env.VERCEL ||
+        req.headers['x-forwarded-proto'] === 'https' ||
+        process.env.NODE_ENV === 'production'
+      );
+      const clearCookie = `tomar_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${isSecure ? '; Secure' : ''}`;
       return sendJson(
         res,
         200,

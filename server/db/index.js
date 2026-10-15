@@ -38,13 +38,44 @@ export function getEffectiveSqlitePath() {
   // /tmp is the only writable directory.
   if (isServerless) {
     const tmpDbPath = path.join('/tmp', 'tomar.db');
-    const bundledPath = path.join(DATA_DIR, 'tomar.db');
-    if (!fs.existsSync(tmpDbPath) && fs.existsSync(bundledPath)) {
+    const candidatePaths = [
+      path.join(process.cwd(), 'server', 'data', 'tomar.db'),
+      path.join(DATA_DIR, 'tomar.db'),
+      path.join(process.cwd(), 'data', 'tomar.db'),
+      path.resolve(__dirname, '..', 'data', 'tomar.db'),
+      path.resolve(__dirname, '..', 'server', 'data', 'tomar.db'),
+    ];
+    const bundledPath = candidatePaths.find((p) => {
       try {
-        fs.copyFileSync(bundledPath, tmpDbPath);
-        console.log(`[DB] Copied bundled database to serverless storage: ${tmpDbPath}`);
-      } catch (copyErr) {
-        console.warn('[DB] Could not copy bundled DB to /tmp:', copyErr.message);
+        return fs.existsSync(p);
+      } catch {
+        return false;
+      }
+    });
+
+    if (bundledPath) {
+      let shouldCopy = false;
+      if (!fs.existsSync(tmpDbPath)) {
+        shouldCopy = true;
+      } else {
+        try {
+          const bundledStat = fs.statSync(bundledPath);
+          const tmpStat = fs.statSync(tmpDbPath);
+          if (bundledStat.mtimeMs > tmpStat.mtimeMs || bundledStat.size !== tmpStat.size) {
+            shouldCopy = true;
+          }
+        } catch {
+          shouldCopy = true;
+        }
+      }
+
+      if (shouldCopy) {
+        try {
+          fs.copyFileSync(bundledPath, tmpDbPath);
+          console.log(`[DB] Copied bundled database to serverless storage: ${tmpDbPath} from ${bundledPath}`);
+        } catch (copyErr) {
+          console.warn('[DB] Could not copy bundled DB to /tmp:', copyErr.message);
+        }
       }
     }
     return tmpDbPath;
