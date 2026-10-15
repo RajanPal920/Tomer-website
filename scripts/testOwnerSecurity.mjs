@@ -27,16 +27,21 @@ function assert(condition, testName, details = '') {
   }
 }
 
+import { Readable } from 'node:stream';
+
 // Mock HTTP Request/Response runner for direct server-level unit testing
 async function callApi(method, path, body = null, headers = {}) {
   return new Promise((resolve, reject) => {
-    const req = new EventEmitter();
-    req.method = method;
-    req.url = path;
-    req.headers = {
-      host: 'localhost:5173',
-      ...headers,
-    };
+    const stream = body ? Readable.from([Buffer.from(JSON.stringify(body))]) : Readable.from([]);
+    const req = Object.assign(stream, {
+      method,
+      url: path,
+      headers: {
+        host: 'localhost:5173',
+        ...headers,
+      },
+      socket: { remoteAddress: '127.0.0.1' },
+    });
 
     const res = {
       statusCode: 200,
@@ -63,11 +68,6 @@ async function callApi(method, path, body = null, headers = {}) {
 
     // Execute API handler
     handleApiRequest(req, res).catch(reject);
-
-    if (body) {
-      req.emit('data', JSON.stringify(body));
-    }
-    req.emit('end');
   });
 }
 

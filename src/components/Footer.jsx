@@ -47,18 +47,18 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
   ];
 
   return (
-    <footer className="bg-navy-950 text-stone text-sm border-t border-white/10">
+    <footer className="bg-navy-950 text-white text-sm border-t border-white/10">
       {/* Upper Footer Grid */}
       <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
           {/* Column 1: Brand & Contact Info from Visiting Card (4 Cols) */}
           <div className="lg:col-span-4">
             <BrandLogo variant="light" size="large" className="mb-4" />
-            <p className="text-stone/80 text-sm leading-relaxed mb-6 max-w-sm">
+            <p className="text-white text-sm leading-relaxed mb-6 max-w-sm">
               TOMAR ENTERPRISES is an authorized real estate agency located in Virar East. We specialize in property sales, purchase assistance, rentals, NA plots, home loans, and registration assistance across the Vasai-to-Palghar corridor.
             </p>
 
-            <div className="space-y-3 text-stone/90 text-sm">
+            <div className="space-y-3 text-white text-sm">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-brandRed flex-shrink-0 mt-0.5" />
                 <span className="leading-snug">
@@ -69,11 +69,11 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-brandRed flex-shrink-0" />
                 <div className="flex flex-wrap items-center gap-2">
-                  <a href={`tel:${contactInfo.phoneSanjay1Raw}`} className="hover:text-white font-semibold transition-colors">
+                  <a href={`tel:${contactInfo.phoneSanjay1Raw}`} className="hover:text-stone-light font-semibold transition-colors">
                     Sanjay: {contactInfo.phoneSanjay1}
                   </a>
-                  <span className="text-stone-dark">|</span>
-                  <a href={`tel:${contactInfo.phoneSanjay2Raw}`} className="hover:text-white transition-colors">
+                  <span className="text-white/40">|</span>
+                  <a href={`tel:${contactInfo.phoneSanjay2Raw}`} className="hover:text-stone-light transition-colors">
                     {contactInfo.phoneSanjay2}
                   </a>
                 </div>
@@ -81,14 +81,14 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
 
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-brandRed flex-shrink-0" />
-                <a href={`tel:${contactInfo.phoneShlokRaw}`} className="hover:text-white font-semibold transition-colors">
+                <a href={`tel:${contactInfo.phoneShlokRaw}`} className="hover:text-stone-light font-semibold transition-colors">
                   Shlok: {contactInfo.phoneShlok}
                 </a>
               </div>
 
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-brandRed flex-shrink-0" />
-                <a href={contactInfo.emailMailto} className="hover:text-white font-semibold transition-colors break-all">
+                <a href={contactInfo.emailMailto} className="hover:text-stone-light font-semibold transition-colors break-all">
                   {contactInfo.email}
                 </a>
               </div>
@@ -112,12 +112,12 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
             <h4 className="font-bold text-white text-[16px] tracking-tight mb-4 pb-2 border-b border-white/10 flex items-center justify-between">
               <span>Explore Properties</span>
             </h4>
-            <ul className="space-y-2.5 text-[14px] text-stone/85">
+            <ul className="space-y-2.5 text-[14px] text-white">
               {propertyExploreLinks.map((item, idx) => (
                 <li key={idx}>
                   <button
                     onClick={() => handleLink('listings', item.filter, item.path)}
-                    className="hover:text-white hover:underline transition-colors text-left font-medium"
+                    className="hover:text-stone-light hover:underline transition-colors text-left font-medium"
                   >
                     {item.label}
                   </button>
@@ -131,7 +131,7 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
             <h4 className="font-bold text-white text-[16px] tracking-tight mb-4 pb-2 border-b border-white/10">
               <span>Agency Services</span>
             </h4>
-            <ul className="space-y-2.5 text-[14px] text-stone/85 font-medium">
+            <ul className="space-y-2.5 text-[14px] text-white font-medium">
               {contactInfo.services.slice(0, 6).map((srv, idx) => (
                 <li key={idx} className="truncate" title={srv}>
                   &bull; {srv}
@@ -174,7 +174,7 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
             <h4 className="font-bold text-white text-[16px] tracking-tight mb-4 pb-2 border-b border-white/10">
               <span>7 Station Corridor</span>
             </h4>
-            <div className="grid grid-cols-2 gap-2 text-[13.5px] font-medium text-stone/90">
+            <div className="grid grid-cols-2 gap-2 text-[13.5px] font-medium text-white">
               {APPROVED_STATIONS.map((loc) => (
                 <button
                   key={loc.locationId}
@@ -185,7 +185,7 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
                       onSelectLocality(loc.locationId);
                     }
                   }}
-                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-left hover:text-white transition-colors flex items-center gap-1.5"
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-left hover:text-white transition-colors flex items-center gap-1.5 text-white"
                 >
                   <MapPin className="w-3 h-3 text-brandRed flex-shrink-0" />
                   <span className="truncate">{loc.canonicalName}</span>
@@ -193,7 +193,7 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
               ))}
             </div>
 
-            <div className="mt-5 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-[12px] text-stone/80 leading-relaxed">
+            <div className="mt-5 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-[12px] text-white leading-relaxed">
               <strong className="text-white block mb-0.5">Vasai Road to Palghar:</strong>
               Continuous mainline rail corridor & highway connectivity across Palghar district.
             </div>
@@ -203,11 +203,11 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
 
       {/* Bottom Sub-Footer Bar */}
       <div className="border-t border-white/10 bg-black/40 py-5">
-        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-stone/70">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-white">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
             <span>&copy; {currentYear} TOMAR ENTERPRISES. All rights reserved. Shop No. 06, Nakshtra Apt., Viva Jangid Complex, Manvelpada, Virar (East), Palghar - 401305.</span>
             <span className="hidden sm:inline text-white/30">&bull;</span>
-            <span className="text-stone/90">
+            <span className="text-white">
               Design and SEO by{' '}
               <a
                 href="https://sunmargindia.com/"

@@ -6,16 +6,30 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "start": "node server/server.js",
     "lint": "oxlint",
     "preview": "vite preview",
+    "db:init": "node scripts/initDatabase.mjs",
+    "db:migrate": "node scripts/initDatabase.mjs",
     "setup-owner": "node scripts/setupOwnerAccount.mjs",
-    "audit:owner": "node scripts/testOwnerWorkflow.mjs"
+    "reset-owner-password": "node scripts/resetOwnerPassword.mjs",
+    "audit:owner": "node scripts/testOwnerWorkflow.mjs",
+    "test:workflow": "node scripts/testOwnerWorkflow.mjs",
+    "test:security": "node scripts/testOwnerSecurity.mjs",
+    "test:scale": "node scripts/testInventoryScale.mjs",
+    "test:audit": "node scripts/verifyMaster24Scenarios.mjs",
+    "sync:catalog": "node scripts/syncCatalogToDb.mjs"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^18.0.8",
     "framer-motion": "^14.2.0",
     "lucide-react": "^1.56.0",
+    "pg": "^8.23.1",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "sql.js": "^1.15.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",

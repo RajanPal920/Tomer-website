@@ -26,6 +26,7 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import BrandLogo from '../BrandLogo';
+import { APPROVED_STATIONS } from '../../data/locations';
 import OwnerPropertyForm from './OwnerPropertyForm';
 import {
   fetchOwnerInventory,
@@ -435,7 +436,7 @@ export default function OwnerDashboard({ onNavigate, user }) {
             <button
               type="button"
               onClick={() => onNavigate('/')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-stone hover:text-white text-xs font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white hover:text-stone-light text-xs font-semibold transition-colors"
             >
               <span>View Website</span>
               <ExternalLink className="w-3.5 h-3.5 text-royal-light" />
@@ -753,7 +754,7 @@ export default function OwnerDashboard({ onNavigate, user }) {
                     <h2 className="font-serif text-2xl sm:text-3xl font-normal leading-tight mb-2">
                       Ready to onboard a new property?
                     </h2>
-                    <p className="text-xs sm:text-sm text-stone leading-relaxed">
+                    <p className="text-xs sm:text-sm text-white leading-relaxed">
                       Create and publish residential flats, commercial retail, NA plots, or redevelopment projects. Published properties immediately appear on the public website with verified titles.
                     </p>
                   </div>
@@ -878,15 +879,12 @@ export default function OwnerDashboard({ onNavigate, user }) {
                         onChange={(e) => setFilterLocality(e.target.value)}
                         className="bg-white border border-stone rounded-xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:ring-2 focus:ring-royal flex-1 sm:flex-none"
                       >
-                        <option value="all">All Stations</option>
-                        <option value="vasai-road">Vasai Road</option>
-                        <option value="nalasopara">Nalasopara</option>
-                        <option value="virar">Virar</option>
-                        <option value="vaitarna">Vaitarna</option>
-                        <option value="saphale">Saphale</option>
-                        <option value="kelve-road">Kelve Road</option>
-                        <option value="palghar">Palghar</option>
-                        <option value="boisar">Boisar</option>
+                        <option value="all">All Stations (Vasai to Palghar)</option>
+                        {APPROVED_STATIONS.map((st) => (
+                          <option key={st.locationId} value={st.locationId}>
+                            {st.canonicalName}
+                          </option>
+                        ))}
                       </select>
 
                       {/* Category Filter */}

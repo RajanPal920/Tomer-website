@@ -162,21 +162,21 @@ export default function EmiCalculator() {
         {/* Right Output Card (5 Cols) */}
         <div className="lg:col-span-5 bg-navy text-white rounded-2xl p-6 sm:p-7 shadow-elevated flex flex-col justify-between">
           <div>
-            <div className="text-stone/80 text-xs uppercase font-bold tracking-wider mb-1">
+            <div className="text-white text-xs uppercase font-bold tracking-wider mb-1">
               Estimated Monthly EMI
             </div>
             <div className="font-serif text-3xl sm:text-4xl font-bold text-blue-200 tracking-tight mb-6">
               {formatCurrency(calculation.monthlyEmi)}
-              <span className="text-xs font-normal text-stone/80 font-sans ml-1">/ month</span>
+              <span className="text-xs font-normal text-white font-sans ml-1">/ month</span>
             </div>
 
             <div className="space-y-3.5 pb-6 border-b border-white/15 text-xs">
               <div className="flex justify-between">
-                <span className="text-stone/80">Principal Loan Amount:</span>
+                <span className="text-white">Principal Loan Amount:</span>
                 <span className="font-bold text-white">{formatCurrency(loanAmount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone/80">Total Interest Payable:</span>
+                <span className="text-white">Total Interest Payable:</span>
                 <span className="font-bold text-blue-200">{formatCurrency(calculation.totalInterest)}</span>
               </div>
               <div className="flex justify-between pt-2 border-t border-white/10 text-sm">
@@ -187,7 +187,7 @@ export default function EmiCalculator() {
 
             {/* Visual Ratio Bar */}
             <div className="mt-6">
-              <div className="flex justify-between text-[11px] font-semibold mb-1.5 text-stone/90">
+              <div className="flex justify-between text-[11px] font-semibold mb-1.5 text-white">
                 <span>Principal ({calculation.principalRatio}%)</span>
                 <span>Interest ({calculation.interestRatio}%)</span>
               </div>
@@ -204,7 +204,7 @@ export default function EmiCalculator() {
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-white/10 text-[10px] text-stone/70 leading-relaxed flex items-start gap-1.5">
+          <div className="mt-6 pt-4 border-t border-white/10 text-[10px] text-white leading-relaxed flex items-start gap-1.5">
             <Info className="w-3.5 h-3.5 text-brandRed flex-shrink-0 mt-0.5" />
             <span>
               Disclaimer: This EMI calculation is for illustration and planning purposes only. Bank processing fees, stamp duty, GST, and final interest rates are subject to lender policies.

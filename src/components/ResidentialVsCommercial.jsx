@@ -92,7 +92,7 @@ export default function ResidentialVsCommercial({ onSelectPanel }) {
             <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between">
               <div>
                 <p className="text-muted text-sm sm:text-base leading-relaxed mb-6">
-                  Position your retail venture on high-footfall main roads, secure Grade-A corporate office suites, or acquire industrial land within Boisar MIDC and logistics corridors.
+                  Position your retail venture on high-footfall main roads, secure Grade-A corporate office suites, or acquire industrial land within Palghar industrial and logistics corridors.
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 mb-8">

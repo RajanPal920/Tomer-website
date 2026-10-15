@@ -239,17 +239,17 @@ export default function Hero({
           <div className="bg-navy-900/85 backdrop-blur-md rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/20 shadow-2xl text-white relative">
             {/* 1. Introductory Label & Service Corridor Badge */}
             <div className="flex items-center justify-between gap-3 mb-3.5">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-stone text-xs tracking-wider uppercase shadow-xs">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs tracking-wider uppercase shadow-xs">
                 <span className="w-2 h-2 rounded-full bg-brandRed animate-pulse" />
                 <MapPin className="w-3.5 h-3.5 text-brandRed" />
                 <span className="font-semibold text-white tracking-wide">{contactInfo.locationBadge}</span>
               </div>
 
               {/* Slide Counter */}
-              <div className="flex items-center gap-1.5 text-xs font-mono tracking-widest text-white/90 font-bold">
+              <div className="flex items-center gap-1.5 text-xs font-mono tracking-widest text-white font-bold">
                 <span className="text-white">0{currentSlide + 1}</span>
-                <span className="text-white/40">/</span>
-                <span className="text-white/60">0{totalSlides}</span>
+                <span className="text-white">/</span>
+                <span className="text-white">0{totalSlides}</span>
               </div>
             </div>
 
@@ -261,13 +261,13 @@ export default function Hero({
             {/* 3. Main Heading */}
             <h1 className="font-serif text-2xl sm:text-4xl lg:text-[44px] font-normal leading-[1.18] tracking-tight text-white mb-3 transition-all duration-300">
               {activeSlideData.headline}{' '}
-              <span className="italic font-normal text-white/90 block sm:inline">
+              <span className="italic font-normal text-white block sm:inline">
                 {activeSlideData.highlighted}
               </span>
             </h1>
 
             {/* 4. Supporting Description */}
-            <p className="text-stone/90 text-sm sm:text-base leading-relaxed mb-6 font-normal max-w-xl transition-all duration-300">
+            <p className="text-white text-sm sm:text-base leading-relaxed mb-6 font-normal max-w-xl transition-all duration-300">
               {activeSlideData.description}
             </p>
 

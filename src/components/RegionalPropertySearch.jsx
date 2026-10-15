@@ -46,9 +46,9 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
     {
       id: 'ind-plots',
       title: 'Industrial Plots',
-      desc: 'Boisar MIDC & warehouse plots with heavy logistics road access',
+      desc: 'Palghar industrial & warehouse plots with heavy logistics road access',
       icon: Layers,
-      tag: 'MIDC & Warehousing',
+      tag: 'Industrial & Warehousing',
       filterParams: { transactionType: 'plots-land', locality: 'all', category: 'industrial-plot' },
     },
   ];

@@ -49,7 +49,7 @@ export default function OwnerLoginPage({ onNavigate, onLoginSuccess }) {
         <button
           type="button"
           onClick={() => onNavigate('/')}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-stone hover:text-white text-xs font-semibold backdrop-blur-md transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white hover:text-stone-light text-xs font-semibold backdrop-blur-md transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Website</span>
@@ -63,7 +63,7 @@ export default function OwnerLoginPage({ onNavigate, onLoginSuccess }) {
           <h1 className="font-serif text-2xl sm:text-3xl text-white font-normal tracking-tight">
             Owner & Administration Portal
           </h1>
-          <p className="mt-2 text-xs text-stone tracking-wide uppercase">
+          <p className="mt-2 text-xs text-white tracking-wide uppercase">
             Exclusive Property Management & Client Advisory Desk
           </p>
         </div>

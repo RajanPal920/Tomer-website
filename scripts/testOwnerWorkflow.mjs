@@ -10,20 +10,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5173';
 
-let authFileUser = null;
-try {
-  const authData = JSON.parse(
-    fs.readFileSync(path.join(__dirname, '..', 'server', 'data', 'owner_auth.json'), 'utf-8')
-  );
-  authFileUser = authData.username;
-} catch {}
+import { runMigrations, get } from '../server/db/index.js';
+
+await runMigrations();
+const dbUser = await get('SELECT username FROM owner_users LIMIT 1');
 
 const args = process.argv.slice(2);
-const TEST_USERNAME = args[0] || process.env.TOMAR_OWNER_USER || authFileUser || 'admin';
-const TEST_PASSWORD =
-  args[1] ||
-  process.env.TOMAR_OWNER_PASS ||
-  (TEST_USERNAME === 'testowner' ? 'TestOwner2026!' : 'Tomar@Admin2026!');
+const TEST_USERNAME = args[0] || process.env.TOMAR_OWNER_USER || dbUser?.username || 'admin';
+const TEST_PASSWORD = args[1] || process.env.TOMAR_OWNER_PASS || 'Tomar@Admin2026!';
 
 // 1x1 pixel valid transparent WebP base64
 const SAMPLE_WEBP_BASE64 =
@@ -311,15 +305,12 @@ async function runTests() {
       `New price: ${editData.property?.price}`
     );
 
-    // Verify disk persistence in owner_properties.json
-    const diskProperties = JSON.parse(
-      fs.readFileSync(path.join(__dirname, '..', 'server', 'data', 'owner_properties.json'), 'utf-8')
-    );
-    const diskMatch = diskProperties.find((p) => p.id === testPropertyId);
+    // Verify persistence directly in persistent relational database
+    const dbProperty = await get('SELECT * FROM properties WHERE id = ?', [testPropertyId]);
     recordResult(
-      'Persistence: Updated record verified directly in server disk file',
-      diskMatch && diskMatch.price === updatedPrice,
-      `Disk price matches: ${diskMatch?.price}`
+      'Persistence: Updated record verified directly in persistent database',
+      dbProperty && dbProperty.price === updatedPrice,
+      `Database price matches: ${dbProperty?.price}`
     );
 
     // -----------------------------------------------------------------------

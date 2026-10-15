@@ -1,5 +1,5 @@
 // Centralized Reactive Property Store for Tomar Enterprises
-// Bridges client-side React views with the secure server persistence backend.
+// Bridges client-side React views with the secure persistent relational database backend.
 // Dispatches updates so public search, filters, cards, and detail pages update automatically!
 
 import { sampleProperties, setLivePropertiesCache } from '../data/properties';
@@ -8,6 +8,15 @@ import { getAuthToken } from './authService';
 let cachedPublicProperties = [...sampleProperties];
 let isInitialized = false;
 const listeners = new Set();
+
+function getAuthHeaders(extra = {}) {
+  const token = getAuthToken();
+  const headers = { ...extra };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 function notifyListeners() {
   // Sync data/properties.js live cache
@@ -38,7 +47,9 @@ export async function fetchLiveProperties(force = false) {
   }
 
   try {
-    const res = await fetch('/api/properties');
+    const res = await fetch('/api/properties', {
+      credentials: 'include',
+    });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data.properties) && data.properties.length > 0) {
@@ -76,20 +87,16 @@ export function findLivePropertyBySlug(slug) {
  * Fetch all properties for owner dashboard (including drafts, sold, and internal notes)
  */
 export async function fetchOwnerInventory() {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to access inventory management');
-  }
+  const headers = getAuthHeaders();
 
   const res = await fetch('/api/properties?all=true', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
   });
 
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || 'Failed to fetch owner inventory');
+    throw new Error(errData.error || 'Failed to fetch owner inventory from database');
   }
 
   const data = await res.json();
@@ -100,23 +107,18 @@ export async function fetchOwnerInventory() {
  * Create a new property listing (Owner Only)
  */
 export async function createOwnerListing(propertyData) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to create property listings');
-  }
+  const headers = getAuthHeaders({ 'Content-Type': 'application/json' });
 
   const res = await fetch('/api/properties', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
     body: JSON.stringify(propertyData),
   });
 
   const data = await res.json();
   if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Failed to create property');
+    throw new Error(data.error || 'Failed to create property in database');
   }
 
   // Refresh public list so website updates immediately if published
@@ -128,23 +130,18 @@ export async function createOwnerListing(propertyData) {
  * Update an existing property listing (Owner Only)
  */
 export async function updateOwnerListing(id, propertyData) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to update property listings');
-  }
+  const headers = getAuthHeaders({ 'Content-Type': 'application/json' });
 
   const res = await fetch(`/api/properties/${id}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
     body: JSON.stringify(propertyData),
   });
 
   const data = await res.json();
   if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Failed to update property');
+    throw new Error(data.error || 'Failed to update property in database');
   }
 
   // Refresh public list
@@ -156,21 +153,17 @@ export async function updateOwnerListing(id, propertyData) {
  * Delete a property listing (Owner Only)
  */
 export async function deleteOwnerListing(id) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to delete property listings');
-  }
+  const headers = getAuthHeaders();
 
   const res = await fetch(`/api/properties/${id}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
   });
 
   const data = await res.json();
   if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Failed to delete property');
+    throw new Error(data.error || 'Failed to delete property from database');
   }
 
   // Refresh public list
@@ -183,11 +176,6 @@ export async function deleteOwnerListing(id) {
  * Converts File to base64 and uploads to /api/upload
  */
 export async function uploadPropertyImage(file) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to upload property images');
-  }
-
   if (!file) {
     throw new Error('No file provided for upload');
   }
@@ -211,12 +199,12 @@ export async function uploadPropertyImage(file) {
     reader.readAsDataURL(file);
   });
 
+  const headers = getAuthHeaders({ 'Content-Type': 'application/json' });
+
   const res = await fetch('/api/upload', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
     body: JSON.stringify({
       data: base64Data,
       filename: file.name,
@@ -235,17 +223,12 @@ export async function uploadPropertyImage(file) {
  * Change owner credentials (Owner Only)
  */
 export async function changeOwnerCredentials(newUsername, newPassword) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to update credentials');
-  }
+  const headers = getAuthHeaders({ 'Content-Type': 'application/json' });
 
   const res = await fetch('/api/auth/change-password', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
     body: JSON.stringify({ newUsername, newPassword }),
   });
 
@@ -266,6 +249,7 @@ export async function submitEnquiry(enquiryData) {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify(enquiryData),
   });
 
@@ -280,15 +264,11 @@ export async function submitEnquiry(enquiryData) {
  * Fetch all visitor enquiries for owner dashboard (Owner Only)
  */
 export async function fetchOwnerEnquiries() {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to access customer enquiries');
-  }
+  const headers = getAuthHeaders();
 
   const res = await fetch('/api/enquiries', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
   });
 
   if (!res.ok) {
@@ -304,17 +284,12 @@ export async function fetchOwnerEnquiries() {
  * Update enquiry review status (Owner Only)
  */
 export async function updateEnquiryStatus(id, status) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to update enquiry status');
-  }
+  const headers = getAuthHeaders({ 'Content-Type': 'application/json' });
 
   const res = await fetch(`/api/enquiries/${id}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
     body: JSON.stringify({ status }),
   });
 
@@ -327,7 +302,7 @@ export async function updateEnquiryStatus(id, status) {
  */
 export async function fetchWebsiteSettings() {
   try {
-    const res = await fetch('/api/settings');
+    const res = await fetch('/api/settings', { credentials: 'include' });
     if (res.ok) {
       return await res.json();
     }
@@ -341,17 +316,12 @@ export async function fetchWebsiteSettings() {
  * Update website settings (Owner Only)
  */
 export async function updateWebsiteSettings(settings) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('Owner authorization required to modify settings');
-  }
+  const headers = getAuthHeaders({ 'Content-Type': 'application/json' });
 
   const res = await fetch('/api/settings', {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include',
     body: JSON.stringify(settings),
   });
 

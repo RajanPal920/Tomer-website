@@ -38,7 +38,7 @@ import FavouritesModal from './components/FavouritesModal';
 import { useRouter } from './services/router';
 import { sampleProperties } from './data/properties';
 import { fetchLiveProperties, subscribeToProperties } from './services/propertyStore';
-import { isAuthenticated, getCurrentUser } from './services/authService';
+import { isAuthenticated, getCurrentUser, verifySession, subscribeToAuth } from './services/authService';
 import {
   filterProperties,
   getFiltersFromUrl,
@@ -59,6 +59,23 @@ export default function App() {
   const [favouritesModalOpen, setFavouritesModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
   const [allProperties, setAllProperties] = useState(() => sampleProperties);
+
+  // Verify session on mount with backend server and subscribe to auth changes
+  useEffect(() => {
+    verifySession().then(({ authenticated, user }) => {
+      if (authenticated && user) {
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    const unsubAuth = subscribeToAuth((user) => {
+      setCurrentUser(user);
+    });
+
+    return () => unsubAuth();
+  }, []);
 
   // Subscribe to live property store updates (ensures owner-added listings appear automatically)
   useEffect(() => {
@@ -246,7 +263,7 @@ export default function App() {
         <div className="min-h-screen bg-navy-950 flex items-center justify-center text-white">
           <div className="text-center space-y-3">
             <div className="w-8 h-8 border-2 border-brandRed border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-stone text-sm">Verifying Owner Authorization...</p>
+            <p className="text-white text-sm">Verifying Owner Authorization...</p>
           </div>
         </div>
       );

@@ -118,7 +118,7 @@ export default function VideoWalkthroughSection({ onEnquire, onScheduleVisit }) 
             <h2 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-normal leading-tight">
               Step Inside Actual Sample Residences
             </h2>
-            <p className="mt-3 text-stone/90 text-sm sm:text-base leading-relaxed">
+            <p className="mt-3 text-white text-sm sm:text-base leading-relaxed">
               Explore authentic interior walkthroughs of verified residential properties in Virar and the Vasai corridor. Inspect finishes, layouts, natural lighting, and balcony vistas before scheduling your site visit.
             </p>
           </div>
@@ -133,7 +133,7 @@ export default function VideoWalkthroughSection({ onEnquire, onScheduleVisit }) 
                 className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeVideoIndex === idx
                     ? 'bg-brandRed text-white shadow-md'
-                    : 'text-stone hover:text-white hover:bg-white/10'
+                    : 'text-white hover:text-stone-light hover:bg-white/10'
                 }`}
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
@@ -173,7 +173,7 @@ export default function VideoWalkthroughSection({ onEnquire, onScheduleVisit }) 
                   <h3 className="font-serif text-lg text-white mb-1">
                     Video Temporarily Unavailable
                   </h3>
-                  <p className="text-xs text-stone max-w-sm mb-4">
+                  <p className="text-xs text-white max-w-sm mb-4">
                     The walkthrough footage is loading or updating. You can still inspect property photographs and schedule an in-person site visit.
                   </p>
                   <a
@@ -206,7 +206,7 @@ export default function VideoWalkthroughSection({ onEnquire, onScheduleVisit }) 
                 <button
                   type="button"
                   onClick={toggleMute}
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-stone hover:text-white transition-colors"
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white hover:text-stone-light transition-colors"
                   aria-label={isMuted ? 'Unmute video' : 'Mute video'}
                 >
                   {isMuted ? (
@@ -216,7 +216,7 @@ export default function VideoWalkthroughSection({ onEnquire, onScheduleVisit }) 
                   )}
                 </button>
 
-                <span className="text-stone/80 text-[11px] font-medium hidden sm:inline">
+                <span className="text-white text-[11px] font-medium hidden sm:inline">
                   {isPlaying ? 'Playing Walkthrough' : 'Click Play to Watch with Controls'}
                 </span>
               </div>
@@ -229,7 +229,7 @@ export default function VideoWalkthroughSection({ onEnquire, onScheduleVisit }) 
                 <button
                   type="button"
                   onClick={handleFullscreen}
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-stone hover:text-white transition-colors"
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white hover:text-stone-light transition-colors"
                   aria-label="View Fullscreen"
                 >
                   <Maximize2 className="w-4 h-4" />
@@ -247,7 +247,7 @@ export default function VideoWalkthroughSection({ onEnquire, onScheduleVisit }) 
               <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal leading-tight mb-3">
                 {currentVideo.title}
               </h3>
-              <p className="text-stone text-xs sm:text-sm leading-relaxed mb-6">
+              <p className="text-white text-xs sm:text-sm leading-relaxed mb-6">
                 {currentVideo.description}
               </p>
 
@@ -260,7 +260,7 @@ export default function VideoWalkthroughSection({ onEnquire, onScheduleVisit }) 
                   {currentVideo.highlights.map((item, hIdx) => (
                     <div
                       key={hIdx}
-                      className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10 text-stone"
+                      className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10 text-white"
                     >
                       <CheckCircle2 className="w-4 h-4 text-brandRed flex-shrink-0" />
                       <span>{item}</span>

@@ -5,4 +5,9 @@ import { apiPlugin } from './server/vitePluginApi.js'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), apiPlugin()],
+  server: {
+    watch: {
+      ignored: ['**/server/data/**', '**/*.db*', '**/*.tmp*'],
+    },
+  },
 })

@@ -281,7 +281,7 @@ export default function PropertyListModal({ initialRequirement = 'Sell', onClose
               <h2 id="modal-title" className="font-serif text-lg sm:text-xl font-normal leading-tight">
                 List Your Property With Us
               </h2>
-              <p className="text-[11px] text-stone/80 uppercase tracking-wider">
+              <p className="text-[11px] text-white uppercase tracking-wider">
                 Direct Owner & Landlord Onboarding &bull; Vasai to Palghar
               </p>
             </div>
@@ -290,7 +290,7 @@ export default function PropertyListModal({ initialRequirement = 'Sell', onClose
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full text-stone hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-full text-white hover:text-stone-light hover:bg-white/10 transition-colors"
             aria-label="Close listing modal"
           >
             <X className="w-5 h-5" />

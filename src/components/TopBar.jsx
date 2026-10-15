@@ -16,21 +16,21 @@ export default function TopBar({ onOpenFavourites, onOpenCompare, onNavigate }) 
   }, []);
 
   return (
-    <div className="bg-navy-950 text-stone text-xs border-b border-white/10 relative z-50">
+    <div className="bg-navy-950 text-white text-xs border-b border-white/10 relative z-50">
       <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between gap-4">
         {/* Left: Office Location & Service Corridor */}
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
-          <div className="flex items-center gap-1.5 text-stone/90 font-medium truncate">
+          <div className="flex items-center gap-1.5 text-white font-medium truncate">
             <MapPin className="w-3.5 h-3.5 text-brandRed flex-shrink-0" />
             <span className="font-semibold text-white hidden sm:inline">Office:</span>
-            <span className="text-white/95 truncate">
+            <span className="text-white truncate">
               <span className="hidden md:inline">Virar East (Nakshatra Apt, Viva Jangid Complex)</span>
               <span className="md:hidden">Virar East</span>
             </span>
           </div>
 
-          <span className="hidden xl:inline text-white/20 flex-shrink-0">|</span>
-          <span className="hidden xl:inline text-stone/80 font-normal truncate">
+          <span className="hidden xl:inline text-white/30 flex-shrink-0">|</span>
+          <span className="hidden xl:inline text-white font-normal truncate">
             Corridor: {contactInfo.shortServiceArea}
           </span>
         </div>
@@ -42,10 +42,10 @@ export default function TopBar({ onOpenFavourites, onOpenCompare, onNavigate }) 
             <button
               type="button"
               onClick={onOpenFavourites}
-              className="inline-flex items-center gap-1 text-stone hover:text-white transition-colors"
+              className="inline-flex items-center gap-1 text-white hover:text-stone-light transition-colors"
               title="Saved Favourites"
             >
-              <Heart className={`w-3.5 h-3.5 ${favCount > 0 ? 'text-brandRed fill-brandRed' : 'text-stone'}`} />
+              <Heart className={`w-3.5 h-3.5 ${favCount > 0 ? 'text-brandRed fill-brandRed' : 'text-white'}`} />
               <span className="hidden sm:inline font-medium">Saved</span>
               {favCount > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-brandRed text-white font-bold text-[10px]">
@@ -60,10 +60,10 @@ export default function TopBar({ onOpenFavourites, onOpenCompare, onNavigate }) 
             <button
               type="button"
               onClick={onOpenCompare}
-              className="inline-flex items-center gap-1 text-stone hover:text-white transition-colors"
+              className="inline-flex items-center gap-1 text-white hover:text-stone-light transition-colors"
               title="Compare Properties"
             >
-              <Scale className={`w-3.5 h-3.5 ${compareCount > 0 ? 'text-blue-300' : 'text-stone'}`} />
+              <Scale className={`w-3.5 h-3.5 ${compareCount > 0 ? 'text-blue-300' : 'text-white'}`} />
               <span className="hidden sm:inline font-medium">Compare</span>
               {compareCount > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-royal text-white font-bold text-[10px] border border-blue-400/40">
@@ -73,12 +73,12 @@ export default function TopBar({ onOpenFavourites, onOpenCompare, onNavigate }) 
             </button>
           )}
 
-          <span className="hidden sm:inline text-white/20">|</span>
+          <span className="hidden sm:inline text-white/30">|</span>
 
           {/* Direct Phone Sanjay Tomar */}
           <a
             href={`tel:${contactInfo.phoneSanjay1Raw}`}
-            className="flex items-center gap-1 text-stone hover:text-white transition-colors duration-200"
+            className="flex items-center gap-1 text-white hover:text-stone-light transition-colors duration-200"
             title={`Call Sanjay Tomar: ${contactInfo.phoneSanjay1Display || '+91 82370 92224'}`}
           >
             <Phone className="w-3.5 h-3.5 text-blue-300 flex-shrink-0" />

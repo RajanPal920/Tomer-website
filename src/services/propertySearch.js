@@ -180,7 +180,6 @@ export function isLocalityMatch(itemLocality, searchLocality) {
   if ((s === 'palghar') && (i === 'palghar')) return true;
   if ((s === 'vaitarna') && (i === 'vaitarna')) return true;
   if ((s === 'saphale') && (i === 'saphale')) return true;
-  if ((s === 'boisar') && (i === 'boisar')) return true;
 
   // Canonical resolution check
   const resolvedSearch = resolveCanonicalLocation(s);
@@ -251,7 +250,6 @@ export function matchSearchQuery(item, rawQuery) {
     'virar': ['virar', 'virar west', 'virar east', 'bolinj', 'chikhal dongri'],
     'nalasopara': ['nalasopara', 'nallasopara', 'nalla sopara', 'achole', 'patankar park', 'moregaon'],
     'palghar': ['palghar', 'palghar west', 'palghar east', 'manor road', 'tembhode'],
-    'boisar': ['boisar', 'boisar midc', 'tarapur', 'midc tarapur'],
     'saphale': ['saphale', 'safale'],
     'kelve': ['kelve', 'kelve road', 'kelva'],
     'vaitarna': ['vaitarna'],

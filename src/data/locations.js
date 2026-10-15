@@ -146,8 +146,10 @@ export const FLAGGED_LOCATIONS = [
   },
 ];
 
+export const APPROVED_LOCATION_IDS = APPROVED_STATIONS.map((loc) => loc.locationId);
+
 /**
- * Dropdown options list for search panels and form dropdowns
+ * Dropdown options list for search panels and form dropdowns (Strictly 7 approved stations)
  */
 export const LOCATION_DROPDOWN_OPTIONS = [
   { id: 'all', label: 'All Locations (Vasai to Palghar Corridor)' },
@@ -156,12 +158,14 @@ export const LOCATION_DROPDOWN_OPTIONS = [
     label: loc.displayName,
     canonicalName: loc.canonicalName,
   })),
-  {
-    id: 'boisar',
-    label: 'Boisar (MIDC & Residential)',
-    canonicalName: 'Boisar',
-  },
 ];
+
+export function isLocationInApprovedCorridor(locationId) {
+  if (!locationId || locationId === 'all') return true;
+  const resolved = resolveCanonicalLocation(locationId);
+  if (!resolved) return false;
+  return APPROVED_STATIONS.some((st) => st.locationId === resolved.locationId);
+}
 
 /**
  * Resolves any spelling variation or alias to the canonical location object or null.

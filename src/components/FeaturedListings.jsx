@@ -188,7 +188,7 @@ export default function FeaturedListings({
               No properties available in this category yet.
             </h3>
             <p className="text-muted text-sm max-w-md mx-auto mb-6 leading-relaxed">
-              We frequently handle offline inventory and upcoming mandates across Vasai, Virar, Nalasopara, Boisar, and Palghar. Enquire with our property desk for upcoming opportunities or reset your search view.
+              We frequently handle offline inventory and upcoming mandates across Vasai, Virar, Nalasopara, Saphale, Kelve Road, and Palghar. Enquire with our property desk for upcoming opportunities or reset your search view.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <button

@@ -48,12 +48,12 @@ export default function PropertyOwnerCTA({ onNavigate }) {
                 Have a Property to Sell, Rent or Lease?
               </h2>
 
-              <p className="text-stone text-base sm:text-lg leading-relaxed mb-8 max-w-xl text-balance">
+              <p className="text-white text-base sm:text-lg leading-relaxed mb-8 max-w-xl text-balance">
                 Tell us about your property and connect with our team to discuss the next steps. We help owners connect with genuine, pre-qualified buyers and verified tenants.
               </p>
 
               {/* Owner benefits checklist */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs sm:text-sm text-stone/90 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs sm:text-sm text-white mb-8">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded-full bg-brandRed/20 text-brandRed flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 stroke-[3]" />
@@ -113,11 +113,11 @@ export default function PropertyOwnerCTA({ onNavigate }) {
                     <h4 className="font-serif text-lg text-white font-normal">
                       Transparent Owner Workflow
                     </h4>
-                    <p className="text-xs text-stone">Direct local facilitation</p>
+                    <p className="text-xs text-white">Direct local facilitation</p>
                   </div>
                 </div>
 
-                <ol className="space-y-4 text-xs text-stone/90">
+                <ol className="space-y-4 text-xs text-white">
                   <li className="flex items-start gap-3">
                     <span className="w-5 h-5 rounded-full bg-white/10 text-white font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                       1

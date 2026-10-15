@@ -127,7 +127,7 @@ export default function LocationPageView({ slug, onNavigate, onEnquire }) {
               Real Estate in {station.canonicalName}
             </h1>
 
-            <p className="text-stone text-base sm:text-lg leading-relaxed mb-6 font-normal">
+            <p className="text-white text-base sm:text-lg leading-relaxed mb-6 font-normal">
               {station.description}
             </p>
 
@@ -137,7 +137,7 @@ export default function LocationPageView({ slug, onNavigate, onEnquire }) {
                 {station.keyHighlights.map((hl, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-medium text-stone border border-white/15"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-medium text-white border border-white/15"
                   >
                     <CheckCircle2 className="w-3 h-3 text-brandRed flex-shrink-0" />
                     <span>{hl}</span>

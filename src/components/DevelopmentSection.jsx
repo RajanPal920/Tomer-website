@@ -19,7 +19,7 @@ export default function DevelopmentSection({ onOpenEnquiryModal }) {
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-white tracking-tight text-balance mb-4">
             Shaping Communities Across Vasai to Palghar
           </h2>
-          <p className="text-stone/90 text-base sm:text-lg leading-relaxed text-balance">
+          <p className="text-white text-base sm:text-lg leading-relaxed text-balance">
             Whether embarking on greenfield township developments or reviving aging housing societies, Tomar Enterprises brings local feasibility insights and builder-landowner advisory.
           </p>
         </div>
@@ -51,11 +51,11 @@ export default function DevelopmentSection({ onOpenEnquiryModal }) {
                 <h3 className="font-serif text-2xl sm:text-3xl font-normal text-white mb-3">
                   Building Better Spaces for Tomorrow
                 </h3>
-                <p className="text-stone text-sm sm:text-base leading-relaxed mb-6">
+                <p className="text-white text-sm sm:text-base leading-relaxed mb-6">
                   Explore new development opportunities and discuss your residential or commercial property requirements with our team.
                 </p>
 
-                <div className="space-y-2.5 mb-4 text-xs sm:text-sm text-stone/90">
+                <div className="space-y-2.5 mb-4 text-xs sm:text-sm text-white">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-brandRed flex-shrink-0" />
                     <span>Planning & feasibility guidance for new residential towers</span>
@@ -114,11 +114,11 @@ export default function DevelopmentSection({ onOpenEnquiryModal }) {
                 <h3 className="font-serif text-2xl sm:text-3xl font-normal text-white mb-3">
                   Unlock the Potential of Existing Properties
                 </h3>
-                <p className="text-stone text-sm sm:text-base leading-relaxed mb-6">
+                <p className="text-white text-sm sm:text-base leading-relaxed mb-6">
                   Connect with our team to discuss redevelopment enquiries, property requirements and potential development opportunities.
                 </p>
 
-                <div className="space-y-2.5 mb-4 text-xs sm:text-sm text-stone/90">
+                <div className="space-y-2.5 mb-4 text-xs sm:text-sm text-white">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-brandRed flex-shrink-0" />
                     <span>Co-operative housing society redevelopment advisory</span>

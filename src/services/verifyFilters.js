@@ -69,8 +69,8 @@ if (testD.length >= 2 && testD.every(p => p.price <= 6000000 && p.locality === '
 // Test E: No Matching Results
 const testE = filterProperties(sampleProperties, {
   transactionType: 'rent',
-  locality: 'boisar',
-  category: 'residential-plot', // incompatible combo
+  locality: 'vaitarna',
+  category: 'commercial-shop', // incompatible combo
 });
 console.log(`Test E (No Matching Results): Expected 0 matches, Got ${testE.length}`);
 if (testE.length === 0) {

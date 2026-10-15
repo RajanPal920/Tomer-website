@@ -35,12 +35,12 @@ export default function PropertyDetailModal({ property, onClose, onEnquire }) {
             <span className="px-2.5 py-0.5 rounded bg-brandRed text-white text-xs font-bold uppercase tracking-wider">
               {property.badge || property.category}
             </span>
-            <span className="text-xs text-stone/80">Ref: {property.id}</span>
+            <span className="text-xs text-white">Ref: {property.id}</span>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-stone hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-full text-white hover:text-stone-light hover:bg-white/10 transition-colors"
             aria-label="Close property details"
           >
             <X className="w-5 h-5" />

@@ -3,7 +3,6 @@ import {
   Menu,
   X,
   ChevronDown,
-  PlusCircle,
   PhoneCall,
   Building2,
   Home,
@@ -23,7 +22,6 @@ import BrandLogo from './BrandLogo';
 import WhatsAppIcon from './WhatsAppIcon';
 import { APPROVED_STATIONS } from '../data/locations';
 import { contactInfo } from '../data/contactInfo';
-import { isAuthenticated } from '../services/authService';
 
 export default function Navbar({
   onSelectCategory,
@@ -130,21 +128,13 @@ export default function Navbar({
     { label: 'Lease & Heavy Deposit', filter: { transactionType: 'lease', category: 'all' }, path: '/lease', icon: Key, desc: 'Zero monthly rent 3-year term opportunities' },
   ];
 
-  // Dropdown 2: Locations Submenu (Vasai to Palghar Corridor)
-  const locationsDropdownItems = [
-    ...APPROVED_STATIONS.map((st) => ({
-      label: st.displayName,
-      path: `/locations/${st.slug}`,
-      locationId: st.locationId,
-      desc: st.description,
-    })),
-    {
-      label: 'Boisar (MIDC & Town)',
-      path: '/locations/palghar',
-      locationId: 'boisar',
-      desc: 'Major industrial manufacturing & residential hub in Palghar district',
-    },
-  ];
+  // Dropdown 2: Locations Submenu (Vasai to Palghar Corridor — 7 Approved Stations)
+  const locationsDropdownItems = APPROVED_STATIONS.map((st) => ({
+    label: st.displayName,
+    path: `/locations/${st.slug}`,
+    locationId: st.locationId,
+    desc: st.description,
+  }));
 
   // Dropdown 3: More Submenu (Utilities, Projects & Guidance)
   const moreDropdownSections = [

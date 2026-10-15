@@ -53,7 +53,7 @@ export default function PropertyComparisonModal({ onClose, onViewDetails, onEnqu
               <button
                 type="button"
                 onClick={clearCompare}
-                className="text-xs text-stone/80 hover:text-white flex items-center gap-1 transition-colors"
+                className="text-xs text-white hover:text-stone-light flex items-center gap-1 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Clear All</span>
@@ -62,7 +62,7 @@ export default function PropertyComparisonModal({ onClose, onViewDetails, onEnqu
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full text-stone hover:text-white hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-full text-white hover:text-stone-light hover:bg-white/10 transition-colors"
               aria-label="Close compare window"
             >
               <X className="w-5 h-5" />

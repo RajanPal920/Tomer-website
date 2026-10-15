@@ -179,7 +179,7 @@ export default function ProjectsPageView({ subView = 'all', onNavigate, onEnquir
             <h3 className="font-serif text-2xl sm:text-3xl font-normal text-white mb-2">
               Have a Land Parcel or Housing Society to Discuss?
             </h3>
-            <p className="text-stone text-sm sm:text-base leading-relaxed">
+            <p className="text-white text-sm sm:text-base leading-relaxed">
               Connect directly with our development advisory desk for confidential feasibility reviews and developer screening.
             </p>
           </div>

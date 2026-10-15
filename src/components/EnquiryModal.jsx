@@ -109,7 +109,7 @@ export default function EnquiryModal({ initialData, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-stone hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-full text-white hover:text-stone-light hover:bg-white/10 transition-colors"
             aria-label="Close enquiry modal"
           >
             <X className="w-5 h-5" />

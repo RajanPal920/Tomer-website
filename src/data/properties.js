@@ -279,7 +279,7 @@ export const sampleProperties = [
       "Close to Industrial & Tech Workplaces",
       "Clear Bank Title with PMAY Subsidies"
     ],
-    "description": "Spacious 2 BHK home in Boisar's top planned township. Outstanding air quality, green surroundings and fast transit access to the railway terminal.",
+    "description": "Spacious 2 BHK home in Palghar East's top planned township. Outstanding air quality, green surroundings and fast transit access to the railway terminal.",
     "featured": false,
     "isDemo": true
   },
@@ -548,7 +548,7 @@ export const sampleProperties = [
       "24-Hour Municipal Water Supply",
       "Approved for Immediate Bank Financing"
     ],
-    "description": "Well-crafted 3 BHK duplex row house in Boisar West. Offers the independence of a private home with the security of a gated township.",
+    "description": "Well-crafted 3 BHK duplex row house in Saphale West. Offers the independence of a private home with the security of a gated township.",
     "featured": false,
     "isDemo": true
   },
@@ -899,7 +899,7 @@ export const sampleProperties = [
       "Water & Power Backup Provided",
       "Immediate Agreement Execution"
     ],
-    "description": "Economical commercial office for rent serving the Boisar MIDC manufacturing community. Perfect for logistics contractors and industrial suppliers.",
+    "description": "Economical commercial office for rent serving the Palghar industrial and administrative community. Perfect for logistics contractors and suppliers.",
     "featured": false,
     "isDemo": true
   },
@@ -1117,7 +1117,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready Possession",
     "parking": "Two-Wheeler Frontage",
-    "image": "/images/buildingImages/image copy 27.png",
+    "image": "/images/buildingImages/image copy 8.png",
     "gallery": [
       "/images/buildingImages/image copy 27.png",
       "/images/buildingImages/image copy 16.png",
@@ -1244,7 +1244,7 @@ export const sampleProperties = [
       "Ample Industrial Parking & High Power Load",
       "Clear Freehold Commercial Title"
     ],
-    "description": "Compact commercial office space located at the entrance of Boisar MIDC. Serves regional manufacturers and logistics vendors.",
+    "description": "Compact commercial office space located in the Palghar industrial and administrative zone. Serves regional manufacturers and logistics vendors.",
     "featured": false,
     "isDemo": true
   },
@@ -1311,7 +1311,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Ready Handover",
     "parking": "4 Paved Parking Bays",
-    "image": "/images/buildingImages/image copy 5.png",
+    "image": "/images/buildingImages/image copy 10.png",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 16.png",
@@ -1533,7 +1533,7 @@ export const sampleProperties = [
     "transactionType": "plots-land",
     "category": "na-plot",
     "locality": "palghar",
-    "subLocation": "Palghar East, Tarapur Bypass",
+    "subLocation": "Palghar East, Highway Link",
     "price": 2750000,
     "priceDisplay": "₹27.50 Lakh",
     "pricePerSqft": "₹1,145 / sq.ft",
@@ -1560,7 +1560,7 @@ export const sampleProperties = [
       "Safe from Flood Zones with Natural Elevation",
       "Suitable for Residential Quarters or Private Plotting"
     ],
-    "description": "Clear-title sanctioned NA land plot near Boisar. Offers solid capital growth as infrastructure expands across the Palghar district corridor.",
+    "description": "Clear-title sanctioned NA land plot in Palghar East. Offers solid capital growth as infrastructure expands across the Palghar district corridor.",
     "featured": false,
     "isDemo": true
   },
@@ -1604,12 +1604,12 @@ export const sampleProperties = [
   },
   {
     "id": "demo-boisar-ind-001",
-    "title": "Boisar MIDC Heavy Industrial / Warehouse Plot",
+    "title": "Palghar Industrial Corridor Heavy Warehouse Plot",
     "slug": "palghar-midc-heavy-industrial-plot",
     "transactionType": "plots-land",
     "category": "industrial-plot",
     "locality": "palghar",
-    "subLocation": "Palghar MIDC Tarapur Phase II",
+    "subLocation": "Palghar East Industrial Belt Phase II",
     "price": 14500000,
     "priceDisplay": "₹1.45 Crore",
     "pricePerSqft": "₹1,610 / sq.ft",
@@ -1636,18 +1636,18 @@ export const sampleProperties = [
       "Wide 60-Ft Access Road for Multi-Axle Containers",
       "Suitable for Engineering, Fabrication or FMCG Warehousing"
     ],
-    "description": "Strategic industrial plot inside Maharashtra's acclaimed Boisar-Tarapur industrial zone. Excellent logistics connectivity to Mumbai-Ahmedabad national corridor.",
+    "description": "Strategic industrial plot inside Palghar's expanding industrial corridor. Excellent logistics connectivity to Mumbai-Ahmedabad national highway.",
     "featured": true,
     "isDemo": true
   },
   {
     "id": "demo-boisar-ind-002",
-    "title": "MIDC Tarapur Phase I Manufacturing Plot with Shed",
+    "title": "Palghar Industrial Corridor Manufacturing Plot with Shed",
     "slug": "midc-tarapur-phase-1-industrial-plot",
     "transactionType": "plots-land",
     "category": "industrial-plot",
     "locality": "palghar",
-    "subLocation": "Palghar MIDC Tarapur Phase I",
+    "subLocation": "Palghar East Industrial Belt Phase I",
     "price": 21000000,
     "priceDisplay": "₹2.10 Crore",
     "pricePerSqft": "₹1,500 / sq.ft",
@@ -1674,7 +1674,7 @@ export const sampleProperties = [
       "100 HP Sanctioned Electric Power Load",
       "Heavy Duty Concrete Flooring Installed"
     ],
-    "description": "Turnkey industrial plot in prime Boisar MIDC Phase I. Complete with an existing manufacturing shed, heavy power load and wide trailer access.",
+    "description": "Turnkey industrial plot in prime Palghar industrial belt Phase I. Complete with an existing manufacturing shed, heavy power load and wide trailer access.",
     "featured": false,
     "isDemo": true
   },
@@ -1824,7 +1824,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate Handover",
     "parking": "Heavy Vehicle Frontage",
-    "image": "/images/buildingImages/image copy 6.png",
+    "image": "/images/buildingImages/image copy 16.png",
     "gallery": [
       "/images/buildingImages/image copy 17.png",
       "/images/buildingImages/image copy 16.png",
@@ -1841,7 +1841,7 @@ export const sampleProperties = [
       "Complete Security Deposit Protection Terms",
       "Suitable for Industrial Machinery & Spare Parts Depot"
     ],
-    "description": "Commercial space on long-term lease terms at the entrance of Boisar MIDC. Excellent for spare-parts distribution and commercial display.",
+    "description": "Commercial space on long-term lease terms at the entrance of Palghar industrial corridor. Excellent for spare-parts distribution and commercial display.",
     "featured": false,
     "isDemo": true
   },
@@ -2023,7 +2023,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "Immediate",
     "parking": "Complex Parking",
-    "image": "/images/hero/hero-apartments.jpg",
+    "image": "/images/buildingImages/image copy 17.png",
     "gallery": [
       "/images/buildingImages/image copy 8.png",
       "/images/buildingImages/image copy 17.png",
@@ -2075,7 +2075,7 @@ export const sampleProperties = [
       "Continuous Commercial Power Supply",
       "Convenient Access for Industrial Contractors"
     ],
-    "description": "Functional commercial office space on heavy deposit terms in Boisar MIDC. Establish regional administrative operations without ongoing rent outflows.",
+    "description": "Functional commercial office space on heavy deposit terms in Palghar industrial zone. Establish regional administrative operations without ongoing rent outflows.",
     "featured": false,
     "isDemo": true
   },
@@ -2101,7 +2101,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "3-Year Registered Lease",
     "parking": "Shopfront Two-Wheeler Space",
-    "image": "/images/buildingImages/image copy 6.png",
+    "image": "/images/buildingImages/image copy 7.png",
     "gallery": [
       "/images/buildingImages/build2.png",
       "/images/buildingImages/image copy 9.png",
@@ -2140,7 +2140,7 @@ export const sampleProperties = [
     "possessionStatus": "ready-to-move",
     "possessionDisplay": "3-5 Year Agreement",
     "parking": "Covered Parking Slot",
-    "image": "/images/hero/hero-interior.jpg",
+    "image": "/images/buildingImages/image copy 9.png",
     "gallery": [
       "/images/buildingImages/image copy 10.png",
       "/images/buildingImages/image copy 22.png",
@@ -2194,6 +2194,228 @@ export const sampleProperties = [
     ],
     "description": "Prime family residence on heavy deposit terms in Virar West's Global City. Eliminate rent expenses completely while enjoying premier township amenities.",
     "featured": true,
+    "isDemo": true
+  },
+  {
+    "id": "demo-vaitarna-plot-001",
+    "title": "Vaitarna Estuary Scenic Riverfront Farmhouse Plot",
+    "slug": "vaitarna-estuary-riverfront-farmhouse-plot",
+    "transactionType": "plots-land",
+    "category": "residential-plot",
+    "locality": "vaitarna",
+    "subLocation": "Vaitarna Riverfront Belt",
+    "price": 3200000,
+    "priceDisplay": "₹32.00 Lakh",
+    "pricePerSqft": "₹711 / sq.ft",
+    "areaSqFt": 4500,
+    "areaDisplay": "4,500 sq.ft (approx. 4.1 Guntha)",
+    "bedrooms": null,
+    "bathrooms": 0,
+    "balcony": 0,
+    "floor": "Ground",
+    "furnishing": "unfurnished",
+    "possessionStatus": "ready-to-move",
+    "possessionDisplay": "Immediate Registry",
+    "parking": "Private Gated Approach",
+    "image": "/images/buildingImages/image copy 20.png",
+    "gallery": [
+      "/images/buildingImages/image copy 20.png",
+      "/images/hero/hero-land.jpg",
+      "/images/buildingImages/image copy 21.png"
+    ],
+    "features": [
+      "Direct Vaitarna Riverfront View",
+      "Clear Title 7/12 Extract with Demarcated Compound",
+      "Natural Green Belt Ideal for Organic Retreats",
+      "Road Access Connected to Main Station Link"
+    ],
+    "description": "Clear-title demarcated farmhouse plot overlooking the scenic Vaitarna river belt. Perfect for weekend agro-retreats and long-term land capital appreciation.",
+    "featured": true,
+    "isDemo": true
+  },
+  {
+    "id": "demo-vaitarna-na-002",
+    "title": "Vaitarna Green Valley Sanctioned Countryside Land",
+    "slug": "vaitarna-green-valley-sanctioned-countryside-land",
+    "transactionType": "plots-land",
+    "category": "na-plot",
+    "locality": "vaitarna",
+    "subLocation": "Vaitarna Station East Corridor",
+    "price": 2100000,
+    "priceDisplay": "₹21.00 Lakh",
+    "pricePerSqft": "₹954 / sq.ft",
+    "areaSqFt": 2200,
+    "areaDisplay": "2,200 sq.ft plot",
+    "bedrooms": null,
+    "bathrooms": 0,
+    "balcony": 0,
+    "floor": "Ground",
+    "furnishing": "unfurnished",
+    "possessionStatus": "ready-to-move",
+    "possessionDisplay": "Ready for Registration",
+    "parking": "Wide Road Access",
+    "image": "/images/hero/hero-land.jpg",
+    "gallery": [
+      "/images/hero/hero-land.jpg",
+      "/images/buildingImages/image copy 24.png",
+      "/images/buildingImages/image copy 25.png"
+    ],
+    "features": [
+      "Sanctioned Collector NA Layout",
+      "Electricity and Water Infrastructure Laid",
+      "Surrounded by Forest Reserve Views",
+      "Immediate Sale Deed Execution"
+    ],
+    "description": "Sanctioned NA plot near Vaitarna station with road approach and electricity connectivity. Ideal for private retreat bungalow construction.",
+    "featured": false,
+    "isDemo": true
+  },
+  {
+    "id": "demo-kelve-plot-001",
+    "title": "Kelva Coastal Beachside Demarcated Villa Plot",
+    "slug": "kelva-coastal-beachside-villa-plot",
+    "transactionType": "plots-land",
+    "category": "residential-plot",
+    "locality": "kelve-road",
+    "subLocation": "Kelva Beach Coastal Corridor",
+    "price": 3800000,
+    "priceDisplay": "₹38.00 Lakh",
+    "pricePerSqft": "₹1,266 / sq.ft",
+    "areaSqFt": 3000,
+    "areaDisplay": "3,000 sq.ft plot",
+    "bedrooms": null,
+    "bathrooms": 0,
+    "balcony": 0,
+    "floor": "Ground",
+    "furnishing": "unfurnished",
+    "possessionStatus": "ready-to-move",
+    "possessionDisplay": "Immediate Handover",
+    "parking": "Gated Approach Road",
+    "image": "/images/buildingImages/image copy 23.png",
+    "gallery": [
+      "/images/buildingImages/image copy 23.png",
+      "/images/buildingImages/image copy 20.png",
+      "/images/buildingImages/image copy 24.png"
+    ],
+    "features": [
+      "5-Minute Drive to Iconic Kelva Beach",
+      "Suru Plantation Coastal Breeze & Clean Air",
+      "Demarcated Boundaries with Individual Gate",
+      "Clear Bank Title Document Pathway"
+    ],
+    "description": "Exclusive demarcated villa plot situated along the scenic Kelva Beach coastal corridor. Walking access to beach resort zone with natural greenery.",
+    "featured": true,
+    "isDemo": true
+  },
+  {
+    "id": "demo-kelve-home-002",
+    "title": "Kelva Palm Breeze 2 BHK Holiday Villa Home",
+    "slug": "kelva-palm-breeze-2-bhk-holiday-villa",
+    "transactionType": "buy",
+    "category": "residential-property",
+    "locality": "kelve-road",
+    "subLocation": "Kelve Road Station Zone",
+    "price": 4400000,
+    "priceDisplay": "₹44.00 Lakh",
+    "pricePerSqft": "₹4,630 / sq.ft",
+    "areaSqFt": 950,
+    "areaDisplay": "950 sq.ft built-up",
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "balcony": 1,
+    "floor": "Ground Floor Independent Villa",
+    "furnishing": "semi-furnished",
+    "possessionStatus": "ready-to-move",
+    "possessionDisplay": "Ready to Move",
+    "parking": "Covered Car Porch",
+    "image": "/images/buildingImages/image copy 24.png",
+    "gallery": [
+      "/images/buildingImages/image copy 24.png",
+      "/images/buildingImages/image copy 18.png",
+      "/images/buildingImages/image copy 26.png"
+    ],
+    "features": [
+      "Independent Villa with Private Garden",
+      "Near Kelve Road Railway Station",
+      "Full Solar & Inverter Backup Ready",
+      "Clear Title Society Certificate"
+    ],
+    "description": "Ready-to-move 2 BHK independent holiday home near Kelve Road railway station. Features private front garden and peaceful coastal atmosphere.",
+    "featured": false,
+    "isDemo": true
+  },
+  {
+    "id": "demo-saphale-plot-002",
+    "title": "Tandulwadi Foothills Clear-Title Agro-Bungalow Plot",
+    "slug": "tandulwadi-foothills-agro-bungalow-plot-saphale",
+    "transactionType": "plots-land",
+    "category": "na-plot",
+    "locality": "saphale",
+    "subLocation": "Saphale Countryside, Tandulwadi Road",
+    "price": 2900000,
+    "priceDisplay": "₹29.00 Lakh",
+    "pricePerSqft": "₹828 / sq.ft",
+    "areaSqFt": 3500,
+    "areaDisplay": "3,500 sq.ft plot",
+    "bedrooms": null,
+    "bathrooms": 0,
+    "balcony": 0,
+    "floor": "Ground",
+    "furnishing": "unfurnished",
+    "possessionStatus": "ready-to-move",
+    "possessionDisplay": "Immediate Registry",
+    "parking": "Internal 30-ft Road",
+    "image": "/images/buildingImages/image copy 18.png",
+    "gallery": [
+      "/images/buildingImages/image copy 18.png",
+      "/images/buildingImages/image copy 20.png",
+      "/images/buildingImages/image copy 21.png"
+    ],
+    "features": [
+      "Scenic Mountain View of Tandulwadi Fort",
+      "Gated Plotted Layout with Compound Wall",
+      "Water Borewell & Streetlights Installed",
+      "Clear Freehold NA Sanction"
+    ],
+    "description": "Sanctioned NA bungalow plot set against the scenic backdrop of Tandulwadi hill range. Clear 7/12 extract and water connection ready.",
+    "featured": true,
+    "isDemo": true
+  },
+  {
+    "id": "demo-saphale-flat-003",
+    "title": "Saphale Green Park 1 BHK Budget Apartment",
+    "slug": "saphale-green-park-1-bhk-budget-apartment",
+    "transactionType": "buy",
+    "category": "new-flat",
+    "locality": "saphale",
+    "subLocation": "Saphale East Station Link",
+    "price": 2200000,
+    "priceDisplay": "₹22.00 Lakh",
+    "pricePerSqft": "₹4,780 / sq.ft",
+    "areaSqFt": 460,
+    "areaDisplay": "460 sq.ft carpet",
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "balcony": 1,
+    "floor": "2nd of 4 Floors",
+    "furnishing": "unfurnished",
+    "possessionStatus": "ready-to-move",
+    "possessionDisplay": "Ready Possession",
+    "parking": "Open Two-Wheeler & Car Space",
+    "image": "/images/buildingImages/image copy 19.png",
+    "gallery": [
+      "/images/buildingImages/image copy 19.png",
+      "/images/buildingImages/image copy 11.png",
+      "/images/buildingImages/image copy 2.png"
+    ],
+    "features": [
+      "Walking Distance to Saphale Railway Station",
+      "24-Hour Sweet Water Supply",
+      "Approved for All Major Bank Home Loans",
+      "Low Maintenance Cooperative Society"
+    ],
+    "description": "Affordable 1 BHK home in Saphale East near railway station. Clean drinking water, lift, and clear bank loan approval.",
+    "featured": false,
     "isDemo": true
   }
 ];

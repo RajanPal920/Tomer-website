@@ -14,6 +14,8 @@ import {
   filterProperties,
   CATEGORY_TABS,
   normalizeTabId,
+  getFiltersFromUrl,
+  syncFiltersToUrl,
 } from '../services/propertySearch';
 import { APPROVED_STATIONS, LOCATION_DROPDOWN_OPTIONS } from '../data/locations';
 import PropertyCard from './PropertyCard';
@@ -37,15 +39,21 @@ export default function ListingPageView({
     });
   }, []);
 
+  const urlFilters = useMemo(() => getFiltersFromUrl(), []);
+
   // Active filters state
   const [prevTabProp, setPrevTabProp] = useState(initialTab);
-  const [activeTab, setActiveTab] = useState(initialTab);
-  const [selectedLocality, setSelectedLocality] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedMaxBudget, setSelectedMaxBudget] = useState('all');
-  const [selectedBhk, setSelectedBhk] = useState('all');
-  const [selectedSort, setSelectedSort] = useState('recommended');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (urlFilters.categoryTab && urlFilters.categoryTab !== 'all') return urlFilters.categoryTab;
+    if (urlFilters.transactionType && urlFilters.transactionType !== 'all') return urlFilters.transactionType;
+    return initialTab || 'all';
+  });
+  const [selectedLocality, setSelectedLocality] = useState(() => urlFilters.locality || 'all');
+  const [selectedCategory, setSelectedCategory] = useState(() => urlFilters.category || 'all');
+  const [selectedMaxBudget, setSelectedMaxBudget] = useState(() => (urlFilters.maxBudget ? String(urlFilters.maxBudget) : 'all'));
+  const [selectedBhk, setSelectedBhk] = useState(() => (urlFilters.bedrooms ? String(urlFilters.bedrooms) : 'all'));
+  const [selectedSort, setSelectedSort] = useState(() => urlFilters.sortBy || 'recommended');
+  const [searchQuery, setSearchQuery] = useState(() => urlFilters.searchQuery || '');
   const [visibleCount, setVisibleCount] = useState(9); // Initial 9 items, then Load More
 
   // Synchronize state on prop change during render
@@ -54,6 +62,20 @@ export default function ListingPageView({
     setActiveTab(initialTab);
     setVisibleCount(9);
   }
+
+  // Synchronize active filters to browser URL search params for bookmarking and page refresh
+  useEffect(() => {
+    syncFiltersToUrl({
+      categoryTab: activeTab,
+      transactionType: activeTab,
+      locality: selectedLocality,
+      category: selectedCategory,
+      maxBudget: selectedMaxBudget !== 'all' ? Number(selectedMaxBudget) : null,
+      bedrooms: selectedBhk !== 'all' ? Number(selectedBhk) : 'all',
+      sortBy: selectedSort,
+      searchQuery: searchQuery,
+    });
+  }, [activeTab, selectedLocality, selectedCategory, selectedMaxBudget, selectedBhk, selectedSort, searchQuery]);
 
   // Derived filtered dataset
   const filteredListings = useMemo(() => {

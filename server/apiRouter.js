@@ -1,5 +1,5 @@
 // HTTP API Router for Tomar Enterprises
-// Enforces Server-Side Role-Based Authorization
+// Enforces Server-Side Role-Based Authorization & Persistent Relational Database Operations
 // Normal visitors cannot create, update, or delete properties via API.
 
 import fs from 'node:fs';
@@ -13,6 +13,7 @@ import {
   invalidateSession,
   getAuthStatus,
   updateOwnerCredentials,
+  initializeOwnerAuthIfNeeded,
 } from './auth.js';
 
 import {
@@ -28,7 +29,8 @@ import {
   getSettings,
   updateSettings,
 } from './dataStore.js';
-import { sampleProperties } from '../src/data/properties.js';
+
+import { checkHealth, runMigrations } from './db/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +40,16 @@ const DIST_PROPS_DIR = path.join(__dirname, '..', 'dist', 'images', 'properties'
 // Ensure image upload directories exist
 if (!fs.existsSync(PUBLIC_PROPS_DIR)) {
   fs.mkdirSync(PUBLIC_PROPS_DIR, { recursive: true });
+}
+
+// Auto-run schema migrations on first request / import
+let isBootstrapped = false;
+async function ensureBootstrapped() {
+  if (!isBootstrapped) {
+    await runMigrations();
+    await initializeOwnerAuthIfNeeded();
+    isBootstrapped = true;
+  }
 }
 
 // Helper to parse JSON body from incoming Node.js request with configurable size limit
@@ -65,41 +77,91 @@ function parseBody(req, limit = 15 * 1024 * 1024) {
   });
 }
 
-// Helper to send JSON responses
-function sendJson(res, statusCode, data) {
+// Parse cookies from request header
+function parseCookies(req) {
+  const cookieHeader = req.headers.cookie || '';
+  const cookies = {};
+  cookieHeader.split(';').forEach((part) => {
+    const [name, ...val] = part.trim().split('=');
+    if (name) {
+      cookies[name.trim()] = decodeURIComponent(val.join('=') || '');
+    }
+  });
+  return cookies;
+}
+
+// Helper to send JSON responses with CORS & optional Set-Cookie
+function sendJson(res, statusCode, data, headers = {}) {
   res.statusCode = statusCode;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle CORS
+  const origin = res.reqOrigin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  if (origin !== '*') {
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+
+  for (const [key, val] of Object.entries(headers)) {
+    res.setHeader(key, val);
+  }
+
   res.end(JSON.stringify(data));
 }
 
 /**
  * Handle incoming API requests
  */
-export async function handleApiRequest(req, res, sampleDemoProperties = sampleProperties) {
+export async function handleApiRequest(req, res) {
+  await ensureBootstrapped();
+
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
   const method = req.method.toUpperCase();
+  res.reqOrigin = req.headers.origin || '*';
 
   // Handle CORS Pre-flight
   if (method === 'OPTIONS') {
     res.statusCode = 204;
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+    if (req.headers.origin) {
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.end();
     return;
   }
 
-  // Extract auth token
+  // Extract auth token from Authorization Header OR HttpOnly Cookie
   const authHeader = req.headers.authorization || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
-  const session = validateSession(token);
-  const isOwner = session && session.role === 'owner';
+  const cookies = parseCookies(req);
+  let token = null;
+
+  if (authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7).trim();
+  } else if (cookies.tomar_session) {
+    token = cookies.tomar_session.trim();
+  }
+
+  const session = token ? await validateSession(token) : null;
+  const isOwner = Boolean(session && session.role === 'owner');
 
   try {
+    // -----------------------------------------------------------------------
+    // HEALTH CHECK ROUTE
+    // -----------------------------------------------------------------------
+    if (pathname === '/api/health' && method === 'GET') {
+      const health = await checkHealth();
+      return sendJson(res, health.status === 'ok' ? 200 : 503, {
+        status: health.status,
+        database: health,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     // -----------------------------------------------------------------------
     // AUTHENTICATION ROUTES
     // -----------------------------------------------------------------------
@@ -107,31 +169,61 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
     // POST /api/auth/login
     if (pathname === '/api/auth/login' && method === 'POST') {
       const body = await parseBody(req);
-      const { username, password } = body;
+      const { username, password, remember = true } = body;
 
-      const userSession = authenticateOwner(username, password);
-      if (!userSession) {
-        return sendJson(res, 401, {
+      const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
+      const userAgent = req.headers['user-agent'] || '';
+
+      const authResult = await authenticateOwner(username, password, {
+        remember: Boolean(remember),
+        ip,
+        userAgent,
+      });
+
+      if (!authResult.success) {
+        const status = authResult.status || 401;
+        const extraHeaders = {};
+        if (authResult.retryAfterSeconds) {
+          extraHeaders['Retry-After'] = String(authResult.retryAfterSeconds);
+        }
+        return sendJson(res, status, {
           success: false,
-          error: 'Invalid username or password. Please verify owner credentials.',
-        });
+          error: authResult.error,
+          remainingAttempts: authResult.remainingAttempts,
+        }, extraHeaders);
       }
 
-      return sendJson(res, 200, {
-        success: true,
-        message: 'Owner login successful',
-        token: userSession.token,
-        user: {
-          username: userSession.username,
-          role: userSession.role,
+      // Build secure HttpOnly Cookie
+      const maxAge = remember ? 30 * 24 * 3600 : 24 * 3600; // 30 days vs 24 hours
+      const isSecure = process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] === 'https';
+      const cookieVal = `tomar_session=${authResult.token}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+
+      return sendJson(
+        res,
+        200,
+        {
+          success: true,
+          message: 'Owner login successful',
+          token: authResult.token,
+          user: authResult.user,
+          expiresAt: authResult.expiresAt,
         },
-      });
+        { 'Set-Cookie': cookieVal }
+      );
     }
 
     // POST /api/auth/logout
     if (pathname === '/api/auth/logout' && method === 'POST') {
-      if (token) invalidateSession(token);
-      return sendJson(res, 200, { success: true, message: 'Logged out successfully' });
+      if (token) {
+        await invalidateSession(token);
+      }
+      const clearCookie = 'tomar_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax';
+      return sendJson(
+        res,
+        200,
+        { success: true, message: 'Logged out successfully' },
+        { 'Set-Cookie': clearCookie }
+      );
     }
 
     // GET /api/auth/session
@@ -154,7 +246,8 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
 
     // GET /api/auth/status
     if (pathname === '/api/auth/status' && method === 'GET') {
-      return sendJson(res, 200, getAuthStatus());
+      const status = await getAuthStatus();
+      return sendJson(res, 200, status);
     }
 
     // POST /api/auth/change-password (Owner Only)
@@ -175,11 +268,17 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
       }
 
       try {
-        updateOwnerCredentials(newUsername, newPassword);
-        return sendJson(res, 200, {
-          success: true,
-          message: 'Owner credentials updated successfully. Please sign in with your updated credentials.',
-        });
+        await updateOwnerCredentials(newUsername, newPassword);
+        const clearCookie = 'tomar_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax';
+        return sendJson(
+          res,
+          200,
+          {
+            success: true,
+            message: 'Owner credentials updated successfully. Please sign in with your updated credentials.',
+          },
+          { 'Set-Cookie': clearCookie }
+        );
       } catch (err) {
         return sendJson(res, 400, {
           error: err.message || 'Failed to update owner credentials.',
@@ -207,7 +306,6 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
         });
       }
 
-      // Match data URL prefix (e.g. data:image/jpeg;base64,...)
       const match = String(rawData).match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i);
       if (!match) {
         return sendJson(res, 400, {
@@ -236,7 +334,6 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
       const targetPath = path.join(PUBLIC_PROPS_DIR, filename);
       fs.writeFileSync(targetPath, buffer);
 
-      // If dist folder exists (production build), write there too so static server has it immediately
       if (fs.existsSync(path.join(__dirname, '..', 'dist'))) {
         if (!fs.existsSync(DIST_PROPS_DIR)) {
           fs.mkdirSync(DIST_PROPS_DIR, { recursive: true });
@@ -262,14 +359,25 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
     if (pathname === '/api/properties' && method === 'GET') {
       const showAll = url.searchParams.get('all') === 'true';
 
-      // If client requests all properties (including drafts/sold), enforce owner authorization
       if (showAll) {
         if (!isOwner) {
           return sendJson(res, 401, {
             error: 'Unauthorized: Owner credentials required to view unpublished drafts and owner data.',
           });
         }
-        const ownerProps = getOwnerProperties();
+
+        const filterOptions = {
+          status: url.searchParams.get('status') || 'all',
+          locality: url.searchParams.get('locality') || 'all',
+          category: url.searchParams.get('category') || 'all',
+          transactionType: url.searchParams.get('transactionType') || 'all',
+          search: url.searchParams.get('search') || '',
+          sort: url.searchParams.get('sort') || 'newest',
+          limit: url.searchParams.get('limit') ? Number(url.searchParams.get('limit')) : null,
+          offset: url.searchParams.get('offset') ? Number(url.searchParams.get('offset')) : null,
+        };
+
+        const ownerProps = await getOwnerProperties(filterOptions);
         return sendJson(res, 200, {
           properties: ownerProps,
           total: ownerProps.length,
@@ -277,8 +385,7 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
         });
       }
 
-      // Public view: strictly published properties with internal notes stripped
-      const publicProps = getPublicProperties(sampleDemoProperties);
+      const publicProps = await getPublicProperties();
       return sendJson(res, 200, {
         properties: publicProps,
         total: publicProps.length,
@@ -295,10 +402,10 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
       }
 
       const body = await parseBody(req);
-      const created = createProperty(body);
+      const created = await createProperty(body);
       return sendJson(res, 201, {
         success: true,
-        message: 'Property created successfully',
+        message: 'Property created successfully and persisted to database',
         property: created,
       });
     }
@@ -310,7 +417,7 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
 
       // GET /api/properties/:id
       if (method === 'GET') {
-        const prop = findProperty(propId, isOwner, sampleDemoProperties);
+        const prop = await findProperty(propId, isOwner);
         if (!prop) {
           return sendJson(res, 404, { error: 'Property not found or unavailable' });
         }
@@ -326,10 +433,10 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
         }
 
         const body = await parseBody(req);
-        const updated = updateProperty(propId, body);
+        const updated = await updateProperty(propId, body);
         return sendJson(res, 200, {
           success: true,
-          message: 'Property updated successfully',
+          message: 'Property updated successfully in database',
           property: updated,
         });
       }
@@ -342,13 +449,13 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
           });
         }
 
-        const deleted = deleteProperty(propId);
+        const deleted = await deleteProperty(propId);
         if (!deleted) {
           return sendJson(res, 404, { error: 'Property not found or already removed' });
         }
         return sendJson(res, 200, {
           success: true,
-          message: 'Property deleted successfully',
+          message: 'Property deleted successfully from database',
         });
       }
     }
@@ -360,7 +467,7 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
     // POST /api/enquiries (Public: Submits an enquiry, NEVER creates a listing)
     if (pathname === '/api/enquiries' && method === 'POST') {
       const body = await parseBody(req);
-      const enquiry = recordEnquiry(body);
+      const enquiry = await recordEnquiry(body);
       return sendJson(res, 201, {
         success: true,
         message: 'Your property enquiry has been recorded with Tomar Enterprises advisory desk.',
@@ -376,7 +483,7 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
         });
       }
 
-      const enquiries = getEnquiries();
+      const enquiries = await getEnquiries();
       return sendJson(res, 200, {
         enquiries,
         total: enquiries.length,
@@ -393,7 +500,7 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
       }
 
       const body = await parseBody(req);
-      const updated = updateEnquiryStatus(enqIdMatch[1], body.status);
+      const updated = await updateEnquiryStatus(enqIdMatch[1], body.status);
       return sendJson(res, 200, { success: updated });
     }
 
@@ -403,7 +510,8 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
 
     // GET /api/settings
     if (pathname === '/api/settings' && method === 'GET') {
-      return sendJson(res, 200, getSettings());
+      const settings = await getSettings();
+      return sendJson(res, 200, settings);
     }
 
     // PATCH /api/settings (Owner Only)
@@ -415,7 +523,7 @@ export async function handleApiRequest(req, res, sampleDemoProperties = samplePr
       }
 
       const body = await parseBody(req);
-      const updated = updateSettings(body);
+      const updated = await updateSettings(body);
       return sendJson(res, 200, { success: true, settings: updated });
     }
 

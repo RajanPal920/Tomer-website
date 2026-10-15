@@ -1,3 +1,16 @@
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Persistent Databases & Runtime Data
+server/data/*.db
+server/data/*.db*
+server/data/*.tmp
+server/data/owner_sessions.json
+server/data/owner_auth.json
+
 # Logs
 logs
 *.log
@@ -7,7 +20,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Production build artifacts
 dist
 dist-ssr
 *.local

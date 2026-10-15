@@ -307,7 +307,7 @@ export default function SearchPanel({ onSearch, activeFilters, onReset }) {
               </button>
             </div>
 
-            <span className="text-[11px] text-stone-dark italic">
+            <span className="text-[11px] text-muted italic">
               * Sourced for Vasai to Palghar Corridor
             </span>
           </div>

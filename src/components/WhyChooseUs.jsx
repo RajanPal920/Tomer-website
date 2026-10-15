@@ -13,7 +13,7 @@ export default function WhyChooseUs() {
       icon: Building,
       title: 'Residential & Commercial Options',
       description:
-        'A comprehensive portfolio covering 1–3 BHK flats, registered resale apartments, high-street retail shops, corporate offices, NA plots, and Boisar MIDC industrial land under one roof.',
+        'A comprehensive portfolio covering 1–3 BHK flats, registered resale apartments, high-street retail shops, corporate offices, NA plots, and Palghar industrial and logistics land under one roof.',
     },
     {
       icon: Users,

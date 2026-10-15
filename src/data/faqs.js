@@ -8,7 +8,7 @@ export const faqs = [
   {
     id: "faq-2",
     question: "Which locations does Tomar Enterprises serve?",
-    answer: "Our primary service area spans the western suburban and industrial corridor of Maharashtra from Vasai to Palghar. This includes Vasai (East & West), Nalasopara, Virar, Boisar (including the MIDC belt), and the Palghar district headquarters."
+    answer: "Our primary service area spans the western suburban and regional corridor of Maharashtra from Vasai Road to Palghar. This includes Vasai Road (East & West), Nalasopara (East & West), Virar (East & West), Vaitarna, Saphale, Kelve Road (Kelva Beach belt), and the Palghar district headquarters."
   },
   {
     id: "faq-3",
@@ -23,7 +23,7 @@ export const faqs = [
   {
     id: "faq-5",
     question: "Can I explore residential and industrial plots?",
-    answer: "Yes. We help clients discover both residential demarcated plots and collector-sanctioned Non-Agricultural (NA) land in peaceful localities, as well as strategic industrial and warehouse plots in the Boisar MIDC and logistics corridors."
+    answer: "Yes. We help clients discover both residential demarcated plots and collector-sanctioned Non-Agricultural (NA) land in peaceful localities, as well as strategic industrial and warehouse plots in the Palghar industrial and logistics corridors."
   },
   {
     id: "faq-6",
