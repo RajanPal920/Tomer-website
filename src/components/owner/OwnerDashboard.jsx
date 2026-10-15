@@ -511,33 +511,42 @@ export default function OwnerDashboard({ onNavigate, user }) {
   return (
     <div className="min-h-screen bg-ivory text-charcoal flex flex-col font-sans">
       {/* Top Navbar Header */}
-      <header className="bg-navy text-white border-b border-navy-700 sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+      <header
+        className="bg-white border-b border-stone sticky top-0 z-30 shadow-xs"
+        style={{
+          backgroundColor: '#FFFFFF',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between min-h-[68px]">
           <div className="flex items-center gap-3">
-            <BrandLogo variant="on-dark" size="default" />
-            <div className="h-6 w-px bg-white/20 hidden sm:block" />
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-royal-light/20 text-blue-200 border border-blue-300/30 text-xs font-bold uppercase tracking-wider">
+            <BrandLogo variant="default" size="default" />
+            <div className="h-6 w-px bg-stone hidden sm:block" />
+            <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full bg-navy/5 text-navy border border-navy/15 text-xs font-bold uppercase tracking-wider">
               Owner Management {user?.username ? `• ${user.username}` : ''}
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {listingCapacity && (
               <div 
-                className={`hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold border ${
+                className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border ${
                   listingCapacity.isAtLimit 
-                    ? 'bg-rose-500/20 border-rose-400/40 text-rose-200' 
+                    ? 'bg-rose-50 border-rose-200 text-rose-800' 
                     : (listingCapacity.active / listingCapacity.maxLimit > 0.8)
-                    ? 'bg-amber-500/20 border-amber-400/40 text-amber-200'
-                    : 'bg-white/10 border-white/20 text-blue-100'
+                    ? 'bg-amber-50 border-amber-200 text-amber-800'
+                    : 'bg-brandBlue-light border-brandBlue-border text-navy'
                 }`}
                 title={`Active Listings: ${listingCapacity.active} / ${listingCapacity.maxLimit} (Available + Draft listings count toward maximum 30 active listings limit)`}
               >
-                <span>Active Properties:</span>
-                <span className="font-bold text-white">{listingCapacity.active} / {listingCapacity.maxLimit}</span>
-                <span className="text-[11px] opacity-85">({listingCapacity.remaining} slots remain)</span>
+                <span className="text-muted font-medium">Active:</span>
+                <span className="font-bold text-navy">{listingCapacity.active} / {listingCapacity.maxLimit}</span>
+                <span className="text-[11px] text-muted">({listingCapacity.remaining} slots remain)</span>
                 {listingCapacity.isAtLimit && (
-                  <span className="text-[10px] uppercase tracking-wider bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold">Limit Reached</span>
+                  <span className="text-[10px] uppercase tracking-wider bg-rose-600 text-white px-2 py-0.5 rounded-full font-bold">
+                    {listingCapacity.active > listingCapacity.maxLimit ? 'Over Limit' : 'Limit Reached'}
+                  </span>
                 )}
               </div>
             )}
@@ -545,16 +554,16 @@ export default function OwnerDashboard({ onNavigate, user }) {
             <button
               type="button"
               onClick={() => onNavigate('/')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white hover:text-stone-light text-xs font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone bg-ivory hover:bg-white hover:border-navy/40 text-navy text-xs font-bold transition-all shadow-2xs"
             >
               <span>View Website</span>
-              <ExternalLink className="w-3.5 h-3.5 text-royal-light" />
+              <ExternalLink className="w-3.5 h-3.5 text-royal" />
             </button>
 
             <button
               type="button"
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-200 hover:text-white text-xs font-bold uppercase tracking-wider transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white text-xs font-bold uppercase tracking-wider transition-all shadow-2xs"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Logout</span>
@@ -652,141 +661,143 @@ export default function OwnerDashboard({ onNavigate, user }) {
         ) : (
           <div className="space-y-8">
             {/* Top Navigation Tabs Bar */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-stone/80 no-scrollbar">
-              <button
-                type="button"
-                onClick={() => setActiveTab('overview')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'overview'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <LayoutDashboard className="w-4 h-4 text-royal" />
-                <span>Overview</span>
-              </button>
+            <div className="bg-white rounded-2xl border border-stone p-1.5 shadow-xs mb-6 overflow-hidden">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto p-1 scrollbar-thin">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('overview')}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
+                    activeTab === 'overview'
+                      ? 'bg-navy text-white shadow-xs'
+                      : 'bg-transparent text-charcoal hover:bg-ivory hover:text-navy'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4 text-royal" />
+                  <span>Overview</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (listingCapacity?.isAtLimit) {
-                    setErrorNotice(
-                      `Active listing limit reached (${listingCapacity.active} / ${listingCapacity.maxLimit}). A listing must be marked Sold Out or Archived before another active property can be added.`
-                    );
-                    return;
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (listingCapacity?.isAtLimit) {
+                      setErrorNotice(
+                        `Active listing limit reached (${listingCapacity.active} / ${listingCapacity.maxLimit}). A listing must be marked Sold Out or Archived before another active property can be added.`
+                      );
+                      return;
+                    }
+                    setEditingProperty(null);
+                    setActiveTab('add');
+                  }}
+                  disabled={listingCapacity?.isAtLimit}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap flex-shrink-0 shadow-xs transition-colors ${
+                    listingCapacity?.isAtLimit
+                      ? 'bg-rose-50 text-rose-700 border border-rose-200 cursor-not-allowed opacity-90'
+                      : 'bg-brandRed hover:bg-brandRed-700 text-white'
+                  }`}
+                  title={
+                    listingCapacity?.isAtLimit
+                      ? `Active property limit reached (${listingCapacity.active}/${listingCapacity.maxLimit}). Mark a listing Sold Out or Archive it to add new listings.`
+                      : 'Add New Property'
                   }
-                  setEditingProperty(null);
-                  setActiveTab('add');
-                }}
-                disabled={listingCapacity?.isAtLimit}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition-colors ${
-                  listingCapacity?.isAtLimit
-                    ? 'bg-stone/40 text-muted cursor-not-allowed border border-stone'
-                    : 'bg-brandRed hover:bg-brandRed-700 text-white'
-                }`}
-                title={
-                  listingCapacity?.isAtLimit
-                    ? 'Active property limit reached (30/30). Mark a listing Sold Out or Archive it to add new listings.'
-                    : 'Add New Property'
-                }
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Add Property</span>
-              </button>
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Add Property</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('all')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'all'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <Building2 className="w-4 h-4 text-royal" />
-                <span>All ({stats.total})</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('all')}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
+                    activeTab === 'all'
+                      ? 'bg-navy text-white shadow-xs'
+                      : 'bg-transparent text-charcoal hover:bg-ivory hover:text-navy'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 text-royal" />
+                  <span>All ({stats.total})</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('available')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'available'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                <span>Available ({stats.available})</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('available')}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
+                    activeTab === 'available'
+                      ? 'bg-navy text-white shadow-xs'
+                      : 'bg-transparent text-charcoal hover:bg-ivory hover:text-navy'
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>Available ({stats.available})</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('draft')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'draft'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <Clock className="w-4 h-4 text-amber-500" />
-                <span>Draft ({stats.drafts})</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('draft')}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
+                    activeTab === 'draft'
+                      ? 'bg-navy text-white shadow-xs'
+                      : 'bg-transparent text-charcoal hover:bg-ivory hover:text-navy'
+                  }`}
+                >
+                  <Clock className="w-4 h-4 text-amber-500" />
+                  <span>Draft ({stats.drafts})</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('sold_out')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'sold_out'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <Tag className="w-4 h-4 text-rose-500" />
-                <span>Sold Out ({stats.soldOut})</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('sold_out')}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
+                    activeTab === 'sold_out'
+                      ? 'bg-navy text-white shadow-xs'
+                      : 'bg-transparent text-charcoal hover:bg-ivory hover:text-navy'
+                  }`}
+                >
+                  <Tag className="w-4 h-4 text-rose-500" />
+                  <span>Sold Out ({stats.soldOut})</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('archived')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'archived'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <Layers className="w-4 h-4 text-stone-dark" />
-                <span>Archived ({stats.archived})</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('archived')}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
+                    activeTab === 'archived'
+                      ? 'bg-navy text-white shadow-xs'
+                      : 'bg-transparent text-charcoal hover:bg-ivory hover:text-navy'
+                  }`}
+                >
+                  <Layers className="w-4 h-4 text-stone-dark" />
+                  <span>Archived ({stats.archived})</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('enquiries')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'enquiries'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <MessageSquare className="w-4 h-4 text-blue-500" />
-                <span>Enquiries ({stats.totalEnquiries})</span>
-                {stats.newEnquiries > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('enquiries')}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
+                    activeTab === 'enquiries'
+                      ? 'bg-navy text-white shadow-xs'
+                      : 'bg-transparent text-charcoal hover:bg-ivory hover:text-navy'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4 text-blue-500" />
+                  <span>Enquiries ({stats.totalEnquiries})</span>
+                  {stats.newEnquiries > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  )}
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('settings')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ml-auto ${
-                  activeTab === 'settings'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <Settings className="w-4 h-4 text-royal" />
-                <span>Settings</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('settings')}
+                  className={`inline-flex items-center gap-2 h-10 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
+                    activeTab === 'settings'
+                      ? 'bg-navy text-white shadow-xs'
+                      : 'bg-transparent text-charcoal hover:bg-ivory hover:text-navy'
+                  }`}
+                >
+                  <Settings className="w-4 h-4 text-royal" />
+                  <span>Settings</span>
+                </button>
+              </div>
             </div>
 
             {/* TAB CONTENT: 1. OVERVIEW */}
@@ -797,105 +808,155 @@ export default function OwnerDashboard({ onNavigate, user }) {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-3">
                     Portfolio Status Overview
                   </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Active Listings
-                      </span>
-                      <div className="text-2xl sm:text-3xl font-serif font-bold text-navy">
-                        {listingCapacity ? listingCapacity.active : stats.active} <span className="text-sm font-sans text-muted">/ {listingCapacity ? listingCapacity.maxLimit : 30}</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 items-stretch">
+                    <div className="bg-white rounded-2xl border border-stone p-4 sm:p-4.5 shadow-xs flex flex-col justify-between h-full min-h-[125px] hover:border-navy/30 transition-all">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5 truncate">
+                          Active Listings
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-serif font-bold text-navy leading-tight">
+                          {listingCapacity ? listingCapacity.active : stats.active}{' '}
+                          <span className="text-sm font-sans font-normal text-muted">
+                            / {listingCapacity ? listingCapacity.maxLimit : 30}
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Available + Drafts</span>
+                      <div className="text-[11px] text-muted font-medium mt-2 pt-2 border-t border-stone/50 block truncate">
+                        Available + Drafts
+                      </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Available Properties
-                      </span>
-                      <div className="text-2xl sm:text-3xl font-serif font-bold text-emerald-600">
-                        {stats.available}
+                    <div className="bg-white rounded-2xl border border-stone p-4 sm:p-4.5 shadow-xs flex flex-col justify-between h-full min-h-[125px] hover:border-navy/30 transition-all">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5 truncate">
+                          Available Properties
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-serif font-bold text-emerald-600 leading-tight">
+                          {stats.available}
+                        </div>
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Live on website</span>
+                      <div className="text-[11px] text-muted font-medium mt-2 pt-2 border-t border-stone/50 block truncate">
+                        Live on website
+                      </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Draft Properties
-                      </span>
-                      <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-600">
-                        {stats.drafts}
+                    <div className="bg-white rounded-2xl border border-stone p-4 sm:p-4.5 shadow-xs flex flex-col justify-between h-full min-h-[125px] hover:border-navy/30 transition-all">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5 truncate">
+                          Draft Properties
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-600 leading-tight">
+                          {stats.drafts}
+                        </div>
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Counts toward limit</span>
+                      <div className="text-[11px] text-muted font-medium mt-2 pt-2 border-t border-stone/50 block truncate">
+                        Counts toward limit
+                      </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Sold Out Properties
-                      </span>
-                      <div className="text-2xl sm:text-3xl font-serif font-bold text-rose-600">
-                        {stats.soldOut}
+                    <div className="bg-white rounded-2xl border border-stone p-4 sm:p-4.5 shadow-xs flex flex-col justify-between h-full min-h-[125px] hover:border-navy/30 transition-all">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5 truncate">
+                          Sold Out Properties
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-serif font-bold text-rose-600 leading-tight">
+                          {stats.soldOut}
+                        </div>
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Frees active slot</span>
+                      <div className="text-[11px] text-muted font-medium mt-2 pt-2 border-t border-stone/50 block truncate">
+                        Frees active slot
+                      </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Archived Properties
-                      </span>
-                      <div className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">
-                        {stats.archived}
+                    <div className="bg-white rounded-2xl border border-stone p-4 sm:p-4.5 shadow-xs flex flex-col justify-between h-full min-h-[125px] hover:border-navy/30 transition-all">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5 truncate">
+                          Archived Properties
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-serif font-bold text-charcoal leading-tight">
+                          {stats.archived}
+                        </div>
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Preserved, inactive</span>
+                      <div className="text-[11px] text-muted font-medium mt-2 pt-2 border-t border-stone/50 block truncate">
+                        Preserved, inactive
+                      </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Remaining Active Slots
-                      </span>
-                      <div className="text-2xl sm:text-3xl font-serif font-bold text-royal">
-                        {listingCapacity ? listingCapacity.remaining : Math.max(0, 30 - stats.active)}
+                    <div className="bg-white rounded-2xl border border-stone p-4 sm:p-4.5 shadow-xs flex flex-col justify-between h-full min-h-[125px] hover:border-navy/30 transition-all">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5 truncate">
+                          Remaining Active Slots
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-serif font-bold text-royal leading-tight">
+                          {listingCapacity ? listingCapacity.remaining : Math.max(0, 30 - stats.active)}
+                        </div>
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Slots available to add</span>
+                      <div className="text-[11px] text-muted font-medium mt-2 pt-2 border-t border-stone/50 block truncate">
+                        Slots available to add
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Capacity Limit Banner */}
                 {listingCapacity && (
-                  <div className="bg-white rounded-2xl border border-stone p-5 shadow-xs">
+                  <div className="bg-white rounded-2xl border border-stone p-5 sm:p-6 shadow-xs">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-serif font-bold text-navy text-base">Active Properties Limit</h4>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            listingCapacity.isAtLimit 
-                              ? 'bg-rose-100 text-rose-700 border border-rose-200' 
-                              : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                          }`}>
-                            {listingCapacity.isAtLimit ? 'Limit Reached (30 / 30)' : `${listingCapacity.remaining} Slots Remaining`}
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                          <h4 className="font-serif font-bold text-navy text-lg leading-tight">
+                            Active Properties Limit
+                          </h4>
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                              listingCapacity.active > listingCapacity.maxLimit
+                                ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                                : listingCapacity.isAtLimit
+                                ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            }`}
+                          >
+                            {listingCapacity.active > listingCapacity.maxLimit
+                              ? `Over Limit (${listingCapacity.active} / ${listingCapacity.maxLimit})`
+                              : listingCapacity.isAtLimit
+                              ? `Limit Reached (${listingCapacity.active} / ${listingCapacity.maxLimit})`
+                              : `${listingCapacity.remaining} Slots Remaining`}
                           </span>
                         </div>
-                        <p className="text-xs text-muted mt-0.5">
-                          Active Properties: {listingCapacity.active} / {listingCapacity.maxLimit}. Available and Draft listings count toward the 30 active listings limit. Sold Out and Archived properties are preserved and do not count toward the limit.
+                        <p className="text-xs sm:text-sm text-charcoal/80 mt-1 max-w-2xl leading-relaxed">
+                          Available and Draft listings count toward the {listingCapacity.maxLimit} active listings limit. Sold Out and Archived properties are preserved indefinitely and do not count toward the limit.
                         </p>
                       </div>
-                      <div className="text-right sm:text-right">
-                        <span className="font-serif font-bold text-xl text-navy">
-                          {listingCapacity.active} <span className="text-sm font-sans text-muted">/ {listingCapacity.maxLimit}</span>
-                        </span>
-                        <div className="text-[10px] text-muted">
+                      <div className="text-left sm:text-right flex-shrink-0">
+                        <div className="font-serif font-bold text-2xl text-navy leading-tight">
+                          {listingCapacity.active}{' '}
+                          <span className="text-sm font-sans font-normal text-muted">
+                            / {listingCapacity.maxLimit}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted mt-0.5">
                           {listingCapacity.remaining} slots remaining
                         </div>
                       </div>
                     </div>
 
+                    {/* Explanatory Advisory if legacy count exceeds 30 */}
+                    {listingCapacity.active > listingCapacity.maxLimit && (
+                      <div className="my-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start sm:items-center gap-2.5">
+                        <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+                        <span>
+                          <strong>Portfolio Notice:</strong> Your account currently has <strong>{listingCapacity.active} active listings</strong> (from initial catalog import), exceeding the standard {listingCapacity.maxLimit}-listing limit. All existing properties remain fully active, live, and published on the website. To add new property listings, mark existing properties as Sold Out or Archived until active properties are under {listingCapacity.maxLimit}.
+                        </span>
+                      </div>
+                    )}
+
                     {/* Progress Bar */}
-                    <div className="w-full bg-stone/40 rounded-full h-2.5 overflow-hidden">
+                    <div className="w-full bg-stone/50 rounded-full h-3 overflow-hidden border border-stone/80 my-3">
                       <div
-                        className={`h-2.5 rounded-full transition-all duration-500 ${
+                        className={`h-3 rounded-full transition-all duration-500 ${
                           listingCapacity.isAtLimit
                             ? 'bg-rose-500'
-                            : (listingCapacity.active / listingCapacity.maxLimit > 0.8)
+                            : listingCapacity.active / listingCapacity.maxLimit > 0.8
                             ? 'bg-amber-500'
                             : 'bg-royal'
                         }`}
@@ -905,9 +966,11 @@ export default function OwnerDashboard({ onNavigate, user }) {
                       />
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between text-[11px] text-muted mt-2 pt-2 border-t border-stone/50 gap-2">
-                      <span>To free a slot: mark an active listing Sold Out or Archive it.</span>
-                      <span className="font-mono text-[10px]">Configured via MAX_ACTIVE_LISTINGS (default: 30)</span>
+                    <div className="flex flex-wrap items-center justify-between text-xs text-muted pt-2 border-t border-stone/50 gap-2">
+                      <span>To free a slot: mark an active listing <strong>Sold Out</strong> or <strong>Archive</strong> it.</span>
+                      <span className="font-mono text-[11px] bg-ivory px-2 py-0.5 rounded border border-stone/60">
+                        Configured via MAX_ACTIVE_LISTINGS (default: {listingCapacity.maxLimit})
+                      </span>
                     </div>
                   </div>
                 )}
@@ -917,44 +980,60 @@ export default function OwnerDashboard({ onNavigate, user }) {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-3">
                     Inventory by Asset Category
                   </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                    <div className="bg-white rounded-2xl border border-stone p-4 shadow-xs flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-blue-50 text-royal">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs flex items-center gap-3.5 hover:border-navy/20 transition-all">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 text-royal flex items-center justify-center flex-shrink-0">
                         <Home className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="text-xl font-serif font-bold text-navy">{stats.residential}</div>
-                        <span className="text-[11px] text-muted font-medium">Residential Flats & Homes</span>
+                        <div className="text-2xl font-serif font-bold text-navy leading-none mb-1">
+                          {stats.residential}
+                        </div>
+                        <span className="text-xs text-charcoal font-semibold block leading-tight">
+                          Residential Flats & Homes
+                        </span>
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-stone p-4 shadow-xs flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-amber-50 text-amber-700">
+                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs flex items-center gap-3.5 hover:border-navy/20 transition-all">
+                      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0">
                         <Building2 className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="text-xl font-serif font-bold text-navy">{stats.commercial}</div>
-                        <span className="text-[11px] text-muted font-medium">Commercial Retail & Offices</span>
+                        <div className="text-2xl font-serif font-bold text-navy leading-none mb-1">
+                          {stats.commercial}
+                        </div>
+                        <span className="text-xs text-charcoal font-semibold block leading-tight">
+                          Commercial Retail & Offices
+                        </span>
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-stone p-4 shadow-xs flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700">
+                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs flex items-center gap-3.5 hover:border-navy/20 transition-all">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">
                         <Layers className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="text-xl font-serif font-bold text-navy">{stats.plotsAndLand}</div>
-                        <span className="text-[11px] text-muted font-medium">NA Plots & Land Parcels</span>
+                        <div className="text-2xl font-serif font-bold text-navy leading-none mb-1">
+                          {stats.plotsAndLand}
+                        </div>
+                        <span className="text-xs text-charcoal font-semibold block leading-tight">
+                          NA Plots & Land Parcels
+                        </span>
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-stone p-4 shadow-xs flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-purple-50 text-purple-700">
+                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs flex items-center gap-3.5 hover:border-navy/20 transition-all">
+                      <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center flex-shrink-0">
                         <Tag className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="text-xl font-serif font-bold text-navy">{stats.rental}</div>
-                        <span className="text-[11px] text-muted font-medium">Rental & Lease Properties</span>
+                        <div className="text-2xl font-serif font-bold text-navy leading-none mb-1">
+                          {stats.rental}
+                        </div>
+                        <span className="text-xs text-charcoal font-semibold block leading-tight">
+                          Rental & Lease Properties
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1004,12 +1083,16 @@ export default function OwnerDashboard({ onNavigate, user }) {
                       }`}
                       title={
                         listingCapacity?.isAtLimit
-                          ? 'Active listing limit (30/30) reached'
+                          ? `Active listing limit reached (${listingCapacity.active}/${listingCapacity.maxLimit})`
                           : 'Create Property Listing'
                       }
                     >
                       <PlusCircle className="w-4 h-4" />
-                      <span>{listingCapacity?.isAtLimit ? 'Limit Reached (30/30)' : 'Create Property Listing'}</span>
+                      <span>
+                        {listingCapacity?.isAtLimit
+                          ? `Limit Reached (${listingCapacity.active}/${listingCapacity.maxLimit})`
+                          : 'Create Property Listing'}
+                      </span>
                     </button>
                   </div>
                 </div>
