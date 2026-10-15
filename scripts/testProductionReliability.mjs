@@ -140,7 +140,7 @@ async function runSuite() {
 
     const loginRes = await callApi('POST', '/api/auth/login', {
       username: ownerUsername,
-      password: 'TomarOwner2026Secure!',
+      password: 'Tomar@Admin2026!',
     });
 
     let sessionToken = null;
