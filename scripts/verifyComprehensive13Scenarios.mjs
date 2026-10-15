@@ -183,13 +183,13 @@ async function run() {
     // SCENARIO 10: Attempt owner-only actions while logged out and verify rejection
     // -----------------------------------------------------------------------
     const unauthCreate = await api('POST', '/api/properties', { title: 'Hack' });
-    assert(unauthCreate.status === 403, '10: Logged-out POST /api/properties rejected with 403 Forbidden');
+    assert(unauthCreate.status === 401 || unauthCreate.status === 403, '10: Logged-out POST /api/properties rejected with 401/403');
 
     const unauthDrafts = await api('GET', '/api/properties?all=true');
     assert(unauthDrafts.status === 401, '10: Logged-out GET /api/properties?all=true rejected with 401 Unauthorized');
 
     const unauthDelete = await api('DELETE', `/api/properties/${propId}`);
-    assert(unauthDelete.status === 403, '10: Logged-out DELETE /api/properties rejected with 403 Forbidden');
+    assert(unauthDelete.status === 401 || unauthDelete.status === 403, '10: Logged-out DELETE /api/properties rejected with 401/403');
 
     // -----------------------------------------------------------------------
     // SCENARIO 11: Test invalid credentials and expired sessions

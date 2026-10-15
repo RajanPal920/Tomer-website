@@ -11,6 +11,7 @@ server/data/*.db-wal
 server/data/*.db-shm
 server/data/owner_sessions.json
 server/data/owner_auth.json
+backups/
 
 # Logs
 logs

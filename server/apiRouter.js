@@ -28,6 +28,8 @@ import {
   updateEnquiryStatus,
   getSettings,
   updateSettings,
+  getListingCapacity,
+  getMaxPropertyListings,
 } from './dataStore.js';
 
 import { checkHealth, runMigrations } from './db/index.js';
@@ -127,6 +129,63 @@ function sendJson(res, statusCode, data, headers = {}) {
   res.end(JSON.stringify(data));
 }
 
+// Standard role authorization helper distinguishing unauthenticated (401) vs forbidden (403)
+function requireOwnerAuth(session, isOwner, actionDescription = 'perform this action') {
+  if (!session) {
+    return {
+      allowed: false,
+      statusCode: 401,
+      error: `Unauthorized: Owner sign-in required to ${actionDescription}.`,
+      code: 'UNAUTHENTICATED',
+    };
+  }
+  if (!isOwner) {
+    return {
+      allowed: false,
+      statusCode: 403,
+      error: `Forbidden: Owner permissions required to ${actionDescription}.`,
+      code: 'FORBIDDEN',
+    };
+  }
+  return { allowed: true };
+}
+
+// CSRF Defense-in-depth helper for state-changing requests
+function isCsrfSafe(req) {
+  const method = req.method.toUpperCase();
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return true;
+
+  // Requests with Bearer tokens or custom AJAX headers are immune to browser cross-site execution
+  const authHeader = req.headers.authorization || '';
+  if (authHeader.startsWith('Bearer ')) return true;
+  if (req.headers['x-requested-with'] || req.headers['x-csrf-token'] || req.headers['x-tomar-action']) {
+    return true;
+  }
+
+  const origin = req.headers.origin;
+  const host = req.headers.host;
+  if (origin && host) {
+    try {
+      const originHost = new URL(origin).host;
+      if (originHost === host) return true;
+    } catch {
+      return false;
+    }
+  }
+
+  const referer = req.headers.referer;
+  if (referer && host) {
+    try {
+      const refHost = new URL(referer).host;
+      if (refHost === host) return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /**
  * Handle incoming API requests
  */
@@ -156,10 +215,19 @@ export async function handleApiRequest(req, res) {
     if (req.headers.origin) {
       res.setHeader('Access-Control-Allow-Credentials', 'true');
     }
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With, X-CSRF-Token, X-Tomar-Action');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.end();
     return;
+  }
+
+  // Enforce CSRF check for cookie-authenticated state-changing calls
+  if (!isCsrfSafe(req)) {
+    return sendJson(res, 403, {
+      success: false,
+      error: 'Forbidden: Cross-site request verification failed.',
+      code: 'CSRF_REJECTED',
+    });
   }
 
   // Extract auth token from Authorization Header OR HttpOnly Cookie
@@ -288,10 +356,9 @@ export async function handleApiRequest(req, res) {
 
     // POST /api/auth/change-password (Owner Only)
     if (pathname === '/api/auth/change-password' && method === 'POST') {
-      if (!isOwner) {
-        return sendJson(res, 403, {
-          error: 'Forbidden: Owner authorization required to change credentials.',
-        });
+      const auth = requireOwnerAuth(session, isOwner, 'change owner credentials');
+      if (!auth.allowed) {
+        return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
       }
 
       const body = await parseBody(req);
@@ -299,7 +366,9 @@ export async function handleApiRequest(req, res) {
 
       if (!newPassword || newPassword.length < 8) {
         return sendJson(res, 400, {
+          success: false,
           error: 'New password must be at least 8 characters long.',
+          code: 'VALIDATION_ERROR',
         });
       }
 
@@ -317,7 +386,9 @@ export async function handleApiRequest(req, res) {
         );
       } catch (err) {
         return sendJson(res, 400, {
+          success: false,
           error: err.message || 'Failed to update owner credentials.',
+          code: 'UPDATE_FAILED',
         });
       }
     }
@@ -328,24 +399,27 @@ export async function handleApiRequest(req, res) {
 
     // POST /api/upload (Owner Only)
     if (pathname === '/api/upload' && method === 'POST') {
-      if (!isOwner) {
-        return sendJson(res, 403, {
-          error: 'Forbidden: Owner authentication required to upload property images.',
-        });
+      const auth = requireOwnerAuth(session, isOwner, 'upload property images');
+      if (!auth.allowed) {
+        return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
       }
 
       const body = await parseBody(req);
       const rawData = body.image || body.data;
       if (!rawData) {
         return sendJson(res, 400, {
+          success: false,
           error: 'Missing image data. Please provide base64 data string.',
+          code: 'VALIDATION_ERROR',
         });
       }
 
       const match = String(rawData).match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i);
       if (!match) {
         return sendJson(res, 400, {
+          success: false,
           error: 'Invalid image format. Supported formats: JPEG, PNG, WebP.',
+          code: 'VALIDATION_ERROR',
         });
       }
 
@@ -354,10 +428,34 @@ export async function handleApiRequest(req, res) {
       const base64Data = match[2];
       const buffer = Buffer.from(base64Data, 'base64');
 
+      // Enforce file magic bytes (do not trust user-supplied MIME type)
+      let validSig = false;
+      if (buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+        validSig = true; // JPEG
+      } else if (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+        validSig = true; // PNG
+      } else if (
+        buffer.length >= 12 &&
+        buffer.slice(0, 4).toString('ascii') === 'RIFF' &&
+        buffer.slice(8, 12).toString('ascii') === 'WEBP'
+      ) {
+        validSig = true; // WebP
+      }
+
+      if (!validSig) {
+        return sendJson(res, 400, {
+          success: false,
+          error: 'Security verification failed: File contents do not match genuine image binary signature.',
+          code: 'INVALID_IMAGE_SIGNATURE',
+        });
+      }
+
       // Max size: 5MB
       if (buffer.length > 5 * 1024 * 1024) {
         return sendJson(res, 400, {
+          success: false,
           error: 'Image file size exceeds maximum allowed limit of 5MB.',
+          code: 'FILE_TOO_LARGE',
         });
       }
 
@@ -404,15 +502,27 @@ export async function handleApiRequest(req, res) {
     // PROPERTY MANAGEMENT ROUTES
     // -----------------------------------------------------------------------
 
+    // GET /api/properties/stats (Owner Only: Capacity & Metrics)
+    if (pathname === '/api/properties/stats' && method === 'GET') {
+      const auth = requireOwnerAuth(session, isOwner, 'view listing capacity metrics');
+      if (!auth.allowed) {
+        return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
+      }
+      const capacity = await getListingCapacity();
+      return sendJson(res, 200, {
+        status: 'ok',
+        capacity,
+      });
+    }
+
     // GET /api/properties
     if (pathname === '/api/properties' && method === 'GET') {
       const showAll = url.searchParams.get('all') === 'true';
 
       if (showAll) {
-        if (!isOwner) {
-          return sendJson(res, 401, {
-            error: 'Unauthorized: Owner credentials required to view unpublished drafts and owner data.',
-          });
+        const auth = requireOwnerAuth(session, isOwner, 'view unpublished drafts and owner inventory');
+        if (!auth.allowed) {
+          return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
         }
 
         const filterOptions = {
@@ -426,10 +536,15 @@ export async function handleApiRequest(req, res) {
           offset: url.searchParams.get('offset') ? Number(url.searchParams.get('offset')) : null,
         };
 
-        const ownerProps = await getOwnerProperties(filterOptions);
+        const [ownerProps, capacity] = await Promise.all([
+          getOwnerProperties(filterOptions),
+          getListingCapacity(),
+        ]);
+
         return sendJson(res, 200, {
           properties: ownerProps,
           total: ownerProps.length,
+          capacity,
           isOwnerView: true,
         });
       }
@@ -442,21 +557,33 @@ export async function handleApiRequest(req, res) {
       });
     }
 
-    // POST /api/properties (Owner Only)
+    // POST /api/properties (Owner Only: Creates a new listing under listing limit)
     if (pathname === '/api/properties' && method === 'POST') {
-      if (!isOwner) {
-        return sendJson(res, 403, {
-          error: 'Forbidden: You do not have permission to publish or create properties. Owner authentication is required.',
-        });
+      const auth = requireOwnerAuth(session, isOwner, 'create and publish property listings');
+      if (!auth.allowed) {
+        return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
       }
 
-      const body = await parseBody(req);
-      const created = await createProperty(body);
-      return sendJson(res, 201, {
-        success: true,
-        message: 'Property created successfully and persisted to database',
-        property: created,
-      });
+      try {
+        const body = await parseBody(req);
+        const created = await createProperty(body);
+        const capacity = await getListingCapacity();
+        return sendJson(res, 201, {
+          success: true,
+          message: 'Property created successfully and persisted to database',
+          property: created,
+          capacity,
+        });
+      } catch (err) {
+        const statusCode = err.statusCode || (err.code === 'PROPERTY_LIMIT_REACHED' ? 409 : 500);
+        return sendJson(res, statusCode, {
+          success: false,
+          error: err.message,
+          code: err.code || (statusCode === 400 ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR'),
+          capacity: err.capacity,
+          field: err.field,
+        });
+      }
     }
 
     // Single Property Routes: /api/properties/:id
@@ -468,44 +595,61 @@ export async function handleApiRequest(req, res) {
       if (method === 'GET') {
         const prop = await findProperty(propId, isOwner);
         if (!prop) {
-          return sendJson(res, 404, { error: 'Property not found or unavailable' });
+          return sendJson(res, 404, { success: false, error: 'Property not found or unavailable', code: 'NOT_FOUND' });
         }
         return sendJson(res, 200, { property: prop });
       }
 
-      // PATCH /api/properties/:id (Owner Only)
+      // PATCH /api/properties/:id (Owner Only: Editing existing property is allowed even at listing limit)
       if (method === 'PATCH' || method === 'PUT') {
-        if (!isOwner) {
-          return sendJson(res, 403, {
-            error: 'Forbidden: Owner authentication required to update property details.',
-          });
+        const auth = requireOwnerAuth(session, isOwner, 'update property details');
+        if (!auth.allowed) {
+          return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
         }
 
-        const body = await parseBody(req);
-        const updated = await updateProperty(propId, body);
-        return sendJson(res, 200, {
-          success: true,
-          message: 'Property updated successfully in database',
-          property: updated,
-        });
+        try {
+          const body = await parseBody(req);
+          const updated = await updateProperty(propId, body);
+          const capacity = await getListingCapacity();
+          return sendJson(res, 200, {
+            success: true,
+            message: 'Property updated successfully in database',
+            property: updated,
+            capacity,
+          });
+        } catch (err) {
+          const statusCode = err.statusCode || (err.message.includes('not found') ? 404 : err.code === 'PROPERTY_LIMIT_REACHED' ? 409 : 500);
+          return sendJson(res, statusCode, {
+            success: false,
+            error: err.message,
+            code: err.code || (statusCode === 404 ? 'NOT_FOUND' : statusCode === 400 ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR'),
+            capacity: err.capacity,
+            field: err.field,
+          });
+        }
       }
 
       // DELETE /api/properties/:id (Owner Only)
       if (method === 'DELETE') {
-        if (!isOwner) {
-          return sendJson(res, 403, {
-            error: 'Forbidden: Owner authentication required to delete property records.',
-          });
+        const auth = requireOwnerAuth(session, isOwner, 'delete property records');
+        if (!auth.allowed) {
+          return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
         }
 
-        const deleted = await deleteProperty(propId);
-        if (!deleted) {
-          return sendJson(res, 404, { error: 'Property not found or already removed' });
+        try {
+          const deleted = await deleteProperty(propId);
+          if (!deleted) {
+            return sendJson(res, 404, { success: false, error: 'Property not found or already removed', code: 'NOT_FOUND' });
+          }
+          const capacity = await getListingCapacity();
+          return sendJson(res, 200, {
+            success: true,
+            message: 'Property deleted successfully from database',
+            capacity,
+          });
+        } catch (err) {
+          return sendJson(res, 500, { success: false, error: err.message, code: 'INTERNAL_ERROR' });
         }
-        return sendJson(res, 200, {
-          success: true,
-          message: 'Property deleted successfully from database',
-        });
       }
     }
 
@@ -526,10 +670,9 @@ export async function handleApiRequest(req, res) {
 
     // GET /api/enquiries (Owner Only)
     if (pathname === '/api/enquiries' && method === 'GET') {
-      if (!isOwner) {
-        return sendJson(res, 403, {
-          error: 'Forbidden: Owner authorization required to access customer enquiries.',
-        });
+      const auth = requireOwnerAuth(session, isOwner, 'access customer enquiries');
+      if (!auth.allowed) {
+        return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
       }
 
       const enquiries = await getEnquiries();
@@ -542,10 +685,9 @@ export async function handleApiRequest(req, res) {
     // PATCH /api/enquiries/:id (Owner Only)
     const enqIdMatch = pathname.match(/^\/api\/enquiries\/([^/]+)$/);
     if (enqIdMatch && method === 'PATCH') {
-      if (!isOwner) {
-        return sendJson(res, 403, {
-          error: 'Forbidden: Owner authorization required to update enquiry status.',
-        });
+      const auth = requireOwnerAuth(session, isOwner, 'update customer enquiry status');
+      if (!auth.allowed) {
+        return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
       }
 
       const body = await parseBody(req);
@@ -565,10 +707,9 @@ export async function handleApiRequest(req, res) {
 
     // PATCH /api/settings (Owner Only)
     if (pathname === '/api/settings' && method === 'PATCH') {
-      if (!isOwner) {
-        return sendJson(res, 403, {
-          error: 'Forbidden: Owner authorization required to modify website settings.',
-        });
+      const auth = requireOwnerAuth(session, isOwner, 'modify website settings');
+      if (!auth.allowed) {
+        return sendJson(res, auth.statusCode, { success: false, error: auth.error, code: auth.code });
       }
 
       const body = await parseBody(req);

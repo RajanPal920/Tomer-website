@@ -219,21 +219,175 @@ export async function findProperty(slugOrId, isOwner = false) {
   return mapRowToProperty(row);
 }
 
+export const DEFAULT_MAX_PROPERTY_LISTINGS = 100;
+let overrideMaxListingsForTest = null;
+
+export function setMaxPropertyListingsForTesting(limit) {
+  overrideMaxListingsForTest = limit;
+}
+
+/**
+ * Get configured maximum allowed active property listings
+ */
+export function getMaxPropertyListings() {
+  if (overrideMaxListingsForTest !== null && overrideMaxListingsForTest !== undefined) {
+    return overrideMaxListingsForTest;
+  }
+  const envVal = process.env.MAX_PROPERTY_LISTINGS;
+  if (envVal) {
+    const parsed = parseInt(envVal, 10);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+  return DEFAULT_MAX_PROPERTY_LISTINGS;
+}
+
+/**
+ * Calculate active, draft, published, archived listing counts and capacity status
+ */
+export async function getListingCapacity() {
+  const row = await get(`
+    SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published,
+      SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
+      SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived,
+      SUM(CASE WHEN status != 'archived' AND status != 'deleted' THEN 1 ELSE 0 END) as active
+    FROM properties
+  `);
+
+  const total = Number(row?.total || 0);
+  const published = Number(row?.published || 0);
+  const draft = Number(row?.draft || 0);
+  const archived = Number(row?.archived || 0);
+  const active = Number(row?.active || 0);
+  const maxLimit = getMaxPropertyListings();
+
+  return {
+    total,
+    published,
+    draft,
+    archived,
+    active,
+    maxLimit,
+    remaining: Math.max(0, maxLimit - active),
+    isAtLimit: active >= maxLimit,
+  };
+}
+
+/**
+ * Validate property creation and update payloads
+ */
+export function validatePropertyPayload(data, isUpdate = false) {
+  if (!isUpdate || data.title !== undefined) {
+    if (!data.title || typeof data.title !== 'string' || !data.title.trim()) {
+      const err = new Error('Property title is required');
+      err.statusCode = 400;
+      err.field = 'title';
+      throw err;
+    }
+    if (data.title.trim().length < 3 || data.title.trim().length > 255) {
+      const err = new Error('Property title must be between 3 and 255 characters');
+      err.statusCode = 400;
+      err.field = 'title';
+      throw err;
+    }
+  }
+
+  if (!isUpdate || data.category !== undefined) {
+    if (!data.category || typeof data.category !== 'string') {
+      const err = new Error('Property category is required');
+      err.statusCode = 400;
+      err.field = 'category';
+      throw err;
+    }
+  }
+
+  if (!isUpdate || data.transactionType !== undefined || data.transaction_type !== undefined) {
+    const tx = data.transactionType || data.transaction_type;
+    if (!tx || typeof tx !== 'string') {
+      const err = new Error('Transaction type is required');
+      err.statusCode = 400;
+      err.field = 'transactionType';
+      throw err;
+    }
+  }
+
+  if (!isUpdate || data.locality !== undefined) {
+    if (!data.locality || typeof data.locality !== 'string') {
+      const err = new Error('Main location/station is required');
+      err.statusCode = 400;
+      err.field = 'locality';
+      throw err;
+    }
+  }
+
+  if (data.status !== undefined) {
+    const validStatuses = ['published', 'draft', 'archived', 'sold', 'rented', 'unavailable'];
+    if (!validStatuses.includes(data.status)) {
+      const err = new Error(`Invalid status "${data.status}". Supported: ${validStatuses.join(', ')}`);
+      err.statusCode = 400;
+      err.field = 'status';
+      throw err;
+    }
+  }
+
+  if (data.bedrooms !== undefined && data.bedrooms !== null && data.bedrooms !== 'none' && data.bedrooms !== '') {
+    const b = Number(data.bedrooms);
+    if (isNaN(b) || b < 0 || b > 20) {
+      const err = new Error('Bedrooms must be a valid number between 0 and 20');
+      err.statusCode = 400;
+      err.field = 'bedrooms';
+      throw err;
+    }
+  }
+
+  if (data.bathrooms !== undefined && data.bathrooms !== null && data.bathrooms !== 'none' && data.bathrooms !== '') {
+    const b = Number(data.bathrooms);
+    if (isNaN(b) || b < 0 || b > 20) {
+      const err = new Error('Bathrooms must be a valid number between 0 and 20');
+      err.statusCode = 400;
+      err.field = 'bathrooms';
+      throw err;
+    }
+  }
+
+  if (data.areaSqFt !== undefined && data.areaSqFt !== null && data.areaSqFt !== '') {
+    const a = Number(data.areaSqFt);
+    if (isNaN(a) || a < 0) {
+      const err = new Error('Area must be a non-negative number');
+      err.statusCode = 400;
+      err.field = 'areaSqFt';
+      throw err;
+    }
+  }
+
+  if (data.priceNumber !== undefined && data.priceNumber !== null && data.priceNumber !== '') {
+    const p = Number(data.priceNumber);
+    if (isNaN(p) || p < 0) {
+      const err = new Error('Numeric price must be non-negative');
+      err.statusCode = 400;
+      err.field = 'priceNumber';
+      throw err;
+    }
+  }
+}
+
 /**
  * Create a new property listing (Owner Only)
  */
 export async function createProperty(propertyData) {
-  if (!propertyData.title || !propertyData.title.trim()) {
-    throw new Error('Property title is required');
-  }
-  if (!propertyData.category) {
-    throw new Error('Property category is required');
-  }
-  if (!propertyData.transactionType && !propertyData.transaction_type) {
-    throw new Error('Transaction type is required');
-  }
-  if (!propertyData.locality) {
-    throw new Error('Main location/station is required');
+  validatePropertyPayload(propertyData, false);
+
+  // Enforce configurable property listing limit atomically
+  const capacity = await getListingCapacity();
+  if (capacity.isAtLimit) {
+    const limitErr = new Error(
+      `Property listing limit reached (${capacity.active}/${capacity.maxLimit} active listings). Please archive or remove older listings before adding new properties, or adjust MAX_PROPERTY_LISTINGS in your environment configuration.`
+    );
+    limitErr.code = 'PROPERTY_LIMIT_REACHED';
+    limitErr.statusCode = 409;
+    limitErr.capacity = capacity;
+    throw limitErr;
   }
 
   const id = propertyData.id || `te-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -328,7 +482,25 @@ export async function createProperty(propertyData) {
 export async function updateProperty(id, updateData) {
   const current = await findProperty(id, true);
   if (!current) {
-    throw new Error(`Property with ID "${id}" not found`);
+    const err = new Error(`Property with ID "${id}" not found`);
+    err.statusCode = 404;
+    throw err;
+  }
+
+  validatePropertyPayload(updateData, true);
+
+  // If un-archiving an archived property, check active listing capacity limit
+  if (current.status === 'archived' && updateData.status && updateData.status !== 'archived') {
+    const capacity = await getListingCapacity();
+    if (capacity.isAtLimit) {
+      const limitErr = new Error(
+        `Cannot un-archive property: Listing limit reached (${capacity.active}/${capacity.maxLimit} active listings). Please archive another property first or raise MAX_PROPERTY_LISTINGS.`
+      );
+      limitErr.code = 'PROPERTY_LIMIT_REACHED';
+      limitErr.statusCode = 409;
+      limitErr.capacity = capacity;
+      throw limitErr;
+    }
   }
 
   let slug = current.slug;

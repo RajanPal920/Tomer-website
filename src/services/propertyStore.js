@@ -87,6 +87,9 @@ export function findLivePropertyBySlug(slug) {
 /**
  * Fetch all properties for owner dashboard (including drafts, sold, and internal notes)
  */
+/**
+ * Fetch owner inventory with unpublished drafts and capacity metrics
+ */
 export async function fetchOwnerInventory() {
   const headers = getAuthHeaders();
 
@@ -95,13 +98,37 @@ export async function fetchOwnerInventory() {
     credentials: 'include',
   });
 
+  const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || 'Failed to fetch owner inventory from database');
+    const err = new Error(data.error || 'Failed to fetch owner inventory from database');
+    err.statusCode = res.status;
+    err.code = data.code;
+    throw err;
   }
 
-  const data = await res.json();
-  return data.properties || [];
+  return {
+    properties: data.properties || [],
+    capacity: data.capacity || null,
+  };
+}
+
+/**
+ * Fetch listing capacity stats from backend
+ */
+export async function fetchListingStats() {
+  const headers = getAuthHeaders();
+  try {
+    const res = await fetch('/api/properties/stats', {
+      headers,
+      credentials: 'include',
+    });
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    return data?.capacity || null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -119,7 +146,11 @@ export async function createOwnerListing(propertyData) {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Failed to create property in database');
+    const err = new Error(data.error || 'Failed to create property in database');
+    err.statusCode = res.status;
+    err.code = data.code;
+    err.capacity = data.capacity;
+    throw err;
   }
 
   // Refresh public list so website updates immediately if published
@@ -140,9 +171,13 @@ export async function updateOwnerListing(id, propertyData) {
     body: JSON.stringify(propertyData),
   });
 
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Failed to update property in database');
+    const err = new Error(data.error || 'Failed to update property in database');
+    err.statusCode = res.status;
+    err.code = data.code;
+    err.capacity = data.capacity;
+    throw err;
   }
 
   // Refresh public list
@@ -162,9 +197,12 @@ export async function deleteOwnerListing(id) {
     credentials: 'include',
   });
 
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Failed to delete property from database');
+    const err = new Error(data.error || 'Failed to delete property from database');
+    err.statusCode = res.status;
+    err.code = data.code;
+    throw err;
   }
 
   // Refresh public list

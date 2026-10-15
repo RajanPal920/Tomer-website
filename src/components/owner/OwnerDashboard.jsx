@@ -24,12 +24,14 @@ import {
   Home,
   Layers,
   FileSpreadsheet,
+  ShieldAlert,
 } from 'lucide-react';
 import BrandLogo from '../BrandLogo';
 import { APPROVED_STATIONS } from '../../data/locations';
 import OwnerPropertyForm from './OwnerPropertyForm';
 import {
   fetchOwnerInventory,
+  fetchListingStats,
   createOwnerListing,
   updateOwnerListing,
   deleteOwnerListing,
@@ -39,11 +41,12 @@ import {
   updateWebsiteSettings,
   changeOwnerCredentials,
 } from '../../services/propertyStore';
-import { logout } from '../../services/authService';
+import { logout, login } from '../../services/authService';
 
 export default function OwnerDashboard({ onNavigate, user }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview | add | all | published | drafts | enquiries | sold | settings
   const [properties, setProperties] = useState([]);
+  const [listingCapacity, setListingCapacity] = useState(null);
   const [enquiries, setEnquiries] = useState([]);
   const [settings, setSettings] = useState({ showDemoInventory: true });
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +56,12 @@ export default function OwnerDashboard({ onNavigate, user }) {
   // Property being edited in form (null = adding new, object = editing)
   const [editingProperty, setEditingProperty] = useState(null);
   const [isSavingProperty, setIsSavingProperty] = useState(false);
+
+  // Re-authentication modal state (retains unsaved form changes on session expiry)
+  const [showReauthModal, setShowReauthModal] = useState(false);
+  const [reauthPassword, setReauthPassword] = useState('');
+  const [reauthError, setReauthError] = useState('');
+  const [isReauthing, setIsReauthing] = useState(false);
 
   // Filter & Search inside Dashboard
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,18 +85,24 @@ export default function OwnerDashboard({ onNavigate, user }) {
     setIsLoading(true);
     setErrorNotice(null);
     try {
-      const [inventoryData, enquiriesData, settingsData] = await Promise.all([
+      const [inventoryRes, enquiriesData, settingsData] = await Promise.all([
         fetchOwnerInventory(),
         fetchOwnerEnquiries().catch(() => []),
         fetchWebsiteSettings().catch(() => ({ showDemoInventory: true })),
       ]);
 
-      setProperties(inventoryData || []);
+      setProperties(inventoryRes?.properties || []);
+      setListingCapacity(inventoryRes?.capacity || null);
       setEnquiries(enquiriesData || []);
       setSettings(settingsData || { showDemoInventory: true });
     } catch (err) {
       console.error('[DASHBOARD ERROR]', err);
-      setErrorNotice(err.message || 'Failed to fetch inventory from server');
+      if (err.statusCode === 401 || err.code === 'UNAUTHENTICATED') {
+        setErrorNotice('Your owner session has expired. Please sign in to access management functions.');
+        setShowReauthModal(true);
+      } else {
+        setErrorNotice(err.message || 'Failed to fetch inventory from server');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -238,21 +253,38 @@ export default function OwnerDashboard({ onNavigate, user }) {
 
     try {
       if (editingProperty?.id) {
-        // Update
+        // Update existing property (permitted even if at listing limit)
         const updated = await updateOwnerListing(editingProperty.id, propertyData);
         setProperties((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
         setSuccessNotice(`Property "${updated.title}" successfully updated!`);
       } else {
-        // Create
+        // Create new property (checked against MAX_PROPERTY_LISTINGS)
         const created = await createOwnerListing(propertyData);
         setProperties((prev) => [created, ...prev]);
         setSuccessNotice(`New property "${created.title}" successfully created and saved!`);
       }
 
+      // Refresh capacity in background
+      fetchListingStats().then((c) => c && setListingCapacity(c)).catch(() => {});
+
       setEditingProperty(null);
       setActiveTab('all');
     } catch (err) {
-      setErrorNotice(err.message || 'Failed to save property listing');
+      if (err.statusCode === 401 || err.code === 'UNAUTHENTICATED') {
+        setErrorNotice(
+          'Your owner session has expired or is invalid. Please sign in below to save your changes — your edits have been preserved.'
+        );
+        setShowReauthModal(true);
+      } else if (err.code === 'PROPERTY_LIMIT_REACHED' || err.statusCode === 409) {
+        setErrorNotice(
+          err.message || 'Property listing limit reached. Please archive an older property or raise MAX_PROPERTY_LISTINGS.'
+        );
+        if (err.capacity) {
+          setListingCapacity(err.capacity);
+        }
+      } else {
+        setErrorNotice(err.message || 'Failed to save property listing');
+      }
     } finally {
       setIsSavingProperty(false);
     }
@@ -433,6 +465,25 @@ export default function OwnerDashboard({ onNavigate, user }) {
           </div>
 
           <div className="flex items-center gap-3">
+            {listingCapacity && (
+              <div 
+                className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-semibold border ${
+                  listingCapacity.isAtLimit 
+                    ? 'bg-rose-500/20 border-rose-400/40 text-rose-200' 
+                    : (listingCapacity.active / listingCapacity.maxLimit > 0.8)
+                    ? 'bg-amber-500/20 border-amber-400/40 text-amber-200'
+                    : 'bg-white/10 border-white/20 text-blue-100'
+                }`}
+                title={`Active Listings: ${listingCapacity.active} / ${listingCapacity.maxLimit} (Configurable via MAX_PROPERTY_LISTINGS)`}
+              >
+                <span>Capacity:</span>
+                <span className="font-bold">{listingCapacity.active} / {listingCapacity.maxLimit}</span>
+                {listingCapacity.isAtLimit && (
+                  <span className="text-[10px] uppercase tracking-wider bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold">Limit Reached</span>
+                )}
+              </div>
+            )}
+
             <button
               type="button"
               onClick={() => onNavigate('/')}
@@ -696,6 +747,58 @@ export default function OwnerDashboard({ onNavigate, user }) {
                     </div>
                   </div>
                 </div>
+
+                {/* Capacity Limit Banner */}
+                {listingCapacity && (
+                  <div className="bg-white rounded-2xl border border-stone p-5 shadow-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-serif font-bold text-navy text-base">Listing Quota & Capacity</h4>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            listingCapacity.isAtLimit 
+                              ? 'bg-rose-100 text-rose-700 border border-rose-200' 
+                              : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          }`}>
+                            {listingCapacity.isAtLimit ? 'Limit Reached' : `${listingCapacity.remaining} Slots Available`}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted mt-0.5">
+                          Active listings ({listingCapacity.active} / {listingCapacity.maxLimit} max limit) count published properties and active drafts.
+                        </p>
+                      </div>
+                      <div className="text-right sm:text-right">
+                        <span className="font-serif font-bold text-xl text-navy">
+                          {listingCapacity.active} <span className="text-sm font-sans text-muted">/ {listingCapacity.maxLimit}</span>
+                        </span>
+                        <div className="text-[10px] text-muted">
+                          {Math.round((listingCapacity.active / listingCapacity.maxLimit) * 100)}% Used
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full bg-stone/40 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className={`h-2.5 rounded-full transition-all duration-500 ${
+                          listingCapacity.isAtLimit
+                            ? 'bg-rose-500'
+                            : (listingCapacity.active / listingCapacity.maxLimit > 0.8)
+                            ? 'bg-amber-500'
+                            : 'bg-royal'
+                        }`}
+                        style={{
+                          width: `${Math.min(100, (listingCapacity.active / listingCapacity.maxLimit) * 100)}%`,
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between text-[11px] text-muted mt-2 pt-2 border-t border-stone/50 gap-2">
+                      <span>To free quota: archive older properties or mark them as sold/unavailable.</span>
+                      <span className="font-mono text-[10px]">Configured via MAX_PROPERTY_LISTINGS environment variable</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Row 2: Asset Class & Category Breakdown */}
                 <div>
@@ -1427,6 +1530,76 @@ export default function OwnerDashboard({ onNavigate, user }) {
           </div>
         )}
       </div>
+
+      {/* Session Expired Re-authentication Modal */}
+      {showReauthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/80 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-stone-200 animate-fadeIn">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-4">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif text-xl font-bold text-navy">Owner Session Refresh Required</h3>
+            <p className="text-xs text-charcoal/70 mt-2 mb-4 leading-relaxed">
+              Your security session has expired or requires renewal to complete your property updates. Enter your owner password below to refresh your session without losing any of your form edits.
+            </p>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setIsReauthing(true);
+                setErrorNotice(null);
+                try {
+                  const result = await login(user?.username || 'admin', reauthPassword);
+                  if (result && result.user) {
+                    setShowReauthModal(false);
+                    setReauthPassword('');
+                    setSuccessNotice('Session refreshed successfully! Please click Save again to finalize your changes.');
+                  } else {
+                    setErrorNotice('Password verification failed. Please try again.');
+                  }
+                } catch (err) {
+                  setErrorNotice(err.message || 'Failed to refresh session');
+                } finally {
+                  setIsReauthing(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal mb-1">
+                  Owner Password
+                </label>
+                <input
+                  type="password"
+                  value={reauthPassword}
+                  onChange={(e) => setReauthPassword(e.target.value)}
+                  placeholder="Enter your owner password"
+                  className="w-full bg-ivory/50 border border-stone rounded-xl px-3.5 py-2.5 text-xs text-charcoal focus:outline-none focus:ring-2 focus:ring-royal"
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReauthModal(false)}
+                  className="px-4 py-2 rounded-xl border border-stone text-xs font-semibold text-charcoal hover:bg-stone/20"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isReauthing || !reauthPassword}
+                  className="px-5 py-2 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
+                >
+                  {isReauthing ? 'Verifying...' : 'Authenticate & Continue'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

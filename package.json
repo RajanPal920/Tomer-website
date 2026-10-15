@@ -18,6 +18,10 @@
     "test:security": "node scripts/testOwnerSecurity.mjs",
     "test:scale": "node scripts/testInventoryScale.mjs",
     "test:audit": "node scripts/verifyMaster24Scenarios.mjs",
+    "test:reliability": "node scripts/testProductionReliability.mjs",
+    "db:backup": "node scripts/backupDatabase.mjs",
+    "db:restore": "node scripts/restoreDatabase.mjs",
+    "db:migrate-postgres": "node scripts/migrateSqliteToPostgres.mjs",
     "sync:catalog": "node scripts/syncCatalogToDb.mjs"
   },
   "dependencies": {

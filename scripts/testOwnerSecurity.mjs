@@ -100,8 +100,8 @@ async function runTests() {
 
     const unauthEnquiries = await callApi('GET', '/api/enquiries');
     assert(
-      unauthEnquiries.status === 403,
-      'TEST B: Unauthenticated visitor cannot access customer enquiries (403 Forbidden)',
+      unauthEnquiries.status === 401 || unauthEnquiries.status === 403,
+      'TEST B: Unauthenticated visitor cannot access customer enquiries (401/403 Rejected)',
       `Status: ${unauthEnquiries.status}`
     );
 
