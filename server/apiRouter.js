@@ -575,7 +575,8 @@ export async function handleApiRequest(req, res) {
           capacity,
         });
       } catch (err) {
-        const statusCode = err.statusCode || (err.code === 'PROPERTY_LIMIT_REACHED' ? 409 : 500);
+        const isLimitErr = err.code === 'ACTIVE_LISTING_LIMIT_REACHED' || err.code === 'PROPERTY_LIMIT_REACHED';
+        const statusCode = err.statusCode || (isLimitErr ? 409 : 500);
         return sendJson(res, statusCode, {
           success: false,
           error: err.message,
@@ -627,7 +628,8 @@ export async function handleApiRequest(req, res) {
             capacity,
           });
         } catch (err) {
-          const statusCode = err.statusCode || (err.message.includes('not found') ? 404 : err.code === 'PROPERTY_LIMIT_REACHED' ? 409 : 500);
+          const isLimitErr = err.code === 'ACTIVE_LISTING_LIMIT_REACHED' || err.code === 'PROPERTY_LIMIT_REACHED';
+          const statusCode = err.statusCode || (err.message.includes('not found') ? 404 : isLimitErr ? 409 : 500);
           return sendJson(res, statusCode, {
             success: false,
             error: err.message,

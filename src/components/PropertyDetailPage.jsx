@@ -215,7 +215,11 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
     });
   };
 
-  const whatsappMessage = `Hello Tomar Enterprises, I am inquiring about: ${property.title} (Price: ${property.priceDisplay || property.priceFormatted}, Ref: ${property.id}) located in ${property.locality}. Please connect with availability details.`;
+  const isSoldOut = property.status === 'sold' || property.status === 'sold_out' || property.status === 'sold-out';
+
+  const whatsappMessage = isSoldOut
+    ? `Hello Tomar Enterprises, I saw that property: ${property.title} (Ref: ${property.id}) in ${property.locality} is Sold Out. Could you share details of similar available properties?`
+    : `Hello Tomar Enterprises, I am inquiring about: ${property.title} (Price: ${property.priceDisplay || property.priceFormatted}, Ref: ${property.id}) located in ${property.locality}. Please connect with availability details.`;
   const whatsappUrl = `https://wa.me/${contactInfo.whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
   const gmailUrl = buildGmailComposeUrl({ property });
   const mailtoUrl = buildMailtoUrl({ property });
@@ -254,11 +258,41 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
           </span>
         </nav>
 
+        {/* SOLD OUT Prominent Alert Banner */}
+        {isSoldOut && (
+          <div className="mb-6 p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-fadeIn">
+            <div className="flex items-center gap-3.5">
+              <span className="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-widest shadow-xs flex-shrink-0">
+                SOLD OUT
+              </span>
+              <div>
+                <h4 className="font-serif font-bold text-base text-rose-950">This Property Has Been Sold</h4>
+                <p className="text-xs text-rose-800 mt-0.5">
+                  This unit is no longer available. You can explore our currently available listings in {localityName} and across the corridor.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigate('/properties')}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-navy hover:bg-navy-900 text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex-shrink-0"
+            >
+              <span>Browse Available Listings</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Top Header Card */}
         <div className="bg-white rounded-2xl border border-stone p-6 sm:p-8 mb-8 shadow-card">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-stone">
             <div>
               <div className="flex items-center gap-2.5 flex-wrap mb-2.5">
+                {isSoldOut && (
+                  <span className="px-3 py-1 rounded bg-rose-600 text-white text-xs font-black uppercase tracking-wider shadow-sm">
+                    SOLD OUT
+                  </span>
+                )}
                 <span className="px-3 py-1 rounded bg-navy text-white text-xs font-bold uppercase tracking-wider">
                   {property.transactionType}
                 </span>
@@ -486,11 +520,16 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
             <div className="bg-white rounded-2xl border border-stone p-6 sm:p-7 shadow-card">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brandRed mb-1">
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span>Direct Property Advisory</span>
+                <span>{isSoldOut ? 'Property Sold Out' : 'Direct Property Advisory'}</span>
               </div>
-              <h3 className="font-serif text-2xl font-normal text-charcoal mb-4">
-                Enquire About This Property
+              <h3 className="font-serif text-2xl font-normal text-charcoal mb-2">
+                {isSoldOut ? 'Inquire for Similar Properties' : 'Enquire About This Property'}
               </h3>
+              {isSoldOut && (
+                <p className="text-xs text-muted mb-4 leading-relaxed">
+                  This specific property has been marked Sold Out. Submit your details below and our team will share currently available options matching your requirements in {localityName}.
+                </p>
+              )}
 
               {enquirySent ? (
                 <div className="p-5 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-3.5">
@@ -598,7 +637,7 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
                     className="w-full py-3 px-4 rounded-xl bg-brandRed hover:bg-brandRed-700 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm flex items-center justify-center gap-2"
                   >
                     <MessageSquare className="w-3.5 h-3.5 text-white" />
-                    <span>Submit & Open Gmail Enquiry</span>
+                    <span>{isSoldOut ? 'Inquire for Similar Available Properties' : 'Submit & Open Gmail Enquiry'}</span>
                   </button>
                 </form>
               )}

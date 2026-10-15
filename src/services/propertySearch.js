@@ -341,6 +341,14 @@ export function filterProperties(properties, filters = {}) {
   const targetTab = normalizeTabId(rawTab);
 
   const filtered = properties.filter((item) => {
+    // 0. Exclude Sold Out, Archived, and Draft listings from public available results by default
+    if (!active.includeSold && !active.includeArchived && !active.includeDrafts) {
+      const s = String(item.status || '').toLowerCase();
+      if (s === 'sold' || s === 'sold_out' || s === 'sold-out' || s === 'archived' || s === 'draft') {
+        return false;
+      }
+    }
+
     // 1. Category Tab / Transaction Filter
     if (targetTab !== 'all') {
       if (!matchesCategoryTab(item, targetTab)) {

@@ -85,9 +85,13 @@ export default function PropertyCard({
   const possessionDisplay = property.possessionDisplay || property.possessionStatus || 'Ready to Inspect';
   const localityName = getLocationDisplayName(property.locality);
 
+  const isSoldOut = property.status === 'sold' || property.status === 'sold_out' || property.status === 'sold-out';
+
   // WhatsApp quick query
   const whatsappUrl = `https://wa.me/${contactInfo.whatsappNumber}?text=${encodeURIComponent(
-    `Hello Tomar Enterprises, I am interested in: ${property.title} (${displayPrice}, Ref: ${property.id}) in ${property.locality}. Please provide unit details.`
+    isSoldOut
+      ? `Hello Tomar Enterprises, I saw that property: ${property.title} (${displayPrice}, Ref: ${property.id}) in ${property.locality} is Sold Out. Could you share details of similar available properties?`
+      : `Hello Tomar Enterprises, I am interested in: ${property.title} (${displayPrice}, Ref: ${property.id}) in ${property.locality}. Please provide unit details.`
   )}`;
 
   const handleCardClick = () => {
@@ -117,14 +121,22 @@ export default function PropertyCard({
             }}
           />
 
-          {/* Top Left Transaction & Category Badges */}
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
-            <span className="px-2.5 py-1 rounded-sm bg-navy/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-xs">
-              {property.transactionType?.toUpperCase() || 'PROPERTY'}
-            </span>
-            <span className="px-2.5 py-1 rounded-sm bg-royal/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-xs">
-              {property.category ? property.category.replace('-', ' ') : 'Prime'}
-            </span>
+          {/* Top Left Transaction & Category Badges / Sold Out Badge */}
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap z-10">
+            {isSoldOut ? (
+              <span className="px-3 py-1 rounded bg-rose-600 text-[11px] font-black uppercase tracking-widest text-white shadow-md border border-white/20">
+                SOLD OUT
+              </span>
+            ) : (
+              <>
+                <span className="px-2.5 py-1 rounded-sm bg-navy/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-xs">
+                  {property.transactionType?.toUpperCase() || 'PROPERTY'}
+                </span>
+                <span className="px-2.5 py-1 rounded-sm bg-royal/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-xs">
+                  {property.category ? property.category.replace('-', ' ') : 'Prime'}
+                </span>
+              </>
+            )}
           </div>
 
           {/* Top Right Actions: Favourite Heart */}
@@ -233,17 +245,30 @@ export default function PropertyCard({
               <ArrowUpRight className="w-3.5 h-3.5 text-royal" />
             </button>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onEnquire) onEnquire(property);
-              }}
-              className="flex-1 inline-flex items-center justify-center gap-1 h-9 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-white bg-brandRed hover:bg-brandRed-700 transition-colors shadow-2xs"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-white" />
-              <span>Enquire</span>
-            </button>
+            {isSoldOut ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onNavigate) onNavigate('/properties');
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-1 h-9 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors"
+              >
+                <span>Browse Similar</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onEnquire) onEnquire(property);
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-1 h-9 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-white bg-brandRed hover:bg-brandRed-700 transition-colors shadow-2xs"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-white" />
+                <span>Enquire</span>
+              </button>
+            )}
           </div>
 
           {/* Secondary Quick Channels: WhatsApp & Compare */}

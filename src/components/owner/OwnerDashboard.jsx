@@ -120,11 +120,13 @@ export default function OwnerDashboard({ onNavigate, user }) {
   // Compute live data-driven metrics across full portfolio
   const stats = useMemo(() => {
     const total = properties.length;
-    const published = properties.filter((p) => p.status === 'published').length;
+    const available = properties.filter((p) => p.status === 'published' || p.status === 'available').length;
     const drafts = properties.filter((p) => p.status === 'draft').length;
-    const unavailableOrSold = properties.filter(
-      (p) => p.status === 'sold' || p.status === 'rented' || p.status === 'unavailable' || p.status === 'archived'
+    const soldOut = properties.filter((p) => p.status === 'sold' || p.status === 'sold_out').length;
+    const archived = properties.filter(
+      (p) => p.status === 'archived' || p.status === 'rented' || p.status === 'unavailable'
     ).length;
+    const active = available + drafts;
 
     const residential = properties.filter((p) => {
       const cat = (p.category || '').toLowerCase();
@@ -163,9 +165,11 @@ export default function OwnerDashboard({ onNavigate, user }) {
 
     return {
       total,
-      published,
+      available,
       drafts,
-      unavailableOrSold,
+      soldOut,
+      archived,
+      active,
       residential,
       commercial,
       plotsAndLand,
@@ -179,12 +183,18 @@ export default function OwnerDashboard({ onNavigate, user }) {
   const filteredProperties = useMemo(() => {
     const result = properties.filter((p) => {
       // Tab filter
-      if (activeTab === 'published' && p.status !== 'published') return false;
-      if (activeTab === 'drafts' && p.status !== 'draft') return false;
-      if (activeTab === 'sold' && !['sold', 'rented', 'unavailable', 'archived'].includes(p.status)) return false;
+      if (activeTab === 'available' && !(p.status === 'published' || p.status === 'available')) return false;
+      if (activeTab === 'draft' && p.status !== 'draft') return false;
+      if (activeTab === 'sold_out' && !(p.status === 'sold' || p.status === 'sold_out')) return false;
+      if (activeTab === 'archived' && !(p.status === 'archived' || p.status === 'rented' || p.status === 'unavailable')) return false;
 
       // Status dropdown filter
-      if (filterStatus !== 'all' && p.status !== filterStatus) return false;
+      if (filterStatus !== 'all') {
+        if (filterStatus === 'available' && !(p.status === 'published' || p.status === 'available')) return false;
+        if (filterStatus === 'draft' && p.status !== 'draft') return false;
+        if (filterStatus === 'sold_out' && !(p.status === 'sold' || p.status === 'sold_out')) return false;
+        if (filterStatus === 'archived' && !(p.status === 'archived' || p.status === 'rented' || p.status === 'unavailable')) return false;
+      }
 
       // Locality filter
       if (filterLocality !== 'all' && p.locality !== filterLocality) return false;
@@ -275,9 +285,14 @@ export default function OwnerDashboard({ onNavigate, user }) {
           'Your owner session has expired or is invalid. Please sign in below to save your changes — your edits have been preserved.'
         );
         setShowReauthModal(true);
-      } else if (err.code === 'PROPERTY_LIMIT_REACHED' || err.statusCode === 409) {
+      } else if (
+        err.code === 'ACTIVE_LISTING_LIMIT_REACHED' ||
+        err.code === 'PROPERTY_LIMIT_REACHED' ||
+        err.statusCode === 409
+      ) {
         setErrorNotice(
-          err.message || 'Property listing limit reached. Please archive an older property or raise MAX_PROPERTY_LISTINGS.'
+          err.message ||
+            'Active listing limit reached (30 / 30). You must mark an existing property Sold Out or Archive it before adding a new active listing.'
         );
         if (err.capacity) {
           setListingCapacity(err.capacity);
@@ -290,14 +305,38 @@ export default function OwnerDashboard({ onNavigate, user }) {
     }
   };
 
-  // Handle Status Toggle (e.g. Quick Publish / Unpublish)
+  // Handle Status Toggle (Quick change / status transitions)
   const handleQuickStatusChange = async (property, newStatus) => {
+    setErrorNotice(null);
+    setSuccessNotice(null);
     try {
       const updated = await updateOwnerListing(property.id, { status: newStatus });
       setProperties((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-      setSuccessNotice(`Status for "${property.title}" updated to ${newStatus.toUpperCase()}`);
+      const readable =
+        newStatus === 'sold_out'
+          ? 'SOLD OUT'
+          : newStatus === 'available'
+          ? 'AVAILABLE'
+          : newStatus.toUpperCase();
+      setSuccessNotice(`Property "${property.title}" status updated to ${readable}.`);
+      // Refresh capacity in background
+      fetchListingStats().then((c) => c && setListingCapacity(c)).catch(() => {});
     } catch (err) {
-      setErrorNotice(err.message || 'Failed to update property status');
+      if (
+        err.code === 'ACTIVE_LISTING_LIMIT_REACHED' ||
+        err.code === 'PROPERTY_LIMIT_REACHED' ||
+        err.statusCode === 409
+      ) {
+        setErrorNotice(
+          err.message ||
+            'Cannot activate listing: Active listing limit (30 / 30) reached. Mark another property Sold Out or Archive it before restoring this property.'
+        );
+        if (err.capacity) {
+          setListingCapacity(err.capacity);
+        }
+      } else {
+        setErrorNotice(err.message || 'Failed to update property status');
+      }
     }
   };
 
@@ -467,19 +506,20 @@ export default function OwnerDashboard({ onNavigate, user }) {
           <div className="flex items-center gap-3">
             {listingCapacity && (
               <div 
-                className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-semibold border ${
+                className={`hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold border ${
                   listingCapacity.isAtLimit 
                     ? 'bg-rose-500/20 border-rose-400/40 text-rose-200' 
                     : (listingCapacity.active / listingCapacity.maxLimit > 0.8)
                     ? 'bg-amber-500/20 border-amber-400/40 text-amber-200'
                     : 'bg-white/10 border-white/20 text-blue-100'
                 }`}
-                title={`Active Listings: ${listingCapacity.active} / ${listingCapacity.maxLimit} (Configurable via MAX_PROPERTY_LISTINGS)`}
+                title={`Active Listings: ${listingCapacity.active} / ${listingCapacity.maxLimit} (Available + Draft listings count toward maximum 30 active listings limit)`}
               >
-                <span>Capacity:</span>
-                <span className="font-bold">{listingCapacity.active} / {listingCapacity.maxLimit}</span>
+                <span>Active Properties:</span>
+                <span className="font-bold text-white">{listingCapacity.active} / {listingCapacity.maxLimit}</span>
+                <span className="text-[11px] opacity-85">({listingCapacity.remaining} slots remain)</span>
                 {listingCapacity.isAtLimit && (
-                  <span className="text-[10px] uppercase tracking-wider bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold">Limit Reached</span>
+                  <span className="text-[10px] uppercase tracking-wider bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold">Limit Reached</span>
                 )}
               </div>
             )}
@@ -551,7 +591,7 @@ export default function OwnerDashboard({ onNavigate, user }) {
                   {editingProperty ? 'Edit Property Listing' : 'Create New Property Listing'}
                 </h1>
                 <p className="text-xs text-muted mt-1">
-                  Fill in title, category, pricing, locality, and images. Published listings appear immediately on the website.
+                  Fill in title, category, pricing, locality, and images. Available listings appear immediately on the website.
                 </p>
               </div>
               <button
@@ -565,6 +605,21 @@ export default function OwnerDashboard({ onNavigate, user }) {
                 Cancel & Return
               </button>
             </div>
+
+            {/* Quota limit warning if attempting to add new property at 30 active limit */}
+            {!editingProperty && listingCapacity?.isAtLimit && (
+              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-sm text-amber-900">
+                    Active Listing Limit Reached ({listingCapacity.active} / {listingCapacity.maxLimit})
+                  </h4>
+                  <p className="mt-0.5 text-amber-800">
+                    Your account has reached the maximum allowed 30 active property listings. To add another active listing, please return to the inventory table and mark an existing property as <strong>Sold Out</strong> or <strong>Archived</strong>.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <OwnerPropertyForm
               initialProperty={editingProperty}
@@ -596,10 +651,26 @@ export default function OwnerDashboard({ onNavigate, user }) {
               <button
                 type="button"
                 onClick={() => {
+                  if (listingCapacity?.isAtLimit) {
+                    setErrorNotice(
+                      `Active listing limit reached (${listingCapacity.active} / ${listingCapacity.maxLimit}). A listing must be marked Sold Out or Archived before another active property can be added.`
+                    );
+                    return;
+                  }
                   setEditingProperty(null);
                   setActiveTab('add');
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brandRed hover:bg-brandRed-700 text-white font-bold text-xs uppercase tracking-wider shadow-xs transition-colors"
+                disabled={listingCapacity?.isAtLimit}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition-colors ${
+                  listingCapacity?.isAtLimit
+                    ? 'bg-stone/40 text-muted cursor-not-allowed border border-stone'
+                    : 'bg-brandRed hover:bg-brandRed-700 text-white'
+                }`}
+                title={
+                  listingCapacity?.isAtLimit
+                    ? 'Active property limit reached (30/30). Mark a listing Sold Out or Archive it to add new listings.'
+                    : 'Add New Property'
+                }
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Add Property</span>
@@ -615,33 +686,59 @@ export default function OwnerDashboard({ onNavigate, user }) {
                 }`}
               >
                 <Building2 className="w-4 h-4 text-royal" />
-                <span>All Properties ({stats.total})</span>
+                <span>All ({stats.total})</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setActiveTab('published')}
+                onClick={() => setActiveTab('available')}
                 className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'published'
+                  activeTab === 'available'
                     ? 'bg-navy text-white shadow-xs'
                     : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                <span>Published ({stats.published})</span>
+                <span>Available ({stats.available})</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setActiveTab('drafts')}
+                onClick={() => setActiveTab('draft')}
                 className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'drafts'
+                  activeTab === 'draft'
                     ? 'bg-navy text-white shadow-xs'
                     : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
                 }`}
               >
                 <Clock className="w-4 h-4 text-amber-500" />
-                <span>Drafts ({stats.drafts})</span>
+                <span>Draft ({stats.drafts})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('sold_out')}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                  activeTab === 'sold_out'
+                    ? 'bg-navy text-white shadow-xs'
+                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
+                }`}
+              >
+                <Tag className="w-4 h-4 text-rose-500" />
+                <span>Sold Out ({stats.soldOut})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('archived')}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                  activeTab === 'archived'
+                    ? 'bg-navy text-white shadow-xs'
+                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
+                }`}
+              >
+                <Layers className="w-4 h-4 text-stone-dark" />
+                <span>Archived ({stats.archived})</span>
               </button>
 
               <button
@@ -658,19 +755,6 @@ export default function OwnerDashboard({ onNavigate, user }) {
                 {stats.newEnquiries > 0 && (
                   <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                 )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('sold')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeTab === 'sold'
-                    ? 'bg-navy text-white shadow-xs'
-                    : 'bg-white border border-stone text-charcoal hover:bg-stone/40'
-                }`}
-              >
-                <Tag className="w-4 h-4 text-stone-dark" />
-                <span>Sold / Unavailable ({stats.unavailableOrSold})</span>
               </button>
 
               <button
@@ -695,7 +779,7 @@ export default function OwnerDashboard({ onNavigate, user }) {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-3">
                     Portfolio Status Overview
                   </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
                         Total Listings
@@ -706,32 +790,42 @@ export default function OwnerDashboard({ onNavigate, user }) {
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Live Published
+                        Available (Live)
                       </span>
                       <div className="text-2xl sm:text-3xl font-serif font-bold text-emerald-600">
-                        {stats.published}
+                        {stats.available}
                       </div>
                       <span className="text-[10px] text-muted mt-1 block">Publicly searchable</span>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Private Drafts
+                        Drafts
                       </span>
                       <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-600">
                         {stats.drafts}
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Owner review only</span>
+                      <span className="text-[10px] text-muted mt-1 block">Counts towards limit</span>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
-                        Sold / Rented
+                        Sold Out
+                      </span>
+                      <div className="text-2xl sm:text-3xl font-serif font-bold text-rose-600">
+                        {stats.soldOut}
+                      </div>
+                      <span className="text-[10px] text-muted mt-1 block">Preserved, inactive</span>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1">
+                        Archived
                       </span>
                       <div className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">
-                        {stats.unavailableOrSold}
+                        {stats.archived}
                       </div>
-                      <span className="text-[10px] text-muted mt-1 block">Closed inventory</span>
+                      <span className="text-[10px] text-muted mt-1 block">Preserved, inactive</span>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-stone p-4.5 shadow-xs">
@@ -754,17 +848,17 @@ export default function OwnerDashboard({ onNavigate, user }) {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="font-serif font-bold text-navy text-base">Listing Quota & Capacity</h4>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          <h4 className="font-serif font-bold text-navy text-base">Active Properties Limit</h4>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                             listingCapacity.isAtLimit 
                               ? 'bg-rose-100 text-rose-700 border border-rose-200' 
                               : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                           }`}>
-                            {listingCapacity.isAtLimit ? 'Limit Reached' : `${listingCapacity.remaining} Slots Available`}
+                            {listingCapacity.isAtLimit ? 'Limit Reached (30 / 30)' : `${listingCapacity.remaining} Slots Remaining`}
                           </span>
                         </div>
                         <p className="text-xs text-muted mt-0.5">
-                          Active listings ({listingCapacity.active} / {listingCapacity.maxLimit} max limit) count published properties and active drafts.
+                          Active Properties: {listingCapacity.active} / {listingCapacity.maxLimit}. Available and Draft listings count toward the 30 active listings limit. Sold Out and Archived properties are preserved and do not count toward the limit.
                         </p>
                       </div>
                       <div className="text-right sm:text-right">
@@ -772,7 +866,7 @@ export default function OwnerDashboard({ onNavigate, user }) {
                           {listingCapacity.active} <span className="text-sm font-sans text-muted">/ {listingCapacity.maxLimit}</span>
                         </span>
                         <div className="text-[10px] text-muted">
-                          {Math.round((listingCapacity.active / listingCapacity.maxLimit) * 100)}% Used
+                          {listingCapacity.remaining} slots remaining
                         </div>
                       </div>
                     </div>
@@ -794,8 +888,8 @@ export default function OwnerDashboard({ onNavigate, user }) {
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between text-[11px] text-muted mt-2 pt-2 border-t border-stone/50 gap-2">
-                      <span>To free quota: archive older properties or mark them as sold/unavailable.</span>
-                      <span className="font-mono text-[10px]">Configured via MAX_PROPERTY_LISTINGS environment variable</span>
+                      <span>To free a slot: mark an active listing Sold Out or Archive it.</span>
+                      <span className="font-mono text-[10px]">Configured via MAX_ACTIVE_LISTINGS (default: 30)</span>
                     </div>
                   </div>
                 )}
@@ -858,7 +952,7 @@ export default function OwnerDashboard({ onNavigate, user }) {
                       Ready to onboard a new property?
                     </h2>
                     <p className="text-xs sm:text-sm text-white leading-relaxed">
-                      Create and publish residential flats, commercial retail, NA plots, or redevelopment projects. Published properties immediately appear on the public website with verified titles.
+                      Create and publish residential flats, commercial retail, NA plots, or redevelopment projects. Available properties immediately appear on the public website with verified titles.
                     </p>
                   </div>
 
@@ -875,13 +969,29 @@ export default function OwnerDashboard({ onNavigate, user }) {
                     <button
                       type="button"
                       onClick={() => {
+                        if (listingCapacity?.isAtLimit) {
+                          setErrorNotice(
+                            `Active listing limit reached (${listingCapacity.active} / ${listingCapacity.maxLimit}). A listing must be marked Sold Out or Archived before another active property can be added.`
+                          );
+                          return;
+                        }
                         setEditingProperty(null);
                         setActiveTab('add');
                       }}
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brandRed hover:bg-brandRed-700 text-white font-bold text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-[1.02]"
+                      disabled={listingCapacity?.isAtLimit}
+                      className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg transition-transform ${
+                        listingCapacity?.isAtLimit
+                          ? 'bg-stone/40 text-stone-dark border border-white/20 cursor-not-allowed opacity-75'
+                          : 'bg-brandRed hover:bg-brandRed-700 text-white hover:scale-[1.02]'
+                      }`}
+                      title={
+                        listingCapacity?.isAtLimit
+                          ? 'Active listing limit (30/30) reached'
+                          : 'Create Property Listing'
+                      }
                     >
                       <PlusCircle className="w-4 h-4" />
-                      <span>Create Property Listing</span>
+                      <span>{listingCapacity?.isAtLimit ? 'Limit Reached (30/30)' : 'Create Property Listing'}</span>
                     </button>
                   </div>
                 </div>
@@ -926,14 +1036,22 @@ export default function OwnerDashboard({ onNavigate, user }) {
                           <div className="flex items-center gap-2">
                             <span
                               className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                prop.status === 'published'
-                                  ? 'bg-emerald-100 text-emerald-700'
+                                prop.status === 'published' || prop.status === 'available'
+                                  ? 'bg-emerald-100 text-emerald-800'
                                   : prop.status === 'draft'
-                                  ? 'bg-amber-100 text-amber-700'
-                                  : 'bg-stone text-charcoal'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : prop.status === 'sold' || prop.status === 'sold_out'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : 'bg-stone/80 text-charcoal'
                               }`}
                             >
-                              {prop.status}
+                              {prop.status === 'published' || prop.status === 'available'
+                                ? 'Available'
+                                : prop.status === 'draft'
+                                ? 'Draft'
+                                : prop.status === 'sold' || prop.status === 'sold_out'
+                                ? 'Sold Out'
+                                : 'Archived'}
                             </span>
 
                             <button
@@ -956,8 +1074,8 @@ export default function OwnerDashboard({ onNavigate, user }) {
               </div>
             )}
 
-            {/* TAB CONTENT: 2. ALL / PUBLISHED / DRAFTS / SOLD LISTINGS */}
-            {['all', 'published', 'drafts', 'sold'].includes(activeTab) && (
+            {/* TAB CONTENT: 2. ALL / AVAILABLE / DRAFT / SOLD OUT / ARCHIVED LISTINGS */}
+            {['all', 'available', 'draft', 'sold_out', 'archived'].includes(activeTab) && (
               <div className="space-y-6 animate-fadeIn">
                 {/* Search & Filter & Sorting Toolbar */}
                 <div className="bg-white rounded-2xl border border-stone p-4 flex flex-col gap-3 shadow-xs">
@@ -1009,14 +1127,12 @@ export default function OwnerDashboard({ onNavigate, user }) {
                         <select
                           value={filterStatus}
                           onChange={(e) => setFilterStatus(e.target.value)}
-                          className="bg-white border border-stone rounded-xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:ring-2 focus:ring-royal flex-1 sm:flex-none"
+                          className="bg-white border border-stone rounded-xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:ring-2 focus:ring-royal flex-1 sm:flex-none font-medium"
                         >
                           <option value="all">All Statuses</option>
-                          <option value="published">Published</option>
+                          <option value="available">Available</option>
                           <option value="draft">Draft</option>
-                          <option value="sold">Sold</option>
-                          <option value="rented">Rented</option>
-                          <option value="unavailable">Unavailable</option>
+                          <option value="sold_out">Sold Out</option>
                           <option value="archived">Archived</option>
                         </select>
                       )}
@@ -1168,39 +1284,47 @@ export default function OwnerDashboard({ onNavigate, user }) {
                               {/* Status */}
                               <td className="py-3 px-4">
                                 <select
-                                  value={prop.status}
-                                  onChange={(e) => handleQuickStatusChange(prop, e.target.value)}
-                                  className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border focus:outline-none ${
-                                    prop.status === 'published'
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  value={
+                                    prop.status === 'published' || prop.status === 'available'
+                                      ? 'available'
                                       : prop.status === 'draft'
-                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      ? 'draft'
+                                      : prop.status === 'sold' || prop.status === 'sold_out'
+                                      ? 'sold_out'
+                                      : 'archived'
+                                  }
+                                  onChange={(e) => handleQuickStatusChange(prop, e.target.value)}
+                                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border focus:outline-none cursor-pointer ${
+                                    prop.status === 'published' || prop.status === 'available'
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                      : prop.status === 'draft'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-300'
+                                      : prop.status === 'sold' || prop.status === 'sold_out'
+                                      ? 'bg-rose-50 text-rose-700 border-rose-300'
                                       : 'bg-stone/50 text-charcoal border-stone'
                                   }`}
                                 >
-                                  <option value="published">Published</option>
+                                  <option value="available">Available</option>
                                   <option value="draft">Draft</option>
-                                  <option value="sold">Sold</option>
-                                  <option value="rented">Rented</option>
-                                  <option value="unavailable">Unavailable</option>
+                                  <option value="sold_out">Sold Out</option>
                                   <option value="archived">Archived</option>
                                 </select>
                               </td>
 
                               {/* Actions */}
                               <td className="py-3 px-4 text-right">
-                                <div className="inline-flex items-center gap-1.5">
-                                  {prop.status === 'published' && (
-                                    <button
-                                      type="button"
-                                      onClick={() => onNavigate(`/properties/${prop.slug || prop.id}`)}
-                                      className="p-1.5 rounded-lg border border-stone hover:bg-navy hover:text-white text-muted transition-colors"
-                                      title="Open Public Detail Page"
-                                    >
-                                      <Eye className="w-3.5 h-3.5" />
-                                    </button>
-                                  )}
+                                <div className="inline-flex items-center gap-1.5 flex-wrap justify-end">
+                                  {/* Preview */}
+                                  <button
+                                    type="button"
+                                    onClick={() => onNavigate(`/properties/${prop.slug || prop.id}`)}
+                                    className="p-1.5 rounded-lg border border-stone hover:bg-navy hover:text-white text-muted transition-colors"
+                                    title="Preview Public Page"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
 
+                                  {/* Edit */}
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -1213,11 +1337,48 @@ export default function OwnerDashboard({ onNavigate, user }) {
                                     <FileEdit className="w-3.5 h-3.5" />
                                   </button>
 
+                                  {/* Mark Sold Out (when Available or Draft) */}
+                                  {(prop.status === 'published' || prop.status === 'available' || prop.status === 'draft') && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuickStatusChange(prop, 'sold_out')}
+                                      className="px-2 py-1 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-[10px] font-bold uppercase tracking-wider transition-colors"
+                                      title="Mark Property as Sold Out (Frees an active listing slot)"
+                                    >
+                                      Mark Sold
+                                    </button>
+                                  )}
+
+                                  {/* Restore to Available (when Sold Out or Archived) */}
+                                  {(prop.status === 'sold' || prop.status === 'sold_out' || prop.status === 'archived' || prop.status === 'rented' || prop.status === 'unavailable') && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuickStatusChange(prop, 'available')}
+                                      className="px-2 py-1 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 text-[10px] font-bold uppercase tracking-wider transition-colors"
+                                      title="Restore to Available (Checks 30 active listings limit)"
+                                    >
+                                      Restore
+                                    </button>
+                                  )}
+
+                                  {/* Archive (when not already Archived) */}
+                                  {prop.status !== 'archived' && prop.status !== 'unavailable' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuickStatusChange(prop, 'archived')}
+                                      className="px-2 py-1 rounded-lg border border-stone bg-white hover:bg-stone/40 text-charcoal text-[10px] font-semibold uppercase tracking-wider transition-colors"
+                                      title="Archive Property"
+                                    >
+                                      Archive
+                                    </button>
+                                  )}
+
+                                  {/* Delete (with confirmed owner authentication modal) */}
                                   <button
                                     type="button"
                                     onClick={() => handleDeleteProperty(prop)}
                                     className="p-1.5 rounded-lg border border-rose-200 hover:bg-rose-500 hover:text-white text-rose-500 transition-colors"
-                                    title="Permanently Delete Property"
+                                    title="Permanently Delete Property Record"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>

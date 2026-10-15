@@ -80,7 +80,15 @@ export default function OwnerPropertyForm({
   const [customFeature, setCustomFeature] = useState('');
 
   // Status & Governance
-  const [status, setStatus] = useState(initialProperty?.status || 'published');
+  const normalizeInitialStatus = (s) => {
+    if (!s) return 'available';
+    if (s === 'published' || s === 'available') return 'available';
+    if (s === 'sold' || s === 'sold_out') return 'sold_out';
+    if (s === 'archived' || s === 'rented' || s === 'unavailable') return 'archived';
+    if (s === 'draft') return 'draft';
+    return 'available';
+  };
+  const [status, setStatus] = useState(initialProperty?.status ? normalizeInitialStatus(initialProperty.status) : 'available');
   const [featured, setFeatured] = useState(Boolean(initialProperty?.featured));
   const [isVerified, setIsVerified] = useState(Boolean(initialProperty?.isVerified));
   const [internalNotes, setInternalNotes] = useState(initialProperty?.internalNotes || '');
@@ -1088,12 +1096,10 @@ export default function OwnerPropertyForm({
               onChange={(e) => setStatus(e.target.value)}
               className="w-full bg-white border border-stone rounded-xl px-4 py-2.5 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-royal transition-colors font-semibold"
             >
-              <option value="draft">Draft (Private, not visible publicly)</option>
-              <option value="published">Published (Live on Website)</option>
-              <option value="unavailable">Unavailable</option>
-              <option value="sold">Sold (Marked Sold)</option>
-              <option value="rented">Rented (Marked Rented)</option>
-              <option value="archived">Archived</option>
+              <option value="available">Available (Live on Website - Active Slot)</option>
+              <option value="draft">Draft (Private Owner Review - Active Slot)</option>
+              <option value="sold_out">Sold Out (Preserved, Inactive)</option>
+              <option value="archived">Archived (Preserved, Inactive)</option>
             </select>
           </div>
 

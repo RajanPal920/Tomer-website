@@ -109,8 +109,14 @@ export async function getOwnerProperties(options = {}) {
   const params = [];
 
   if (options.status && options.status !== 'all') {
-    sql += ' AND status = ?';
-    params.push(options.status);
+    if (options.status === 'available' || options.status === 'published') {
+      sql += " AND status IN ('available', 'published')";
+    } else if (options.status === 'sold' || options.status === 'sold_out' || options.status === 'sold-out') {
+      sql += " AND status IN ('sold', 'sold_out', 'sold-out')";
+    } else {
+      sql += ' AND status = ?';
+      params.push(options.status);
+    }
   }
 
   if (options.locality && options.locality !== 'all') {
@@ -172,8 +178,8 @@ export async function getOwnerProperties(options = {}) {
  */
 export async function getPublicProperties(sampleDemoProperties = []) {
   const settings = await getSettings();
-  let sql = 'SELECT * FROM properties WHERE status = ?';
-  const params = ['published'];
+  let sql = "SELECT * FROM properties WHERE status IN ('published', 'available')";
+  const params = [];
 
   if (!settings.showDemoInventory) {
     sql += ' AND is_demo = 0';
@@ -207,9 +213,11 @@ export async function findProperty(slugOrId, isOwner = false) {
 
   if (!row) return null;
 
-  // If not owner, strictly enforce published status and strip notes
+  // If not owner, strictly exclude drafts and archived listings
   if (!isOwner) {
-    if (row.status !== 'published') return null;
+    if (row.status === 'draft' || row.status === 'archived' || row.status === 'deleted') {
+      return null;
+    }
     const prop = mapRowToProperty(row);
     if (prop.isOutsideCorridor) return null; // Out of corridor: exclude from public view
     delete prop.internalNotes;
@@ -219,7 +227,8 @@ export async function findProperty(slugOrId, isOwner = false) {
   return mapRowToProperty(row);
 }
 
-export const DEFAULT_MAX_PROPERTY_LISTINGS = 100;
+export const DEFAULT_MAX_ACTIVE_LISTINGS = 30;
+export const DEFAULT_MAX_PROPERTY_LISTINGS = DEFAULT_MAX_ACTIVE_LISTINGS;
 let overrideMaxListingsForTest = null;
 
 export function setMaxPropertyListingsForTesting(limit) {
@@ -227,45 +236,56 @@ export function setMaxPropertyListingsForTesting(limit) {
 }
 
 /**
- * Get configured maximum allowed active property listings
+ * Get configured maximum allowed active property listings (default 30)
  */
-export function getMaxPropertyListings() {
+export function getMaxActiveListings() {
   if (overrideMaxListingsForTest !== null && overrideMaxListingsForTest !== undefined) {
     return overrideMaxListingsForTest;
   }
-  const envVal = process.env.MAX_PROPERTY_LISTINGS;
+  const envVal = process.env.MAX_ACTIVE_LISTINGS || process.env.MAX_PROPERTY_LISTINGS;
   if (envVal) {
     const parsed = parseInt(envVal, 10);
     if (!isNaN(parsed) && parsed > 0) return parsed;
   }
-  return DEFAULT_MAX_PROPERTY_LISTINGS;
+  return DEFAULT_MAX_ACTIVE_LISTINGS;
 }
 
+export const getMaxPropertyListings = getMaxActiveListings;
+
 /**
- * Calculate active, draft, published, archived listing counts and capacity status
+ * Calculate active, draft, available, sold out, archived listing counts and capacity status
+ * Rules:
+ *   - Available properties count toward the limit of 30
+ *   - Draft properties also count toward the limit
+ *   - Sold Out and Archived properties do NOT count toward active limit
  */
 export async function getListingCapacity() {
   const row = await get(`
     SELECT
       COUNT(*) as total,
-      SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published,
+      SUM(CASE WHEN status IN ('published', 'available') THEN 1 ELSE 0 END) as available,
       SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
+      SUM(CASE WHEN status IN ('sold', 'sold_out', 'sold-out', 'rented', 'unavailable') THEN 1 ELSE 0 END) as soldOut,
       SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived,
-      SUM(CASE WHEN status != 'archived' AND status != 'deleted' THEN 1 ELSE 0 END) as active
+      SUM(CASE WHEN status IN ('published', 'available', 'draft') THEN 1 ELSE 0 END) as active
     FROM properties
   `);
 
   const total = Number(row?.total || 0);
-  const published = Number(row?.published || 0);
+  const available = Number(row?.available || 0);
   const draft = Number(row?.draft || 0);
+  const soldOut = Number(row?.soldOut || 0);
   const archived = Number(row?.archived || 0);
   const active = Number(row?.active || 0);
-  const maxLimit = getMaxPropertyListings();
+  const maxLimit = getMaxActiveListings();
 
   return {
     total,
-    published,
+    available,
+    published: available, // backward compatibility
     draft,
+    soldOut,
+    sold: soldOut, // backward compatibility
     archived,
     active,
     maxLimit,
@@ -322,9 +342,9 @@ export function validatePropertyPayload(data, isUpdate = false) {
   }
 
   if (data.status !== undefined) {
-    const validStatuses = ['published', 'draft', 'archived', 'sold', 'rented', 'unavailable'];
+    const validStatuses = ['available', 'published', 'draft', 'sold_out', 'sold', 'archived', 'rented', 'unavailable'];
     if (!validStatuses.includes(data.status)) {
-      const err = new Error(`Invalid status "${data.status}". Supported: ${validStatuses.join(', ')}`);
+      const err = new Error(`Invalid status "${data.status}". Supported: Draft, Available, Sold Out, Archived`);
       err.statusCode = 400;
       err.field = 'status';
       throw err;
@@ -372,108 +392,129 @@ export function validatePropertyPayload(data, isUpdate = false) {
   }
 }
 
+// Lightweight async mutex lock for atomic capacity checks, creation, and status transitions
+let modificationLock = Promise.resolve();
+
+function withModificationLock(fn) {
+  let release;
+  const nextLock = new Promise((resolve) => {
+    release = resolve;
+  });
+  const currentLock = modificationLock;
+  modificationLock = nextLock;
+  return currentLock.then(async () => {
+    try {
+      return await fn();
+    } finally {
+      release();
+    }
+  });
+}
+
 /**
  * Create a new property listing (Owner Only)
  */
 export async function createProperty(propertyData) {
   validatePropertyPayload(propertyData, false);
 
-  // Enforce configurable property listing limit atomically
-  const capacity = await getListingCapacity();
-  if (capacity.isAtLimit) {
-    const limitErr = new Error(
-      `Property listing limit reached (${capacity.active}/${capacity.maxLimit} active listings). Please archive or remove older listings before adding new properties, or adjust MAX_PROPERTY_LISTINGS in your environment configuration.`
-    );
-    limitErr.code = 'PROPERTY_LIMIT_REACHED';
-    limitErr.statusCode = 409;
-    limitErr.capacity = capacity;
-    throw limitErr;
-  }
+  return withModificationLock(async () => {
+    // Enforce configurable property listing limit atomically (Available + Draft count toward limit)
+    const capacity = await getListingCapacity();
+    if (capacity.isAtLimit) {
+      const limitErr = new Error(
+        `Active property limit reached (${capacity.active}/${capacity.maxLimit} active properties). Please mark an existing listing as Sold Out or Archive it before adding new properties, or adjust MAX_ACTIVE_LISTINGS in your configuration.`
+      );
+      limitErr.code = 'ACTIVE_LISTING_LIMIT_REACHED';
+      limitErr.statusCode = 409;
+      limitErr.capacity = capacity;
+      throw limitErr;
+    }
 
-  const id = propertyData.id || `te-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-  const slug = propertyData.slug
-    ? await generateSlug(propertyData.slug, propertyData.locality)
-    : await generateSlug(propertyData.title, propertyData.locality);
+    const id = propertyData.id || `te-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const slug = propertyData.slug
+      ? await generateSlug(propertyData.slug, propertyData.locality)
+      : await generateSlug(propertyData.title, propertyData.locality);
 
-  const status = propertyData.status || 'draft';
-  const now = new Date().toISOString();
+    const status = propertyData.status || 'draft';
+    const now = new Date().toISOString();
 
-  const gallery = Array.isArray(propertyData.gallery) && propertyData.gallery.length > 0
-    ? propertyData.gallery
-    : [propertyData.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80'];
+    const gallery = Array.isArray(propertyData.gallery) && propertyData.gallery.length > 0
+      ? propertyData.gallery
+      : [propertyData.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80'];
 
-  const features = Array.isArray(propertyData.features) ? propertyData.features : [];
+    const features = Array.isArray(propertyData.features) ? propertyData.features : [];
 
-  const priceNum = propertyData.priceNumber !== undefined && propertyData.priceNumber !== null && propertyData.priceNumber !== ''
-    ? Number(propertyData.priceNumber)
-    : null;
+    const priceNum = propertyData.priceNumber !== undefined && propertyData.priceNumber !== null && propertyData.priceNumber !== ''
+      ? Number(propertyData.priceNumber)
+      : null;
 
-  const areaSqFt = propertyData.areaSqFt !== undefined && propertyData.areaSqFt !== null && propertyData.areaSqFt !== ''
-    ? Number(propertyData.areaSqFt)
-    : null;
+    const areaSqFt = propertyData.areaSqFt !== undefined && propertyData.areaSqFt !== null && propertyData.areaSqFt !== ''
+      ? Number(propertyData.areaSqFt)
+      : null;
 
-  const bedrooms = propertyData.bedrooms !== undefined && propertyData.bedrooms !== null && propertyData.bedrooms !== 'none' && propertyData.bedrooms !== ''
-    ? Number(propertyData.bedrooms)
-    : null;
+    const bedrooms = propertyData.bedrooms !== undefined && propertyData.bedrooms !== null && propertyData.bedrooms !== 'none' && propertyData.bedrooms !== ''
+      ? Number(propertyData.bedrooms)
+      : null;
 
-  const bathrooms = propertyData.bathrooms !== undefined && propertyData.bathrooms !== null && propertyData.bathrooms !== ''
-    ? Number(propertyData.bathrooms)
-    : null;
+    const bathrooms = propertyData.bathrooms !== undefined && propertyData.bathrooms !== null && propertyData.bathrooms !== ''
+      ? Number(propertyData.bathrooms)
+      : null;
 
-  const sql = `
-    INSERT INTO properties (
-      id, slug, title, category, transaction_type, locality, sub_location, address,
-      price, price_display, price_per_sqft, price_number, monthly_rent, deposit_amount,
-      lease_term, area_sqft, area_display, area_unit, bedrooms, bathrooms, furnishing,
-      possession_status, image, gallery, features, description, status, featured,
-      is_demo, is_verified, internal_notes, created_at, updated_at
-    ) VALUES (
-      ?, ?, ?, ?, ?, ?, ?, ?,
-      ?, ?, ?, ?, ?, ?,
-      ?, ?, ?, ?, ?, ?, ?,
-      ?, ?, ?, ?, ?, ?, ?,
-      ?, ?, ?, ?, ?
-    )
-  `;
+    const sql = `
+      INSERT INTO properties (
+        id, slug, title, category, transaction_type, locality, sub_location, address,
+        price, price_display, price_per_sqft, price_number, monthly_rent, deposit_amount,
+        lease_term, area_sqft, area_display, area_unit, bedrooms, bathrooms, furnishing,
+        possession_status, image, gallery, features, description, status, featured,
+        is_demo, is_verified, internal_notes, created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?
+      )
+    `;
 
-  const params = [
-    id,
-    slug,
-    propertyData.title.trim(),
-    propertyData.category,
-    propertyData.transactionType || propertyData.transaction_type,
-    propertyData.locality,
-    propertyData.subLocation || propertyData.locality,
-    propertyData.address || '',
-    propertyData.price || '',
-    propertyData.priceDisplay || propertyData.price || 'Price on Request',
-    propertyData.pricePerSqft || null,
-    priceNum,
-    propertyData.monthlyRent || null,
-    propertyData.depositAmount || null,
-    propertyData.leaseTerm || null,
-    areaSqFt,
-    propertyData.areaDisplay || (areaSqFt ? `${areaSqFt} ${propertyData.areaUnit || 'sq.ft'}` : null),
-    propertyData.areaUnit || 'sq.ft',
-    bedrooms,
-    bathrooms,
-    propertyData.furnishing || null,
-    propertyData.possessionStatus || 'Ready to Move',
-    propertyData.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
-    JSON.stringify(gallery),
-    JSON.stringify(features),
-    propertyData.description || '',
-    status,
-    propertyData.featured ? 1 : 0,
-    0, // Genuine owner listing (not demo)
-    propertyData.isVerified ? 1 : 0,
-    propertyData.internalNotes || '',
-    now,
-    now,
-  ];
+    const params = [
+      id,
+      slug,
+      propertyData.title.trim(),
+      propertyData.category,
+      propertyData.transactionType || propertyData.transaction_type,
+      propertyData.locality,
+      propertyData.subLocation || propertyData.locality,
+      propertyData.address || '',
+      propertyData.price || '',
+      propertyData.priceDisplay || propertyData.price || 'Price on Request',
+      propertyData.pricePerSqft || null,
+      priceNum,
+      propertyData.monthlyRent || null,
+      propertyData.depositAmount || null,
+      propertyData.leaseTerm || null,
+      areaSqFt,
+      propertyData.areaDisplay || (areaSqFt ? `${areaSqFt} ${propertyData.areaUnit || 'sq.ft'}` : null),
+      propertyData.areaUnit || 'sq.ft',
+      bedrooms,
+      bathrooms,
+      propertyData.furnishing || null,
+      propertyData.possessionStatus || 'Ready to Move',
+      propertyData.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+      JSON.stringify(gallery),
+      JSON.stringify(features),
+      propertyData.description || '',
+      status,
+      propertyData.featured ? 1 : 0,
+      0, // Genuine owner listing (not demo)
+      propertyData.isVerified ? 1 : 0,
+      propertyData.internalNotes || '',
+      now,
+      now,
+    ];
 
-  await run(sql, params);
-  return findProperty(id, true);
+    await run(sql, params);
+    return findProperty(id, true);
+  });
 }
 
 /**
@@ -489,81 +530,86 @@ export async function updateProperty(id, updateData) {
 
   validatePropertyPayload(updateData, true);
 
-  // If un-archiving an archived property, check active listing capacity limit
-  if (current.status === 'archived' && updateData.status && updateData.status !== 'archived') {
-    const capacity = await getListingCapacity();
-    if (capacity.isAtLimit) {
-      const limitErr = new Error(
-        `Cannot un-archive property: Listing limit reached (${capacity.active}/${capacity.maxLimit} active listings). Please archive another property first or raise MAX_PROPERTY_LISTINGS.`
-      );
-      limitErr.code = 'PROPERTY_LIMIT_REACHED';
-      limitErr.statusCode = 409;
-      limitErr.capacity = capacity;
-      throw limitErr;
+  return withModificationLock(async () => {
+    // If restoring an inactive (sold_out or archived) property to active (available or draft), check active listing limit
+    const isCurrentlyInactive = current.status === 'archived' || current.status === 'sold' || current.status === 'sold_out' || current.status === 'sold-out';
+    const willBeActive = updateData.status && (updateData.status === 'available' || updateData.status === 'published' || updateData.status === 'draft');
+
+    if (isCurrentlyInactive && willBeActive) {
+      const capacity = await getListingCapacity();
+      if (capacity.isAtLimit) {
+        const limitErr = new Error(
+          `Cannot restore property: Active listing limit (${capacity.active}/${capacity.maxLimit} active properties) reached. Please mark an existing active listing as Sold Out or Archive it first before activating this property, or adjust MAX_ACTIVE_LISTINGS.`
+        );
+        limitErr.code = 'ACTIVE_LISTING_LIMIT_REACHED';
+        limitErr.statusCode = 409;
+        limitErr.capacity = capacity;
+        throw limitErr;
+      }
     }
-  }
 
-  let slug = current.slug;
-  if (updateData.title && updateData.title !== current.title) {
-    slug = await generateSlug(updateData.title, updateData.locality || current.locality, id);
-  } else if (updateData.slug && updateData.slug !== current.slug) {
-    slug = await generateSlug(updateData.slug, updateData.locality || current.locality, id);
-  }
+    let slug = current.slug;
+    if (updateData.title && updateData.title !== current.title) {
+      slug = await generateSlug(updateData.title, updateData.locality || current.locality, id);
+    } else if (updateData.slug && updateData.slug !== current.slug) {
+      slug = await generateSlug(updateData.slug, updateData.locality || current.locality, id);
+    }
 
-  const title = updateData.title !== undefined ? updateData.title.trim() : current.title;
-  const category = updateData.category !== undefined ? updateData.category : current.category;
-  const transactionType = updateData.transactionType || updateData.transaction_type || current.transactionType;
-  const locality = updateData.locality !== undefined ? updateData.locality : current.locality;
-  const subLocation = updateData.subLocation !== undefined ? updateData.subLocation : current.subLocation;
-  const address = updateData.address !== undefined ? updateData.address : current.address;
-  const price = updateData.price !== undefined ? updateData.price : current.price;
-  const priceDisplay = updateData.priceDisplay !== undefined ? updateData.priceDisplay : current.priceDisplay;
-  const pricePerSqft = updateData.pricePerSqft !== undefined ? updateData.pricePerSqft : current.pricePerSqft;
-  const priceNumber = updateData.priceNumber !== undefined ? (updateData.priceNumber ? Number(updateData.priceNumber) : null) : current.priceNumber;
-  const monthlyRent = updateData.monthlyRent !== undefined ? updateData.monthlyRent : current.monthlyRent;
-  const depositAmount = updateData.depositAmount !== undefined ? updateData.depositAmount : current.depositAmount;
-  const leaseTerm = updateData.leaseTerm !== undefined ? updateData.leaseTerm : current.leaseTerm;
-  const areaSqFt = updateData.areaSqFt !== undefined ? (updateData.areaSqFt ? Number(updateData.areaSqFt) : null) : current.areaSqFt;
-  const areaDisplay = updateData.areaDisplay !== undefined ? updateData.areaDisplay : current.areaDisplay;
-  const areaUnit = updateData.areaUnit !== undefined ? updateData.areaUnit : current.areaUnit;
-  const bedrooms = updateData.bedrooms !== undefined ? (updateData.bedrooms === 'none' || updateData.bedrooms === null ? null : Number(updateData.bedrooms)) : current.bedrooms;
-  const bathrooms = updateData.bathrooms !== undefined ? (updateData.bathrooms ? Number(updateData.bathrooms) : null) : current.bathrooms;
-  const furnishing = updateData.furnishing !== undefined ? updateData.furnishing : current.furnishing;
-  const possessionStatus = updateData.possessionStatus !== undefined ? updateData.possessionStatus : current.possessionStatus;
-  const image = updateData.image !== undefined ? updateData.image : current.image;
-  const gallery = updateData.gallery !== undefined ? JSON.stringify(updateData.gallery) : JSON.stringify(current.gallery);
-  const features = updateData.features !== undefined ? JSON.stringify(updateData.features) : JSON.stringify(current.features);
-  const description = updateData.description !== undefined ? updateData.description : current.description;
-  const status = updateData.status !== undefined ? updateData.status : current.status;
-  const featured = updateData.featured !== undefined ? (updateData.featured ? 1 : 0) : (current.featured ? 1 : 0);
-  const isVerified = updateData.isVerified !== undefined ? (updateData.isVerified ? 1 : 0) : (current.isVerified ? 1 : 0);
-  const internalNotes = updateData.internalNotes !== undefined ? updateData.internalNotes : current.internalNotes;
-  const now = new Date().toISOString();
+    const title = updateData.title !== undefined ? updateData.title.trim() : current.title;
+    const category = updateData.category !== undefined ? updateData.category : current.category;
+    const transactionType = updateData.transactionType || updateData.transaction_type || current.transactionType;
+    const locality = updateData.locality !== undefined ? updateData.locality : current.locality;
+    const subLocation = updateData.subLocation !== undefined ? updateData.subLocation : current.subLocation;
+    const address = updateData.address !== undefined ? updateData.address : current.address;
+    const price = updateData.price !== undefined ? updateData.price : current.price;
+    const priceDisplay = updateData.priceDisplay !== undefined ? updateData.priceDisplay : current.priceDisplay;
+    const pricePerSqft = updateData.pricePerSqft !== undefined ? updateData.pricePerSqft : current.pricePerSqft;
+    const priceNumber = updateData.priceNumber !== undefined ? (updateData.priceNumber ? Number(updateData.priceNumber) : null) : current.priceNumber;
+    const monthlyRent = updateData.monthlyRent !== undefined ? updateData.monthlyRent : current.monthlyRent;
+    const depositAmount = updateData.depositAmount !== undefined ? updateData.depositAmount : current.depositAmount;
+    const leaseTerm = updateData.leaseTerm !== undefined ? updateData.leaseTerm : current.leaseTerm;
+    const areaSqFt = updateData.areaSqFt !== undefined ? (updateData.areaSqFt ? Number(updateData.areaSqFt) : null) : current.areaSqFt;
+    const areaDisplay = updateData.areaDisplay !== undefined ? updateData.areaDisplay : current.areaDisplay;
+    const areaUnit = updateData.areaUnit !== undefined ? updateData.areaUnit : current.areaUnit;
+    const bedrooms = updateData.bedrooms !== undefined ? (updateData.bedrooms === 'none' || updateData.bedrooms === null ? null : Number(updateData.bedrooms)) : current.bedrooms;
+    const bathrooms = updateData.bathrooms !== undefined ? (updateData.bathrooms ? Number(updateData.bathrooms) : null) : current.bathrooms;
+    const furnishing = updateData.furnishing !== undefined ? updateData.furnishing : current.furnishing;
+    const possessionStatus = updateData.possessionStatus !== undefined ? updateData.possessionStatus : current.possessionStatus;
+    const image = updateData.image !== undefined ? updateData.image : current.image;
+    const gallery = updateData.gallery !== undefined ? JSON.stringify(updateData.gallery) : JSON.stringify(current.gallery);
+    const features = updateData.features !== undefined ? JSON.stringify(updateData.features) : JSON.stringify(current.features);
+    const description = updateData.description !== undefined ? updateData.description : current.description;
+    const status = updateData.status !== undefined ? updateData.status : current.status;
+    const featured = updateData.featured !== undefined ? (updateData.featured ? 1 : 0) : (current.featured ? 1 : 0);
+    const isVerified = updateData.isVerified !== undefined ? (updateData.isVerified ? 1 : 0) : (current.isVerified ? 1 : 0);
+    const internalNotes = updateData.internalNotes !== undefined ? updateData.internalNotes : current.internalNotes;
+    const now = new Date().toISOString();
 
-  const sql = `
-    UPDATE properties SET
-      slug = ?, title = ?, category = ?, transaction_type = ?, locality = ?,
-      sub_location = ?, address = ?, price = ?, price_display = ?, price_per_sqft = ?,
-      price_number = ?, monthly_rent = ?, deposit_amount = ?, lease_term = ?,
-      area_sqft = ?, area_display = ?, area_unit = ?, bedrooms = ?, bathrooms = ?,
-      furnishing = ?, possession_status = ?, image = ?, gallery = ?, features = ?,
-      description = ?, status = ?, featured = ?, is_verified = ?, internal_notes = ?,
-      updated_at = ?
-    WHERE id = ?
-  `;
+    const sql = `
+      UPDATE properties SET
+        slug = ?, title = ?, category = ?, transaction_type = ?, locality = ?,
+        sub_location = ?, address = ?, price = ?, price_display = ?, price_per_sqft = ?,
+        price_number = ?, monthly_rent = ?, deposit_amount = ?, lease_term = ?,
+        area_sqft = ?, area_display = ?, area_unit = ?, bedrooms = ?, bathrooms = ?,
+        furnishing = ?, possession_status = ?, image = ?, gallery = ?, features = ?,
+        description = ?, status = ?, featured = ?, is_verified = ?, internal_notes = ?,
+        updated_at = ?
+      WHERE id = ?
+    `;
 
-  const params = [
-    slug, title, category, transactionType, locality,
-    subLocation, address, price, priceDisplay, pricePerSqft,
-    priceNumber, monthlyRent, depositAmount, leaseTerm,
-    areaSqFt, areaDisplay, areaUnit, bedrooms, bathrooms,
-    furnishing, possessionStatus, image, gallery, features,
-    description, status, featured, isVerified, internalNotes,
-    now, id,
-  ];
+    const params = [
+      slug, title, category, transactionType, locality,
+      subLocation, address, price, priceDisplay, pricePerSqft,
+      priceNumber, monthlyRent, depositAmount, leaseTerm,
+      areaSqFt, areaDisplay, areaUnit, bedrooms, bathrooms,
+      furnishing, possessionStatus, image, gallery, features,
+      description, status, featured, isVerified, internalNotes,
+      now, id,
+    ];
 
-  await run(sql, params);
-  return findProperty(id, true);
+    await run(sql, params);
+    return findProperty(id, true);
+  });
 }
 
 /**
