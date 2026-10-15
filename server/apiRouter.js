@@ -38,8 +38,12 @@ const PUBLIC_PROPS_DIR = path.join(__dirname, '..', 'public', 'images', 'propert
 const DIST_PROPS_DIR = path.join(__dirname, '..', 'dist', 'images', 'properties');
 
 // Ensure image upload directories exist
-if (!fs.existsSync(PUBLIC_PROPS_DIR)) {
-  fs.mkdirSync(PUBLIC_PROPS_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(PUBLIC_PROPS_DIR)) {
+    fs.mkdirSync(PUBLIC_PROPS_DIR, { recursive: true });
+  }
+} catch {
+  // Read-only filesystem in serverless environments
 }
 
 // Auto-run schema migrations on first request / import
@@ -54,6 +58,18 @@ async function ensureBootstrapped() {
 
 // Helper to parse JSON body from incoming Node.js request with configurable size limit
 function parseBody(req, limit = 15 * 1024 * 1024) {
+  // Support pre-parsed body from serverless runtimes (Vercel / Express / Micro)
+  if (req.body !== undefined && req.body !== null) {
+    if (typeof req.body === 'object') return Promise.resolve(req.body);
+    if (typeof req.body === 'string') {
+      try {
+        return Promise.resolve(JSON.parse(req.body));
+      } catch {
+        return Promise.resolve({});
+      }
+    }
+  }
+
   return new Promise((resolve) => {
     let body = '';
     let size = 0;
@@ -118,7 +134,18 @@ export async function handleApiRequest(req, res) {
   await ensureBootstrapped();
 
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-  const pathname = url.pathname;
+  let pathname = url.pathname;
+
+  // Support Vercel serverless catch-all rewrites where req.url might be rewritten to /api/index.js or /api
+  if ((pathname === '/api' || pathname === '/api/' || pathname === '/api/index.js' || pathname.startsWith('/api/[...all]')) && req.query && req.query.all) {
+    const subpath = Array.isArray(req.query.all) ? req.query.all.join('/') : req.query.all;
+    pathname = `/api/${subpath}`;
+  }
+  // Strip trailing slash for consistent route matching
+  if (pathname.length > 1 && pathname.endsWith('/')) {
+    pathname = pathname.replace(/\/+$/, '');
+  }
+
   const method = req.method.toUpperCase();
   res.reqOrigin = req.headers.origin || '*';
 
@@ -325,30 +352,43 @@ export async function handleApiRequest(req, res) {
         });
       }
 
-      if (!fs.existsSync(PUBLIC_PROPS_DIR)) {
-        fs.mkdirSync(PUBLIC_PROPS_DIR, { recursive: true });
-      }
-
-      const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
-      const filename = `prop-${uniqueSuffix}.${ext}`;
-      const targetPath = path.join(PUBLIC_PROPS_DIR, filename);
-      fs.writeFileSync(targetPath, buffer);
-
-      if (fs.existsSync(path.join(__dirname, '..', 'dist'))) {
-        if (!fs.existsSync(DIST_PROPS_DIR)) {
-          fs.mkdirSync(DIST_PROPS_DIR, { recursive: true });
+      try {
+        if (!fs.existsSync(PUBLIC_PROPS_DIR)) {
+          fs.mkdirSync(PUBLIC_PROPS_DIR, { recursive: true });
         }
-        fs.writeFileSync(path.join(DIST_PROPS_DIR, filename), buffer);
-      }
 
-      const publicUrl = `/images/properties/${filename}`;
-      return sendJson(res, 201, {
-        success: true,
-        message: 'Property image uploaded and stored successfully',
-        url: publicUrl,
-        filename,
-        sizeBytes: buffer.length,
-      });
+        const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+        const filename = `prop-${uniqueSuffix}.${ext}`;
+        const targetPath = path.join(PUBLIC_PROPS_DIR, filename);
+        fs.writeFileSync(targetPath, buffer);
+
+        if (fs.existsSync(path.join(__dirname, '..', 'dist'))) {
+          if (!fs.existsSync(DIST_PROPS_DIR)) {
+            fs.mkdirSync(DIST_PROPS_DIR, { recursive: true });
+          }
+          fs.writeFileSync(path.join(DIST_PROPS_DIR, filename), buffer);
+        }
+
+        const publicUrl = `/images/properties/${filename}`;
+        return sendJson(res, 201, {
+          success: true,
+          message: 'Property image uploaded and stored successfully',
+          url: publicUrl,
+          filename,
+          sizeBytes: buffer.length,
+        });
+      } catch (uploadErr) {
+        console.warn('[UPLOAD WARNING] Local filesystem write failed (serverless environment):', uploadErr.message);
+        // Fallback for serverless storage: return base64 data URI if disk is read-only
+        const dataUri = `data:image/${ext};base64,${base64Data}`;
+        return sendJson(res, 201, {
+          success: true,
+          message: 'Property image processed successfully (serverless mode)',
+          url: dataUri,
+          filename: `prop-${Date.now()}.${ext}`,
+          sizeBytes: buffer.length,
+        });
+      }
     }
 
     // -----------------------------------------------------------------------

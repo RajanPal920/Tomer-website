@@ -50,9 +50,10 @@ export async function fetchLiveProperties(force = false) {
     const res = await fetch('/api/properties', {
       credentials: 'include',
     });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data.properties) && data.properties.length > 0) {
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('application/json')) {
+      const data = await res.json().catch(() => null);
+      if (data && Array.isArray(data.properties) && data.properties.length > 0) {
         cachedPublicProperties = data.properties;
         isInitialized = true;
         notifyListeners();
@@ -116,7 +117,7 @@ export async function createOwnerListing(propertyData) {
     body: JSON.stringify(propertyData),
   });
 
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.success) {
     throw new Error(data.error || 'Failed to create property in database');
   }
@@ -303,8 +304,10 @@ export async function updateEnquiryStatus(id, status) {
 export async function fetchWebsiteSettings() {
   try {
     const res = await fetch('/api/settings', { credentials: 'include' });
-    if (res.ok) {
-      return await res.json();
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('application/json')) {
+      const data = await res.json().catch(() => null);
+      if (data) return data;
     }
   } catch (err) {
     console.warn('[SETTINGS] Could not fetch settings from API:', err);

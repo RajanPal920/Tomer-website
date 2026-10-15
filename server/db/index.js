@@ -16,10 +16,40 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, '..', 'data');
-const SQLITE_DB_PATH = process.env.SQLITE_DB_PATH || path.join(DATA_DIR, 'tomar.db');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DATA_DIR) && !isServerless) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (err) {
+  // Read-only filesystem in serverless environments
+  console.warn('[DB] Notice: Could not create DATA_DIR:', err.message);
+}
+
+/**
+ * Resolve effective SQLite path across local and serverless environments
+ */
+export function getEffectiveSqlitePath() {
+  if (process.env.SQLITE_DB_PATH) {
+    return process.env.SQLITE_DB_PATH;
+  }
+  // On Vercel / AWS Lambda, the deployment directory (/var/task) is read-only.
+  // /tmp is the only writable directory.
+  if (isServerless) {
+    const tmpDbPath = path.join('/tmp', 'tomar.db');
+    const bundledPath = path.join(DATA_DIR, 'tomar.db');
+    if (!fs.existsSync(tmpDbPath) && fs.existsSync(bundledPath)) {
+      try {
+        fs.copyFileSync(bundledPath, tmpDbPath);
+        console.log(`[DB] Copied bundled database to serverless storage: ${tmpDbPath}`);
+      } catch (copyErr) {
+        console.warn('[DB] Could not copy bundled DB to /tmp:', copyErr.message);
+      }
+    }
+    return tmpDbPath;
+  }
+  return path.join(DATA_DIR, 'tomar.db');
 }
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -53,25 +83,44 @@ export async function initDatabase() {
 
   // SQLite Engine (sql.js)
   if (!SQL) {
-    SQL = await initSqlJs();
+    SQL = await initSqlJs({
+      locateFile: (file) => {
+        const defaultPath = path.join(process.cwd(), 'node_modules', 'sql.js', 'dist', file);
+        if (fs.existsSync(defaultPath)) return defaultPath;
+        return file;
+      },
+    });
   }
 
-  if (fs.existsSync(SQLITE_DB_PATH)) {
-    const stat = fs.statSync(SQLITE_DB_PATH);
+  const activeDbPath = getEffectiveSqlitePath();
+
+  if (fs.existsSync(activeDbPath)) {
+    const stat = fs.statSync(activeDbPath);
     if (!sqliteDb || stat.mtimeMs > lastLoadedMtime) {
       try {
-        const fileBuffer = fs.readFileSync(SQLITE_DB_PATH);
+        const fileBuffer = fs.readFileSync(activeDbPath);
         sqliteDb = new SQL.Database(fileBuffer);
         lastLoadedMtime = stat.mtimeMs;
-        console.log(`[DB] Loaded persistent SQLite database from ${SQLITE_DB_PATH} (${fileBuffer.length} bytes)`);
+        console.log(`[DB] Loaded persistent SQLite database from ${activeDbPath} (${fileBuffer.length} bytes)`);
       } catch (err) {
         console.error('[DB] Warning loading existing sqlite db, creating fresh:', err);
         sqliteDb = new SQL.Database();
       }
     }
   } else if (!sqliteDb) {
-    sqliteDb = new SQL.Database();
-    console.log(`[DB] Created new SQLite database file at ${SQLITE_DB_PATH}`);
+    const bundledPath = path.join(DATA_DIR, 'tomar.db');
+    if (fs.existsSync(bundledPath)) {
+      try {
+        const fileBuffer = fs.readFileSync(bundledPath);
+        sqliteDb = new SQL.Database(fileBuffer);
+        console.log(`[DB] Loaded bundled SQLite database from ${bundledPath} (${fileBuffer.length} bytes)`);
+      } catch {
+        sqliteDb = new SQL.Database();
+      }
+    } else {
+      sqliteDb = new SQL.Database();
+      console.log(`[DB] Created new SQLite database in memory`);
+    }
     saveSqliteToDisk();
   }
 
@@ -84,17 +133,20 @@ export async function initDatabase() {
  */
 function saveSqliteToDisk() {
   if (!sqliteDb) return;
+  const activeDbPath = getEffectiveSqlitePath();
   try {
     const data = sqliteDb.export();
-    const tempPath = `${SQLITE_DB_PATH}.tmp`;
+    const tempPath = `${activeDbPath}.tmp`;
     fs.writeFileSync(tempPath, Buffer.from(data));
-    fs.renameSync(tempPath, SQLITE_DB_PATH);
-    if (fs.existsSync(SQLITE_DB_PATH)) {
-      lastLoadedMtime = fs.statSync(SQLITE_DB_PATH).mtimeMs;
+    fs.renameSync(tempPath, activeDbPath);
+    if (fs.existsSync(activeDbPath)) {
+      lastLoadedMtime = fs.statSync(activeDbPath).mtimeMs;
     }
   } catch (err) {
-    console.error('[DB FATAL] Failed to save SQLite database to disk:', err);
-    throw err;
+    console.warn('[DB WARNING] Could not persist SQLite to disk (read-only filesystem or ephemeral):', err.message);
+    if (!isServerless) {
+      throw err;
+    }
   }
 }
 
@@ -117,10 +169,11 @@ export async function query(sql, params = []) {
   }
 
   // Reload SQLite from disk if another process updated it
-  if (fs.existsSync(SQLITE_DB_PATH)) {
-    const stat = fs.statSync(SQLITE_DB_PATH);
+  const activeDbPath = getEffectiveSqlitePath();
+  if (fs.existsSync(activeDbPath)) {
+    const stat = fs.statSync(activeDbPath);
     if (stat.mtimeMs > lastLoadedMtime) {
-      const fileBuffer = fs.readFileSync(SQLITE_DB_PATH);
+      const fileBuffer = fs.readFileSync(activeDbPath);
       sqliteDb = new SQL.Database(fileBuffer);
       lastLoadedMtime = stat.mtimeMs;
     }
@@ -176,8 +229,9 @@ export async function checkHealth() {
       const res = await pgPool.query('SELECT 1 as ok');
       return { status: 'ok', type: 'postgres', ok: res.rows[0]?.ok === 1 };
     }
+    const activeDbPath = getEffectiveSqlitePath();
     const row = await get('SELECT 1 as ok');
-    return { status: 'ok', type: 'sqlite', ok: row?.ok === 1, path: SQLITE_DB_PATH };
+    return { status: 'ok', type: 'sqlite', ok: row?.ok === 1, path: activeDbPath };
   } catch (err) {
     return { status: 'error', error: err.message };
   }

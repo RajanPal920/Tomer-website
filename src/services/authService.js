@@ -61,9 +61,10 @@ export async function verifySession() {
       credentials: 'include',
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.authenticated && data.user) {
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('application/json')) {
+      const data = await res.json().catch(() => null);
+      if (data && data.authenticated && data.user) {
         // Sync user profile to storage
         const storage = localStorage.getItem(TOKEN_KEY) ? localStorage : sessionStorage;
         storage.setItem(USER_KEY, JSON.stringify(data.user));
@@ -72,8 +73,8 @@ export async function verifySession() {
       }
     }
 
-    // Server rejected session (expired or invalid)
-    if (res.status === 401 || res.status === 403) {
+    // Server rejected session (expired, invalid, or endpoint not deployed)
+    if (res.status === 401 || res.status === 403 || res.status === 404) {
       clearClientSession();
       return { authenticated: false };
     }
@@ -81,9 +82,7 @@ export async function verifySession() {
     console.warn('[AUTH] Network error verifying session with backend:', err.message);
   }
 
-  // Fallback for offline: if client already has valid user stored
-  const user = getCurrentUser();
-  return { authenticated: Boolean(user), user };
+  return { authenticated: false };
 }
 
 /**
@@ -112,13 +111,24 @@ export async function login(username, password, remember = true) {
       body: JSON.stringify({ username, password, remember }),
     });
 
-    const data = await res.json();
+    const contentType = res.headers.get('content-type') || '';
+    let data = null;
+    if (contentType.includes('application/json')) {
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+    }
 
-    if (!res.ok || !data.success) {
+    if (!res.ok || !data || !data.success) {
+      const errorMsg = data?.error || (res.status === 404
+        ? 'Authentication endpoint not found on server (HTTP 404). Please verify server deployment.'
+        : `Authentication failed (HTTP ${res.status}). Please check credentials.`);
       return {
         success: false,
         status: res.status,
-        error: data.error || 'Invalid credentials. Please verify username and password.',
+        error: errorMsg,
       };
     }
 
