@@ -20,6 +20,8 @@ import {
   BadgePercent,
   Download,
   Award,
+  X,
+  ZoomIn,
 } from 'lucide-react';
 import { contactInfo } from '../data/contactInfo';
 import { submitEnquiry } from '../services/propertyStore';
@@ -29,6 +31,7 @@ import WhatsAppIcon from './WhatsAppIcon';
 export { WhatsAppIcon };
 
 export default function ContactPageView({ onNavigate }) {
+  const [modalCertificate, setModalCertificate] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -154,7 +157,7 @@ export default function ContactPageView({ onNavigate }) {
             </p>
             <div className="flex flex-wrap items-center gap-3 text-xs text-charcoal/80">
               <span className="px-3 py-1 rounded-lg bg-ivory border border-stone font-semibold text-navy">
-                Corridor: Vasai • Nalasopara • Virar • Vaitarna • Saphale • Kelve Road • Palghar
+                Corridor: Vasai • Nalasopara • Virar • Saphale • Kelve Road • Palghar • Boisar
               </span>
             </div>
           </div>
@@ -170,7 +173,7 @@ export default function ContactPageView({ onNavigate }) {
             <div className="bg-white rounded-2xl border border-stone p-6 shadow-card">
               <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl bg-navy text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
-                  <MapPin className="w-5 h-5 text-brandRed" />
+                  <MapPin className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xs uppercase font-bold tracking-wider text-muted mb-1">
@@ -224,9 +227,11 @@ export default function ContactPageView({ onNavigate }) {
                 <div className="mt-2">
                   <a
                     href="tel:9356620596"
-                    className="inline-flex items-center gap-2 text-sm font-bold text-charcoal hover:text-brandRed transition-colors"
+                    className="inline-flex items-center gap-2.5 text-sm font-bold text-charcoal hover:text-royal transition-colors"
                   >
-                    <Phone className="w-4 h-4 text-brandRed flex-shrink-0" />
+                    <span className="w-7 h-7 rounded-lg bg-navy flex items-center justify-center flex-shrink-0 shadow-xs">
+                      <Phone className="w-3.5 h-3.5 text-white" />
+                    </span>
                     <span>+91 93566 20596</span>
                   </a>
                 </div>
@@ -250,22 +255,26 @@ export default function ContactPageView({ onNavigate }) {
                     <span>WhatsApp</span>
                   </a>
                 </div>
-                <div className="space-y-1.5 mt-2">
+                <div className="space-y-2 mt-2">
                   <div>
                     <a
                       href="tel:8237092224"
-                      className="inline-flex items-center gap-2 text-sm font-bold text-charcoal hover:text-brandRed transition-colors"
+                      className="inline-flex items-center gap-2.5 text-sm font-bold text-charcoal hover:text-royal transition-colors"
                     >
-                      <Phone className="w-4 h-4 text-brandRed flex-shrink-0" />
+                      <span className="w-7 h-7 rounded-lg bg-navy flex items-center justify-center flex-shrink-0 shadow-xs">
+                        <Phone className="w-3.5 h-3.5 text-white" />
+                      </span>
                       <span>+91 82370 92224</span>
                     </a>
                   </div>
                   <div>
                     <a
                       href="tel:9970355543"
-                      className="inline-flex items-center gap-2 text-sm font-bold text-charcoal hover:text-brandRed transition-colors"
+                      className="inline-flex items-center gap-2.5 text-sm font-bold text-charcoal hover:text-royal transition-colors"
                     >
-                      <Phone className="w-4 h-4 text-brandRed flex-shrink-0" />
+                      <span className="w-7 h-7 rounded-lg bg-navy flex items-center justify-center flex-shrink-0 shadow-xs">
+                        <Phone className="w-3.5 h-3.5 text-white" />
+                      </span>
                       <span>+91 99703 55543</span>
                     </a>
                   </div>
@@ -277,7 +286,7 @@ export default function ContactPageView({ onNavigate }) {
             <div className="bg-white rounded-2xl border border-stone p-6 shadow-card">
               <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl bg-navy text-white flex items-center justify-center flex-shrink-0 shadow-xs">
-                  <Mail className="w-5 h-5 text-brandRed" />
+                  <Mail className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xs uppercase font-bold tracking-wider text-muted mb-1">
@@ -312,7 +321,7 @@ export default function ContactPageView({ onNavigate }) {
             <div className="bg-white rounded-2xl border border-stone p-6 shadow-card">
               <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl bg-navy text-white flex items-center justify-center flex-shrink-0 shadow-xs">
-                  <Clock className="w-5 h-5 text-royal" />
+                  <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xs uppercase font-bold tracking-wider text-muted mb-1">
@@ -519,13 +528,13 @@ export default function ContactPageView({ onNavigate }) {
                         onChange={(e) => setFormData({ ...formData, locality: e.target.value })}
                         className="w-full px-4 py-3 rounded-xl border border-stone bg-ivory text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
                       >
-                        <option value="Virar">Virar (East & West)</option>
                         <option value="Vasai">Vasai (East & West)</option>
                         <option value="Nalasopara">Nalasopara (East & West)</option>
-                        <option value="Vaitarna">Vaitarna</option>
+                        <option value="Virar">Virar (East & West)</option>
                         <option value="Saphale">Saphale</option>
                         <option value="Kelve Road">Kelve Road</option>
                         <option value="Palghar">Palghar (East & West)</option>
+                        <option value="Boisar">Boisar (Tarapur MIDC & Residential)</option>
                       </select>
                     </div>
                   </div>
@@ -602,7 +611,7 @@ export default function ContactPageView({ onNavigate }) {
                   className="p-5 rounded-2xl bg-ivory border border-stone/70 hover:border-royal/40 transition-colors shadow-xs"
                 >
                   <div className="w-10 h-10 rounded-xl bg-navy text-white flex items-center justify-center mb-3">
-                    <IconComp className="w-5 h-5 text-brandRed" />
+                    <IconComp className="w-5 h-5 text-white" />
                   </div>
                   <h3 className="text-sm font-bold text-navy mb-1.5">
                     {srv.title}
@@ -616,81 +625,208 @@ export default function ContactPageView({ onNavigate }) {
           </div>
         </div>
 
-        {/* Section: Official ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र Certificate Card */}
+        {/* Section: Official Government & Statutory Certifications */}
         <div className="bg-white rounded-3xl border border-stone p-6 sm:p-10 lg:p-12 mb-12 shadow-card">
-          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10">
-            {/* Certificate Preview Image */}
-            <div className="w-full lg:w-5/12 flex-shrink-0">
-              <a
-                href="/certificate/nidhi-pramanpatra.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block relative rounded-2xl overflow-hidden border-2 border-stone hover:border-royal transition-all duration-300 shadow-md hover:shadow-xl bg-ivory"
-                title="Click to view full ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र PDF"
-              >
-                <img
-                  src="/certificate/certificate-preview.jpg"
-                  alt="ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र"
-                  className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-navy-950/0 group-hover:bg-navy-950/20 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 rounded-xl bg-navy/90 text-white text-xs font-bold uppercase tracking-wider backdrop-blur-xs flex items-center gap-1.5 shadow-lg">
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open Full PDF</span>
-                  </span>
-                </div>
-              </a>
+          <div className="max-w-3xl mb-8">
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-royal mb-2">
+              <Award className="w-3.5 h-3.5" />
+              <span>Government of Maharashtra & Regulatory Accreditations</span>
             </div>
+            <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-normal text-charcoal">
+              Official Registration Certificates
+            </h2>
+            <p className="text-muted text-sm sm:text-base mt-2">
+              Tomar Enterprises operates with complete legal authorization, certified under Maharashtra Real Estate Regulatory Authority (MahaRERA) Form 'H' and affiliated with registered industry associations.
+            </p>
+          </div>
 
-            {/* Certificate Details & Actions */}
-            <div className="w-full lg:w-7/12 flex flex-col justify-between">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-royal/10 text-royal text-xs font-bold uppercase tracking-wider mb-3">
-                  <Award className="w-3.5 h-3.5" />
-                  <span>Verified Agency Registration</span>
+          <div className="space-y-8">
+            {/* Primary Certificate Card: MahaRERA Registration Certificate Form 'H' */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-ivory border-2 border-stone hover:border-royal transition-all duration-300">
+              <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10">
+                {/* Certificate Preview Image */}
+                <div className="w-full lg:w-5/12 flex-shrink-0">
+                  <div
+                    onClick={() =>
+                      setModalCertificate({
+                        title: "Maharashtra Real Estate Regulatory Authority — Form 'H' Registration Certificate",
+                        subtitle: "MahaRERA Reg. No: A99000043480 | Sanjay Mewalal Tomar",
+                        imageUrl: "/images/certificates/maharera-certificate.jpg",
+                        downloadUrl: "/images/certificates/maharera-certificate.jpg",
+                        downloadName: "MahaRERA-Certificate-A99000043480-Tomar-Enterprises.jpg",
+                      })
+                    }
+                    className="group block relative rounded-2xl overflow-hidden border-2 border-stone-dark/40 hover:border-royal transition-all duration-300 shadow-md hover:shadow-xl bg-white cursor-pointer"
+                    title="Click to view full MahaRERA Registration Certificate"
+                  >
+                    <img
+                      src="/images/certificates/maharera-certificate.jpg"
+                      alt="Maharashtra Real Estate Regulatory Authority (MahaRERA) Registration Certificate Form 'H' - No. A99000043480"
+                      className="w-full h-auto max-h-[380px] object-contain mx-auto group-hover:scale-[1.02] transition-transform duration-300 p-2"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-navy-950/0 group-hover:bg-navy-950/20 transition-colors flex items-center justify-center">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 rounded-xl bg-navy/90 text-white text-xs font-bold uppercase tracking-wider backdrop-blur-xs flex items-center gap-1.5 shadow-lg">
+                        <ZoomIn className="w-3.5 h-3.5" />
+                        <span>Enlarge Certificate</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <h3 className="font-serif text-2xl sm:text-3xl text-navy font-normal tracking-tight mb-2">
-                  ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र
-                </h3>
+                {/* Certificate Details & Actions */}
+                <div className="w-full lg:w-7/12 flex flex-col justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>MahaRERA Registered</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-navy/10 text-navy text-xs font-mono font-bold">
+                        Reg. No: A99000043480
+                      </span>
+                    </div>
 
-                <p className="text-muted text-sm sm:text-base leading-relaxed mb-4">
-                  Official membership registration certificate issued by <strong>Estate Consultant Vikas Mandal</strong> (इस्टेट कन्सल्टंट विकास मंडळ) recognizing Tomar Enterprises as an authorized agency.
-                </p>
+                    <h3 className="font-serif text-2xl sm:text-3xl text-navy font-normal tracking-tight mb-2">
+                      Maharashtra Real Estate Regulatory Authority
+                    </h3>
+                    <p className="text-xs uppercase font-bold text-royal tracking-wider mb-3">
+                      Registration Certificate of Real Estate Agent — Form 'H' [Rule 12(1)(b)]
+                    </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 rounded-xl bg-ivory border border-stone/60 text-xs">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-brandRed flex-shrink-0" />
-                    <span className="text-charcoal"><strong>Document:</strong> Official PDF Certificate</span>
+                    <p className="text-muted text-sm leading-relaxed mb-4">
+                      Official statutory registration granted under Section 9 of the Real Estate (Regulation and Development) Act to <strong>Sanjay Mewalal Tomar</strong> to facilitate real estate transactions across the State of Maharashtra.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 rounded-xl bg-white border border-stone/80 text-xs shadow-xs">
+                      <div className="space-y-1">
+                        <span className="text-muted block text-[11px] uppercase tracking-wider font-semibold">Registered Agent</span>
+                        <span className="text-navy font-bold text-sm">Sanjay Mewalal Tomar</span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-muted block text-[11px] uppercase tracking-wider font-semibold">Jurisdiction / Tahsil</span>
+                        <span className="text-charcoal font-semibold">Vasai, Palghar (401305)</span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-muted block text-[11px] uppercase tracking-wider font-semibold">Validity Period</span>
+                        <span className="text-emerald-700 font-bold">14/06/2023 to 14/06/2028</span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-muted block text-[11px] uppercase tracking-wider font-semibold">Digitally Signed By</span>
+                        <span className="text-charcoal font-medium">Secretary, MahaRERA (Mumbai)</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span className="text-charcoal"><strong>Status:</strong> Verified & Valid</span>
+
+                  {/* Action Buttons: View Full & Download */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModalCertificate({
+                          title: "Maharashtra Real Estate Regulatory Authority — Form 'H' Registration Certificate",
+                          subtitle: "MahaRERA Reg. No: A99000043480 | Sanjay Mewalal Tomar",
+                          imageUrl: "/images/certificates/maharera-certificate.jpg",
+                          downloadUrl: "/images/certificates/maharera-certificate.jpg",
+                          downloadName: "MahaRERA-Certificate-A99000043480-Tomar-Enterprises.jpg",
+                        })
+                      }
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg cursor-pointer"
+                    >
+                      <ZoomIn className="w-4 h-4" />
+                      <span>View Full Certificate</span>
+                    </button>
+
+                    <a
+                      href="/images/certificates/maharera-certificate.jpg"
+                      download="MahaRERA-Certificate-A99000043480-Tomar-Enterprises.jpg"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white hover:bg-ivory text-navy font-bold text-xs uppercase tracking-wider border border-stone hover:border-navy/40 transition-all shadow-xs"
+                    >
+                      <Download className="w-4 h-4 text-royal" />
+                      <span>Download Certificate</span>
+                    </a>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Action Buttons: View & Download */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <a
-                  href="/certificate/nidhi-pramanpatra.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>View Certificate</span>
-                </a>
+            {/* Secondary Certificate Card: ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-ivory border border-stone hover:border-royal/60 transition-all duration-300">
+              <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10">
+                {/* Certificate Preview Image */}
+                <div className="w-full lg:w-5/12 flex-shrink-0">
+                  <a
+                    href="/certificate/nidhi-pramanpatra.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group block relative rounded-2xl overflow-hidden border border-stone hover:border-royal transition-all duration-300 shadow-sm hover:shadow-md bg-white"
+                    title="Click to view full ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र PDF"
+                  >
+                    <img
+                      src="/certificate/certificate-preview.jpg"
+                      alt="ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र"
+                      className="w-full h-auto max-h-[300px] object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-navy-950/0 group-hover:bg-navy-950/20 transition-colors flex items-center justify-center">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 rounded-xl bg-navy/90 text-white text-xs font-bold uppercase tracking-wider backdrop-blur-xs flex items-center gap-1.5 shadow-lg">
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Open Association PDF</span>
+                      </span>
+                    </div>
+                  </a>
+                </div>
 
-                <a
-                  href="/certificate/nidhi-pramanpatra.pdf"
-                  download="nidhi-pramanpatra.pdf"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white hover:bg-ivory text-navy font-bold text-xs uppercase tracking-wider border border-stone hover:border-navy/40 transition-all shadow-xs"
-                >
-                  <Download className="w-4 h-4 text-royal" />
-                  <span>Download Certificate</span>
-                </a>
+                {/* Certificate Details & Actions */}
+                <div className="w-full lg:w-7/12 flex flex-col justify-between">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-royal/10 text-royal text-xs font-bold uppercase tracking-wider mb-3">
+                      <Award className="w-3.5 h-3.5" />
+                      <span>Association Membership</span>
+                    </div>
+
+                    <h3 className="font-serif text-2xl sm:text-3xl text-navy font-normal tracking-tight mb-2">
+                      ई-स्टेट कन्सल्टंट विकास मंडळ – नोंदणी प्रमाणपत्र
+                    </h3>
+
+                    <p className="text-muted text-sm leading-relaxed mb-4">
+                      Official membership registration certificate issued by <strong>Estate Consultant Vikas Mandal</strong> (इस्टेट कन्सल्टंट विकास मंडळ) recognizing Tomar Enterprises as an accredited agency.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 rounded-xl bg-white border border-stone/60 text-xs">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-royal flex-shrink-0" />
+                        <span className="text-charcoal"><strong>Document:</strong> Association PDF Certificate</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                        <span className="text-charcoal"><strong>Status:</strong> Verified & Valid</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons: View & Download */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <a
+                      href="/certificate/nidhi-pramanpatra.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>View Certificate</span>
+                    </a>
+
+                    <a
+                      href="/certificate/nidhi-pramanpatra.pdf"
+                      download="nidhi-pramanpatra.pdf"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white hover:bg-ivory text-navy font-bold text-xs uppercase tracking-wider border border-stone hover:border-navy/40 transition-all shadow-xs"
+                    >
+                      <Download className="w-4 h-4 text-royal" />
+                      <span>Download Certificate</span>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -700,7 +836,7 @@ export default function ContactPageView({ onNavigate }) {
         <div className="bg-white rounded-3xl border border-stone p-6 sm:p-10 lg:p-12 shadow-card">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-brandRed mb-2">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-royal mb-2">
                 <MapPin className="w-3.5 h-3.5" />
                 <span>Office Location</span>
               </div>
@@ -735,6 +871,74 @@ export default function ContactPageView({ onNavigate }) {
             />
           </div>
         </div>
+
+        {/* Certificate Modal Lightbox */}
+        {modalCertificate && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={modalCertificate.title}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-navy-950/80 backdrop-blur-sm animate-fade-in"
+            onClick={() => setModalCertificate(null)}
+          >
+            <div
+              className="relative max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone flex flex-col max-h-[92vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-stone bg-ivory">
+                <div>
+                  <h3 className="font-serif text-lg sm:text-xl font-bold text-navy">
+                    {modalCertificate.title}
+                  </h3>
+                  <p className="text-xs text-muted mt-0.5">{modalCertificate.subtitle}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setModalCertificate(null)}
+                  className="w-9 h-9 rounded-full bg-stone hover:bg-stone-dark/30 flex items-center justify-center text-charcoal hover:text-navy transition-colors cursor-pointer"
+                  title="Close Certificate Viewer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Body Image */}
+              <div className="p-4 sm:p-6 overflow-y-auto flex items-center justify-center bg-stone/20 max-h-[calc(92vh-140px)]">
+                <img
+                  src={modalCertificate.imageUrl}
+                  alt={modalCertificate.title}
+                  className="max-w-full h-auto max-h-[72vh] object-contain rounded-xl shadow-lg border border-stone"
+                />
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-between px-6 py-4 border-t border-stone bg-white">
+                <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Officially Verified Real Estate Document</span>
+                </span>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={modalCertificate.downloadUrl}
+                    download={modalCertificate.downloadName}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-xs"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Certificate</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setModalCertificate(null)}
+                    className="px-4 py-2.5 rounded-xl bg-ivory hover:bg-stone text-charcoal font-bold text-xs uppercase tracking-wider border border-stone transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

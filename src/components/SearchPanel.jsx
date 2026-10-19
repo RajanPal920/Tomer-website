@@ -1,318 +1,388 @@
 import React, { useState, useEffect } from 'react';
-import { Search, RotateCcw, MapPin, Building, IndianRupee, BedDouble } from 'lucide-react';
-import { TRANSACTION_TYPES, CATEGORIES_BY_TRANSACTION } from '../data/properties';
+import { Search, RotateCcw, MapPin, Building, Activity, X, ChevronDown, Sparkles } from 'lucide-react';
 import { LOCALITY_OPTIONS } from '../data/localities';
 
-export const BUDGET_TIERS = {
-  buy: [
-    { label: 'Any Budget', min: null, max: null },
-    { label: 'Under ₹40 Lakh', min: null, max: 4000000 },
-    { label: '₹40 Lakh – ₹60 Lakh', min: 4000000, max: 6000000 },
-    { label: '₹60 Lakh – ₹1 Crore', min: 6000000, max: 10000000 },
-    { label: 'Above ₹1 Crore', min: 10000000, max: null },
-  ],
-  rent: [
-    { label: 'Any Rent Budget', min: null, max: null },
-    { label: 'Under ₹15,000 / mo', min: null, max: 15000 },
-    { label: '₹15,000 – ₹30,000 / mo', min: 15000, max: 30000 },
-    { label: 'Above ₹30,000 / mo', min: 30000, max: null },
-  ],
-  commercial: [
-    { label: 'Any Commercial Budget', min: null, max: null },
-    { label: 'Under ₹50 Lakh', min: null, max: 5000000 },
-    { label: '₹50 Lakh – ₹1 Crore', min: 5000000, max: 10000000 },
-    { label: 'Above ₹1 Crore', min: 10000000, max: null },
-  ],
-  'plots-land': [
-    { label: 'Any Land Budget', min: null, max: null },
-    { label: 'Under ₹30 Lakh', min: null, max: 3000000 },
-    { label: '₹30 Lakh – ₹75 Lakh', min: 3000000, max: 7500000 },
-    { label: 'Above ₹75 Lakh', min: 7500000, max: null },
-  ],
-  lease: [
-    { label: 'Any Lease Deposit', min: null, max: null },
-    { label: 'Deposit under ₹15 Lakh', min: null, max: 1500000 },
-    { label: 'Deposit ₹15L – ₹30 Lakh', min: 1500000, max: 3000000 },
-    { label: 'Deposit Above ₹30 Lakh', min: 3000000, max: null },
-  ],
-};
+export const SEARCH_PROPERTY_TYPES = [
+  { id: 'all', label: 'All Properties' },
+  { id: 'flats', label: 'Flats / Apartments' },
+  { id: 'resale-flat', label: 'Resale Properties' },
+  { id: 'commercial-shop', label: 'Commercial Shops' },
+  { id: 'commercial-office', label: 'Offices' },
+  { id: 'residential-plot', label: 'Residential Plots' },
+  { id: 'industrial-plot', label: 'Industrial Plots' },
+  { id: 'na-plot', label: 'Land / NA Plots' },
+];
 
-export default function SearchPanel({ onSearch, activeFilters, onReset }) {
-  const [activeTab, setActiveTab] = useState(
-    activeFilters?.transactionType && activeFilters.transactionType !== 'all'
-      ? activeFilters.transactionType
+export const STATUS_OPTIONS = [
+  { id: 'all', label: 'All Statuses' },
+  { id: 'available', label: 'Available properties' },
+  { id: 'ready-to-move', label: 'Ready to Move' },
+  { id: 'under-construction', label: 'Under Construction' },
+  { id: 'sold', label: 'Sold' },
+  { id: 'rented', label: 'Rented' },
+];
+
+export default function SearchPanel({ onSearch, activeFilters = {}, onReset }) {
+  const [lookingFor, setLookingFor] = useState(
+    activeFilters?.transactionType === 'rent' || activeFilters?.categoryTab === 'rentals'
+      ? 'rent'
+      : activeFilters?.transactionType === 'buy' || activeFilters?.categoryTab === 'buy'
+      ? 'buy'
       : 'buy'
   );
+  const [selectedPropertyType, setSelectedPropertyType] = useState(activeFilters?.category || 'all');
   const [selectedLocality, setSelectedLocality] = useState(activeFilters?.locality || 'all');
-  const [selectedCategory, setSelectedCategory] = useState(activeFilters?.category || 'all');
-  const [selectedBudgetIndex, setSelectedBudgetIndex] = useState('0');
-  const [selectedBhk, setSelectedBhk] = useState(activeFilters?.bedrooms ? String(activeFilters.bedrooms) : 'all');
+  const [selectedStatus, setSelectedStatus] = useState(activeFilters?.availabilityStatus || 'all');
+  const [keyword, setKeyword] = useState(activeFilters?.searchQuery || '');
 
-  // Synchronize internal form state with external search state changes
+  // Synchronize internal state when external filter changes occur
   useEffect(() => {
     if (activeFilters) {
-      if (activeFilters.transactionType && activeFilters.transactionType !== 'all') {
-        setActiveTab(activeFilters.transactionType);
+      if (activeFilters.transactionType === 'rent' || activeFilters.categoryTab === 'rentals') {
+        setLookingFor('rent');
+      } else if (activeFilters.transactionType === 'buy' || activeFilters.categoryTab === 'buy') {
+        setLookingFor('buy');
+      } else if (activeFilters.transactionType === 'all' || activeFilters.categoryTab === 'all') {
+        setLookingFor('all');
+      }
+
+      if (activeFilters.category !== undefined) {
+        setSelectedPropertyType(activeFilters.category);
       }
       if (activeFilters.locality !== undefined) {
         setSelectedLocality(activeFilters.locality);
       }
-      if (activeFilters.category !== undefined) {
-        setSelectedCategory(activeFilters.category);
+      if (activeFilters.availabilityStatus !== undefined) {
+        setSelectedStatus(activeFilters.availabilityStatus);
       }
-      if (activeFilters.bedrooms !== undefined) {
-        setSelectedBhk(String(activeFilters.bedrooms));
+      if (activeFilters.searchQuery !== undefined) {
+        setKeyword(activeFilters.searchQuery);
       }
     }
   }, [activeFilters]);
 
-  // When tab changes, reset category to 'all' and update active tab
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-    setSelectedCategory('all');
-    setSelectedBudgetIndex('0');
-    if (tabId === 'plots-land' || tabId === 'commercial' || tabId === 'lease') {
-      setSelectedBhk('all');
-    }
-  };
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    const currentTiers = BUDGET_TIERS[activeTab] || BUDGET_TIERS.buy;
-    const tier = currentTiers[Number(selectedBudgetIndex)] || currentTiers[0];
-    const isResidentialTab = activeTab === 'buy' || activeTab === 'rent';
-
+  const handleLookingForChange = (type) => {
+    setLookingFor(type);
     if (onSearch) {
       onSearch({
-        transactionType: activeTab,
+        transactionType: type,
+        categoryTab: type,
+        category: selectedPropertyType,
         locality: selectedLocality,
-        category: selectedCategory,
-        minBudget: tier.min,
-        maxBudget: tier.max,
-        bedrooms: isResidentialTab && selectedBhk !== 'all' ? Number(selectedBhk) : 'all',
+        availabilityStatus: selectedStatus,
+        searchQuery: keyword.trim(),
       });
     }
   };
 
-  const handleResetFilters = () => {
-    setActiveTab('buy');
-    setSelectedLocality('all');
-    setSelectedCategory('all');
-    setSelectedBudgetIndex('0');
-    setSelectedBhk('all');
+  const handleFormSubmit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (onSearch) {
+      onSearch({
+        transactionType: lookingFor,
+        categoryTab: lookingFor,
+        category: selectedPropertyType,
+        locality: selectedLocality,
+        availabilityStatus: selectedStatus,
+        searchQuery: keyword.trim(),
+      });
+    }
+  };
 
+  const handleClearFilters = () => {
+    setLookingFor('buy');
+    setSelectedPropertyType('all');
+    setSelectedLocality('all');
+    setSelectedStatus('all');
+    setKeyword('');
     if (onReset) {
       onReset();
     }
   };
 
-  const currentCategories = CATEGORIES_BY_TRANSACTION[activeTab] || CATEGORIES_BY_TRANSACTION.buy;
-  const currentBudgetTiers = BUDGET_TIERS[activeTab] || BUDGET_TIERS.buy;
-  const isResidential = activeTab === 'buy' || activeTab === 'rent';
-
   return (
-    <div className="relative -mt-10 sm:-mt-14 z-20 max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="bg-white rounded-3xl shadow-card border border-stone/80 overflow-hidden">
-        {/* Transaction Type Tabs */}
-        <div className="flex border-b border-stone/60 overflow-x-auto scrollbar-none bg-ivory/60">
-          {TRANSACTION_TYPES.filter((t) => t.id !== 'all').map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => handleTabChange(tab.id)}
-                className={`flex-1 min-w-[110px] py-4 px-4 text-center text-xs sm:text-sm font-bold tracking-wide transition-all whitespace-nowrap border-b-2 ${
-                  isActive
-                    ? 'border-brandRed text-navy bg-white shadow-sm'
-                    : 'border-transparent text-muted hover:text-navy hover:bg-white/60'
-                }`}
-                aria-selected={isActive}
-                role="tab"
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+    <section
+      aria-label="Property Search Section"
+      className="relative -mt-10 sm:-mt-14 z-20 max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8"
+    >
+      <div className="bg-white rounded-3xl shadow-2xl border border-stone-200/90 overflow-hidden">
+        {/* Navy Header Banner Area */}
+        <div className="bg-navy px-6 py-6 sm:px-10 sm:py-8 text-white border-b border-navy-800">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-brandRed-200 text-[12px] sm:text-[13px] font-bold uppercase tracking-widest border border-white/10 w-fit">
+              <Sparkles className="w-3.5 h-3.5 text-brandRed" />
+              <span className="text-stone-100">Railway & Highway Corridor Discovery</span>
+            </div>
+            <span className="text-stone-300 text-[13px] hidden md:inline font-medium">
+              Vasai Road • Nalasopara • Virar • Saphale • Kelve Road • Palghar • Boisar
+            </span>
+          </div>
+
+          <h2 className="font-serif text-[23px] sm:text-[30px] lg:text-[36px] font-bold text-white tracking-tight leading-tight">
+            Search Any Property from Vasai to Palghar
+          </h2>
+          <p className="mt-2 text-stone-200 text-[15px] sm:text-[17px] max-w-3xl leading-relaxed">
+            Find your ideal home, rental apartment, commercial space, or land with one simple search.
+          </p>
         </div>
 
-        {/* Filter Input Grid Form */}
-        <form onSubmit={handleFormSubmit} className="p-4 sm:p-6 lg:p-7">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            {/* Field 1: Locality (Vasai to Palghar) */}
+        {/* LOOKING FOR: Buy / Rent / All Opportunities Tab Strip */}
+        <div className="flex flex-col sm:flex-row sm:items-center border-b border-stone-200 bg-stone-50/80 px-4 sm:px-8">
+          <div className="flex items-center gap-2 py-3 sm:py-4 pr-6 sm:border-r border-stone-200 text-[14px] sm:text-[15px] font-bold uppercase tracking-wider text-navy">
+            <span>LOOKING FOR:</span>
+          </div>
+
+          <div className="flex flex-1 items-stretch gap-2 sm:gap-3 py-2 sm:py-0 sm:pl-6 overflow-x-auto">
+            <button
+              type="button"
+              onClick={() => handleLookingForChange('buy')}
+              className={`py-3 px-5 sm:px-6 rounded-xl sm:rounded-none sm:py-4 text-center text-[14px] sm:text-[16px] font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap sm:border-b-4 ${
+                lookingFor === 'buy'
+                  ? 'bg-white sm:bg-transparent text-brandRed sm:border-brandRed shadow-xs sm:shadow-none'
+                  : 'text-charcoal/70 sm:border-transparent hover:text-navy hover:bg-white/70'
+              }`}
+              aria-selected={lookingFor === 'buy'}
+              role="tab"
+            >
+              Buy Properties
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLookingForChange('rent')}
+              className={`py-3 px-5 sm:px-6 rounded-xl sm:rounded-none sm:py-4 text-center text-[14px] sm:text-[16px] font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap sm:border-b-4 ${
+                lookingFor === 'rent'
+                  ? 'bg-white sm:bg-transparent text-brandRed sm:border-brandRed shadow-xs sm:shadow-none'
+                  : 'text-charcoal/70 sm:border-transparent hover:text-navy hover:bg-white/70'
+              }`}
+              aria-selected={lookingFor === 'rent'}
+              role="tab"
+            >
+              Rent Properties
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLookingForChange('all')}
+              className={`py-3 px-5 sm:px-6 rounded-xl sm:rounded-none sm:py-4 text-center text-[14px] sm:text-[16px] font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap sm:border-b-4 ${
+                lookingFor === 'all'
+                  ? 'bg-white sm:bg-transparent text-brandRed sm:border-brandRed shadow-xs sm:shadow-none'
+                  : 'text-charcoal/70 sm:border-transparent hover:text-navy hover:bg-white/70'
+              }`}
+              aria-selected={lookingFor === 'all'}
+              role="tab"
+            >
+              All Opportunities
+            </button>
+          </div>
+        </div>
+
+        {/* Search Controls Form */}
+        <form onSubmit={handleFormSubmit} className="p-6 sm:p-8 lg:p-9 bg-white">
+          {/* Top Row: Property Type, Location, Availability / Status */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 mb-6">
+            {/* Control B: Property Type */}
             <div>
               <label
-                htmlFor="search-locality-select"
-                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-charcoal/80 mb-2"
+                htmlFor="search-property-type"
+                className="flex items-center gap-2 text-[14px] sm:text-[15px] font-bold uppercase tracking-wider text-navy mb-2.5"
               >
-                <MapPin className="w-3.5 h-3.5 text-royal flex-shrink-0" />
-                <span>Locality</span>
+                <Building className="w-4 h-4 text-brandRed flex-shrink-0" />
+                <span>PROPERTY TYPE</span>
               </label>
-              <select
-                id="search-locality-select"
-                value={selectedLocality}
-                onChange={(e) => setSelectedLocality(e.target.value)}
-                className="w-full bg-ivory/50 border border-stone rounded-xl px-3.5 py-2.5 text-sm font-semibold text-charcoal focus:outline-none focus:ring-2 focus:ring-royal focus:border-royal transition-all"
-              >
-                {LOCALITY_OPTIONS.map((loc) => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="search-property-type"
+                  value={selectedPropertyType}
+                  onChange={(e) => setSelectedPropertyType(e.target.value)}
+                  className="w-full h-[52px] appearance-none bg-white border border-stone-300 hover:border-stone-400 rounded-xl pl-4 pr-10 text-[16px] sm:text-[17px] font-medium text-charcoal focus:outline-none focus:ring-2 focus:ring-royal/30 focus:border-royal transition-all cursor-pointer shadow-xs"
+                >
+                  {SEARCH_PROPERTY_TYPES.map((pt) => (
+                    <option key={pt.id} value={pt.id}>
+                      {pt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
+              </div>
             </div>
 
-            {/* Field 2: Property Category (Contextual to active tab) */}
+            {/* Control C: Location (Railway Corridor) */}
             <div>
               <label
-                htmlFor="search-category-select"
-                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-charcoal/80 mb-2"
+                htmlFor="search-location"
+                className="flex items-center gap-2 text-[14px] sm:text-[15px] font-bold uppercase tracking-wider text-navy mb-2.5"
               >
-                <Building className="w-3.5 h-3.5 text-royal flex-shrink-0" />
-                <span>Property Category</span>
+                <MapPin className="w-4 h-4 text-brandRed flex-shrink-0" />
+                <span>LOCATION</span>
               </label>
-              <select
-                id="search-category-select"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full bg-ivory/50 border border-stone rounded-xl px-3.5 py-2.5 text-sm font-semibold text-charcoal focus:outline-none focus:ring-2 focus:ring-royal focus:border-royal transition-all"
-              >
-                {currentCategories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="search-location"
+                  value={selectedLocality}
+                  onChange={(e) => setSelectedLocality(e.target.value)}
+                  className="w-full h-[52px] appearance-none bg-white border border-stone-300 hover:border-stone-400 rounded-xl pl-4 pr-10 text-[16px] sm:text-[17px] font-medium text-charcoal focus:outline-none focus:ring-2 focus:ring-royal/30 focus:border-royal transition-all cursor-pointer shadow-xs"
+                >
+                  {LOCALITY_OPTIONS.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
+              </div>
             </div>
 
-            {/* Field 3: Budget Range */}
+            {/* Control D: Availability / Status */}
             <div>
               <label
-                htmlFor="search-budget-select"
-                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-charcoal/80 mb-2"
+                htmlFor="search-status"
+                className="flex items-center gap-2 text-[14px] sm:text-[15px] font-bold uppercase tracking-wider text-navy mb-2.5"
               >
-                <IndianRupee className="w-3.5 h-3.5 text-royal flex-shrink-0" />
-                <span>Budget Bracket</span>
+                <Activity className="w-4 h-4 text-brandRed flex-shrink-0" />
+                <span>AVAILABILITY / STATUS</span>
               </label>
-              <select
-                id="search-budget-select"
-                value={selectedBudgetIndex}
-                onChange={(e) => setSelectedBudgetIndex(e.target.value)}
-                className="w-full bg-ivory/50 border border-stone rounded-xl px-3.5 py-2.5 text-sm font-semibold text-charcoal focus:outline-none focus:ring-2 focus:ring-royal focus:border-royal transition-all"
-              >
-                {currentBudgetTiers.map((tier, idx) => (
-                  <option key={idx} value={String(idx)}>
-                    {tier.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="search-status"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full h-[52px] appearance-none bg-white border border-stone-300 hover:border-stone-400 rounded-xl pl-4 pr-10 text-[16px] sm:text-[17px] font-medium text-charcoal focus:outline-none focus:ring-2 focus:ring-royal/30 focus:border-royal transition-all cursor-pointer shadow-xs"
+                >
+                  {STATUS_OPTIONS.map((st) => (
+                    <option key={st.id} value={st.id}>
+                      {st.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
+              </div>
             </div>
+          </div>
 
-            {/* Field 4 / Actions: BHK selector (if residential) + Action buttons */}
-            <div className="flex items-center gap-2 pt-1 sm:pt-0">
-              {isResidential ? (
-                <div className="w-1/3 min-w-[85px]">
-                  <label
-                    htmlFor="search-bhk-select"
-                    className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-charcoal/80 mb-2 truncate"
+          {/* Bottom Row: Keyword Search + Search & Clear Buttons */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+            {/* Control E: Keyword Search */}
+            <div className="flex-1">
+              <label
+                htmlFor="search-keyword"
+                className="flex items-center gap-2 text-[14px] sm:text-[15px] font-bold uppercase tracking-wider text-navy mb-2.5"
+              >
+                <Search className="w-4 h-4 text-brandRed flex-shrink-0" />
+                <span>KEYWORD SEARCH</span>
+              </label>
+              <div className="relative">
+                <input
+                  id="search-keyword"
+                  type="text"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  placeholder="Search by title, location, landmark, project name..."
+                  className="w-full h-[52px] bg-white border border-stone-300 hover:border-stone-400 rounded-xl pl-4 pr-11 text-[16px] sm:text-[17px] font-medium text-charcoal placeholder:text-stone-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-royal/30 focus:border-royal transition-all shadow-xs"
+                />
+                {keyword && (
+                  <button
+                    type="button"
+                    onClick={() => setKeyword('')}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-navy cursor-pointer p-1 rounded-md"
+                    title="Clear keyword"
                   >
-                    <BedDouble className="w-3 h-3 text-royal flex-shrink-0" />
-                    <span>BHK</span>
-                  </label>
-                  <select
-                    id="search-bhk-select"
-                    value={selectedBhk}
-                    onChange={(e) => setSelectedBhk(e.target.value)}
-                    className="w-full bg-ivory/50 border border-stone rounded-xl px-2 py-2.5 text-xs font-semibold text-charcoal focus:outline-none focus:ring-2 focus:ring-royal"
-                  >
-                    <option value="all">Any BHK</option>
-                    <option value="1">1 BHK</option>
-                    <option value="2">2 BHK</option>
-                    <option value="3">3 BHK</option>
-                  </select>
-                </div>
-              ) : null}
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
 
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-1 md:pt-0">
               <button
                 type="submit"
-                className="flex-1 inline-flex items-center justify-center gap-2 h-11 bg-brandRed hover:bg-brandRed-700 text-white font-bold text-xs uppercase tracking-wider px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow"
+                className="flex-1 md:flex-none inline-flex items-center justify-center gap-2.5 h-[52px] px-8 sm:px-9 bg-brandRed hover:bg-[#c91916] active:bg-[#a81412] text-white font-bold text-[15px] sm:text-[16px] uppercase tracking-wider rounded-xl transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brandRed/40 cursor-pointer"
               >
                 <Search className="w-4 h-4 text-white" />
-                <span>Search</span>
+                <span>Search Properties</span>
               </button>
 
               <button
                 type="button"
-                onClick={handleResetFilters}
-                title="Reset All Filters"
-                className="h-11 w-11 flex items-center justify-center text-muted hover:text-navy hover:bg-ivory border border-stone rounded-xl transition-colors flex-shrink-0"
-                aria-label="Reset all search filters"
+                onClick={handleClearFilters}
+                title="Clear All Filters"
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-5 sm:px-6 bg-white hover:bg-stone-50 border-2 border-navy/20 hover:border-navy text-navy font-bold text-[14px] sm:text-[15px] uppercase tracking-wider rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-navy/30 shadow-2xs cursor-pointer flex-shrink-0"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 text-navy" />
+                <span className="hidden sm:inline">Clear Filters</span>
               </button>
             </div>
           </div>
 
-          {/* Quick-Filter Corridor Chips (Direct click-to-test links) */}
-          <div className="mt-4 pt-3.5 border-t border-stone/50 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-charcoal">Quick Tests:</span>
+          {/* Quick Filter Corridor Suggestions */}
+          <div className="mt-6 pt-5 border-t border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-3 text-muted">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="text-[14px] font-bold text-navy whitespace-nowrap">
+                Quick Searches:
+              </span>
               <button
                 type="button"
                 onClick={() => {
-                  setActiveTab('buy');
+                  setLookingFor('buy');
                   setSelectedLocality('virar');
-                  setSelectedCategory('resale-flat');
-                  if (onSearch) onSearch({ transactionType: 'buy', locality: 'virar', category: 'resale-flat' });
+                  setSelectedPropertyType('flats');
+                  setSelectedStatus('available');
+                  setKeyword('');
+                  if (onSearch) onSearch({ transactionType: 'buy', locality: 'virar', category: 'flats', availabilityStatus: 'available', searchQuery: '' });
                 }}
-                className="px-2.5 py-1 rounded-md bg-ivory text-navy hover:bg-stone/50 font-medium transition-colors"
+                className="inline-flex items-center px-4 py-2 rounded-full text-[13px] sm:text-[14px] font-semibold bg-navy/5 text-navy hover:bg-navy/10 hover:text-navy-900 border border-navy/20 hover:border-navy/40 transition-all cursor-pointer shadow-2xs"
               >
-                Test A: Virar Resale Flats
+                Virar Available Flats
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setActiveTab('rent');
-                  setSelectedLocality('vasai');
-                  setSelectedCategory('shop-rent');
-                  if (onSearch) onSearch({ transactionType: 'rent', locality: 'vasai', category: 'shop-rent' });
+                  setLookingFor('buy');
+                  setSelectedLocality('boisar');
+                  setSelectedPropertyType('industrial-plot');
+                  setSelectedStatus('all');
+                  setKeyword('');
+                  if (onSearch) onSearch({ transactionType: 'buy', locality: 'boisar', category: 'industrial-plot', availabilityStatus: 'all', searchQuery: '' });
                 }}
-                className="px-2.5 py-1 rounded-md bg-ivory text-navy hover:bg-stone/50 font-medium transition-colors"
+                className="inline-flex items-center px-4 py-2 rounded-full text-[13px] sm:text-[14px] font-semibold bg-navy/5 text-navy hover:bg-navy/10 hover:text-navy-900 border border-navy/20 hover:border-navy/40 transition-all cursor-pointer shadow-2xs"
               >
-                Test B: Vasai Rental Shops
+                Boisar Industrial Plots
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setActiveTab('plots-land');
+                  setLookingFor('rent');
+                  setSelectedLocality('vasai-road');
+                  setSelectedPropertyType('flats');
+                  setSelectedStatus('all');
+                  setKeyword('');
+                  if (onSearch) onSearch({ transactionType: 'rent', locality: 'vasai-road', category: 'flats', availabilityStatus: 'all', searchQuery: '' });
+                }}
+                className="inline-flex items-center px-4 py-2 rounded-full text-[13px] sm:text-[14px] font-semibold bg-navy/5 text-navy hover:bg-navy/10 hover:text-navy-900 border border-navy/20 hover:border-navy/40 transition-all cursor-pointer shadow-2xs"
+              >
+                Vasai Rental Flats
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLookingFor('buy');
                   setSelectedLocality('palghar');
-                  setSelectedCategory('residential-plot');
-                  if (onSearch) onSearch({ transactionType: 'plots-land', locality: 'palghar', category: 'residential-plot' });
+                  setSelectedPropertyType('na-plot');
+                  setSelectedStatus('ready-to-move');
+                  setKeyword('');
+                  if (onSearch) onSearch({ transactionType: 'buy', locality: 'palghar', category: 'na-plot', availabilityStatus: 'ready-to-move', searchQuery: '' });
                 }}
-                className="px-2.5 py-1 rounded-md bg-ivory text-navy hover:bg-stone/50 font-medium transition-colors"
+                className="inline-flex items-center px-4 py-2 rounded-full text-[13px] sm:text-[14px] font-semibold bg-navy/5 text-navy hover:bg-navy/10 hover:text-navy-900 border border-navy/20 hover:border-navy/40 transition-all cursor-pointer shadow-2xs"
               >
-                Test C: Palghar Plots
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('buy');
-                  setSelectedLocality('virar');
-                  setSelectedCategory('all');
-                  if (onSearch) onSearch({ transactionType: 'buy', locality: 'virar', category: 'all', maxBudget: 6000000 });
-                }}
-                className="px-2.5 py-1 rounded-md bg-ivory text-navy hover:bg-stone/50 font-medium transition-colors"
-              >
-                Test D: Virar Buy &le; ₹60L
+                Palghar Ready NA Plots
               </button>
             </div>
 
-            <span className="text-[11px] text-muted italic">
-              * Sourced for Vasai to Palghar Corridor
+            <span className="text-[12.5px] sm:text-[13px] text-stone-500 font-medium">
+              * Official Vasai to Boisar Railway Corridor Real Estate Service
             </span>
           </div>
         </form>
       </div>
-    </div>
+    </section>
   );
 }

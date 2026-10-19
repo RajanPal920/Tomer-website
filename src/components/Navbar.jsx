@@ -166,8 +166,6 @@ export default function Navbar({
           icon: Award,
           desc: 'ई-स्टेट कन्सल्टंट विकास मंडळ (PDF)',
         },
-        { label: 'Frequently Asked Questions', path: null, section: 'faqs', icon: HelpCircle, desc: 'Guidance on buying, plotting & leases' },
-        { label: 'Contact Advisory Desk', path: '/contact', icon: PhoneCall, desc: 'Reach Sanjay Tomar & advisory team' },
       ],
     },
   ];
@@ -189,7 +187,7 @@ export default function Navbar({
           {/* 3-AREA BALANCED LAYOUT: Left (Logo), Center (Nav Links), Right (Actions)  */}
           {/* Uses flex-shrink-0 for Left/Right to guarantee ZERO overlap with Center   */}
           {/* ========================================================================= */}
-          <div className="flex items-center justify-between w-full min-h-[76px] sm:min-h-[82px] lg:min-h-[88px] py-2 sm:py-2.5">
+          <div className="flex items-center justify-between w-full min-h-[82px] sm:min-h-[88px] lg:min-h-[96px] py-2 sm:py-2.5">
             {/* ----------------------------------------------------------------- */}
             {/* SECTION 1: LEFT — BRAND LOGO (Dedicated space, center aligned)    */}
             {/* ----------------------------------------------------------------- */}
@@ -209,10 +207,10 @@ export default function Navbar({
 
             {/* ----------------------------------------------------------------- */}
             {/* SECTION 2: CENTER — NAVIGATION (Clean spacing, 8 primary links)   */}
-            {/* On >=1240px (xl): All 8 links. On 1024-1239px (lg): Compact 6.  */}
+            {/* 16–18px semibold clean sans-serif typography with high contrast   */}
             {/* ----------------------------------------------------------------- */}
             <nav
-              className="hidden lg:flex items-center justify-center gap-1 xl:gap-1.5 2xl:gap-2.5 flex-1 mx-1 xl:mx-2 min-w-0"
+              className="hidden lg:flex items-center justify-center gap-0.5 xl:gap-1 2xl:gap-1.5 flex-1 mx-1 xl:mx-2 min-w-0"
               data-dropdown-container
               aria-label="Main Navigation"
             >
@@ -220,7 +218,7 @@ export default function Navbar({
               <button
                 type="button"
                 onClick={() => handleAction('home', null, '/')}
-                className="px-2.5 xl:px-3 py-2 rounded-xl text-[13.5px] xl:text-[14px] 2xl:text-[14.5px] font-bold text-navy hover:text-brandRed hover:bg-ivory/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
+                className="px-2 xl:px-2.5 py-2 rounded-xl text-[15.5px] xl:text-[16.5px] 2xl:text-[17px] font-semibold text-navy hover:text-brandRed hover:bg-stone-100/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
               >
                 Home
               </button>
@@ -234,18 +232,18 @@ export default function Navbar({
                 <button
                   type="button"
                   onClick={() => toggleDropdown('properties')}
-                  className={`flex items-center gap-1 px-2.5 xl:px-3 py-2 rounded-xl text-[13.5px] xl:text-[14px] 2xl:text-[14.5px] font-bold transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal ${
+                  className={`flex items-center gap-0.5 px-2 xl:px-2.5 py-2 rounded-xl text-[15.5px] xl:text-[16.5px] 2xl:text-[17px] font-semibold transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal ${
                     openDropdown === 'properties'
-                      ? 'text-brandRed bg-ivory'
-                      : 'text-navy hover:text-brandRed hover:bg-ivory/80'
+                      ? 'text-brandRed bg-stone-100'
+                      : 'text-navy hover:text-brandRed hover:bg-stone-100/80'
                   }`}
                   aria-expanded={openDropdown === 'properties'}
                   aria-haspopup="true"
                 >
                   <span>Properties</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      openDropdown === 'properties' ? 'rotate-180 text-brandRed' : 'text-muted'
+                    className={`w-4 h-4 transition-transform duration-200 ml-0.5 ${
+                      openDropdown === 'properties' ? 'rotate-180 text-brandRed' : 'text-navy/70'
                     }`}
                   />
                 </button>
@@ -259,7 +257,7 @@ export default function Navbar({
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
                         All Portfolios
                       </span>
-                      <span className="text-[10px] text-royal font-bold">Vasai to Palghar</span>
+                      <span className="text-[10px] text-royal font-bold">Vasai to Boisar</span>
                     </div>
                     <div className="grid grid-cols-1 gap-1 max-h-[440px] overflow-y-auto">
                       {propertiesDropdownItems.map((item, idx) => {
@@ -275,10 +273,10 @@ export default function Navbar({
                               <Icon className="w-4 h-4" />
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs font-bold text-charcoal group-hover:text-navy truncate">
+                              <div className="text-[13.5px] font-semibold text-charcoal group-hover:text-navy truncate">
                                 {item.label}
                               </div>
-                              <div className="text-[11px] text-muted truncate">{item.desc}</div>
+                              <div className="text-[12px] text-muted truncate">{item.desc}</div>
                             </div>
                           </button>
                         );
@@ -294,7 +292,7 @@ export default function Navbar({
                 onClick={() =>
                   handleAction('listings', { transactionType: 'buy', category: 'all' }, '/buy')
                 }
-                className="hidden xl:inline-flex px-2.5 xl:px-3 py-2 rounded-xl text-[13.5px] xl:text-[14px] 2xl:text-[14.5px] font-bold text-navy hover:text-brandRed hover:bg-ivory/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
+                className="hidden xl:inline-flex px-2 xl:px-2.5 py-2 rounded-xl text-[15.5px] xl:text-[16.5px] 2xl:text-[17px] font-semibold text-navy hover:text-brandRed hover:bg-stone-100/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
               >
                 Buy
               </button>
@@ -305,7 +303,7 @@ export default function Navbar({
                 onClick={() =>
                   handleAction('listings', { transactionType: 'rent', category: 'all' }, '/rent')
                 }
-                className="hidden xl:inline-flex px-2.5 xl:px-3 py-2 rounded-xl text-[13.5px] xl:text-[14px] 2xl:text-[14.5px] font-bold text-navy hover:text-brandRed hover:bg-ivory/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
+                className="hidden xl:inline-flex px-2 xl:px-2.5 py-2 rounded-xl text-[15.5px] xl:text-[16.5px] 2xl:text-[17px] font-semibold text-navy hover:text-brandRed hover:bg-stone-100/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
               >
                 Rent
               </button>
@@ -316,7 +314,7 @@ export default function Navbar({
                 onClick={() =>
                   handleAction('listings', { transactionType: 'commercial', category: 'all' }, '/commercial')
                 }
-                className="px-2.5 xl:px-3 py-2 rounded-xl text-[13.5px] xl:text-[14px] 2xl:text-[14.5px] font-bold text-navy hover:text-brandRed hover:bg-ivory/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
+                className="px-2 xl:px-2.5 py-2 rounded-xl text-[15.5px] xl:text-[16.5px] 2xl:text-[17px] font-semibold text-navy hover:text-brandRed hover:bg-stone-100/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
               >
                 Commercial
               </button>
@@ -327,7 +325,7 @@ export default function Navbar({
                 onClick={() =>
                   handleAction('listings', { transactionType: 'plots-land', category: 'all' }, '/plots')
                 }
-                className="px-2.5 xl:px-3 py-2 rounded-xl text-[13.5px] xl:text-[14px] 2xl:text-[14.5px] font-bold text-navy hover:text-brandRed hover:bg-ivory/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
+                className="px-2 xl:px-2.5 py-2 rounded-xl text-[15.5px] xl:text-[16.5px] 2xl:text-[17px] font-semibold text-navy hover:text-brandRed hover:bg-stone-100/80 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal"
               >
                 Plots & Land
               </button>
@@ -341,18 +339,18 @@ export default function Navbar({
                 <button
                   type="button"
                   onClick={() => toggleDropdown('locations')}
-                  className={`flex items-center gap-1 px-2.5 xl:px-3 py-2 rounded-xl text-[13.5px] xl:text-[14px] 2xl:text-[14.5px] font-bold transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal ${
+                  className={`flex items-center gap-0.5 px-2 xl:px-2.5 py-2 rounded-xl text-[15.5px] xl:text-[16.5px] 2xl:text-[17px] font-semibold transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal ${
                     openDropdown === 'locations'
-                      ? 'text-brandRed bg-ivory'
-                      : 'text-navy hover:text-brandRed hover:bg-ivory/80'
+                      ? 'text-brandRed bg-stone-100'
+                      : 'text-navy hover:text-brandRed hover:bg-stone-100/80'
                   }`}
                   aria-expanded={openDropdown === 'locations'}
                   aria-haspopup="true"
                 >
                   <span>Locations</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      openDropdown === 'locations' ? 'rotate-180 text-brandRed' : 'text-muted'
+                    className={`w-4 h-4 transition-transform duration-200 ml-0.5 ${
+                      openDropdown === 'locations' ? 'rotate-180 text-brandRed' : 'text-navy/70'
                     }`}
                   />
                 </button>
@@ -366,7 +364,7 @@ export default function Navbar({
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
                         Railway Corridor
                       </span>
-                      <span className="text-[10px] text-royal font-bold">Western Line</span>
+                      <span className="text-[10px] text-royal font-bold">Vasai to Boisar</span>
                     </div>
                     <div className="grid grid-cols-1 gap-1 max-h-[420px] overflow-y-auto">
                       {locationsDropdownItems.map((item, idx) => (
@@ -378,7 +376,7 @@ export default function Navbar({
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             <Train className="w-3.5 h-3.5 text-royal flex-shrink-0 group-hover:text-brandRed transition-colors" />
-                            <span className="text-xs font-bold text-charcoal group-hover:text-navy truncate">
+                            <span className="text-[13.5px] font-semibold text-charcoal group-hover:text-navy truncate">
                               {item.label}
                             </span>
                           </div>
@@ -401,18 +399,18 @@ export default function Navbar({
                 <button
                   type="button"
                   onClick={() => toggleDropdown('more')}
-                  className={`flex items-center gap-1 px-2.5 xl:px-3 py-2 rounded-xl text-[13.5px] xl:text-[14px] 2xl:text-[14.5px] font-bold transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal ${
+                  className={`flex items-center gap-0.5 px-2 xl:px-2.5 py-2 rounded-xl text-[15.5px] xl:text-[16.5px] 2xl:text-[17px] font-semibold transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal ${
                     openDropdown === 'more'
-                      ? 'text-brandRed bg-ivory'
-                      : 'text-navy hover:text-brandRed hover:bg-ivory/80'
+                      ? 'text-brandRed bg-stone-100'
+                      : 'text-navy hover:text-brandRed hover:bg-stone-100/80'
                   }`}
                   aria-expanded={openDropdown === 'more'}
                   aria-haspopup="true"
                 >
                   <span>More</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      openDropdown === 'more' ? 'rotate-180 text-brandRed' : 'text-muted'
+                    className={`w-4 h-4 transition-transform duration-200 ml-0.5 ${
+                      openDropdown === 'more' ? 'rotate-180 text-brandRed' : 'text-navy/70'
                     }`}
                   />
                 </button>
@@ -447,10 +445,10 @@ export default function Navbar({
                                   <Icon className="w-3.5 h-3.5" />
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="text-xs font-bold text-charcoal group-hover:text-navy truncate">
+                                  <div className="text-[13.5px] font-semibold text-charcoal group-hover:text-navy truncate">
                                     {item.label}
                                   </div>
-                                  <div className="text-[10px] text-muted truncate">{item.desc}</div>
+                                  <div className="text-[11px] text-muted truncate">{item.desc}</div>
                                 </div>
                               </button>
                             );
@@ -464,16 +462,16 @@ export default function Navbar({
             </nav>
 
             {/* ----------------------------------------------------------------- */}
-            {/* SECTION 3: RIGHT — ACTIONS (List Property & Contact Desk)         */}
-            {/* List Property is ONLY shown to authenticated owners/admins.       */}
+            {/* SECTION 3: RIGHT — ACTIONS (Contact Desk Primary Button)          */}
+            {/* Prominent dark navy button with bold text and red phone accent   */}
             {/* ----------------------------------------------------------------- */}
             <div className="hidden lg:flex items-center justify-end gap-2.5 flex-shrink-0 pl-3 xl:pl-5 z-10">
               <button
                 type="button"
                 onClick={() => handleAction('contact', null, '/contact')}
-                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 xl:px-4.5 rounded-xl text-xs uppercase tracking-wider font-bold text-white bg-navy hover:bg-navy-900 border border-navy shadow-xs transition-all duration-200 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 h-11 px-5 xl:px-6 rounded-xl text-[15px] xl:text-[16px] font-bold text-white bg-navy hover:bg-navy-900 border-2 border-navy shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-royal cursor-pointer group"
               >
-                <PhoneCall className="w-3.5 h-3.5 text-brandRed flex-shrink-0" />
+                <PhoneCall className="w-4 h-4 text-brandRed group-hover:scale-110 transition-transform flex-shrink-0" />
                 <span>Contact Desk</span>
               </button>
             </div>
@@ -487,7 +485,7 @@ export default function Navbar({
               <button
                 type="button"
                 onClick={() => handleAction('contact', null, '/contact')}
-                className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-white bg-navy border border-navy transition-colors shadow-2xs"
+                className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-xl text-[14px] font-bold text-white bg-navy border border-navy transition-colors shadow-2xs"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-brandRed flex-shrink-0" />
                 <span>Contact Desk</span>
@@ -496,7 +494,7 @@ export default function Navbar({
               {/* Quick Call Desk icon */}
               <a
                 href={`tel:${contactInfo.phoneRaw}`}
-                className="p-2 sm:p-2.5 rounded-lg text-charcoal hover:text-navy hover:bg-ivory border border-stone transition-colors"
+                className="p-2 sm:p-2.5 rounded-xl text-charcoal hover:text-navy hover:bg-ivory border border-stone transition-colors"
                 title="Call Advisory Desk"
                 aria-label="Call Tomar Enterprises Advisory Desk"
               >
@@ -507,7 +505,7 @@ export default function Navbar({
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen((prev) => !prev)}
-                className="p-2 sm:p-2.5 rounded-lg text-charcoal hover:text-navy hover:bg-ivory border border-stone focus:outline-none focus:ring-2 focus:ring-royal transition-colors"
+                className="p-2 sm:p-2.5 rounded-xl text-charcoal hover:text-navy hover:bg-ivory border border-stone focus:outline-none focus:ring-2 focus:ring-royal transition-colors"
                 aria-expanded={mobileMenuOpen}
                 aria-label="Toggle navigation menu"
               >
@@ -555,7 +553,7 @@ export default function Navbar({
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-lg text-charcoal hover:bg-stone/60 hover:text-navy transition-colors"
+                className="p-2 rounded-xl text-charcoal hover:bg-stone/60 hover:text-navy transition-colors"
                 aria-label="Close navigation menu"
               >
                 <X className="w-5 h-5 text-navy" />
@@ -565,11 +563,11 @@ export default function Navbar({
             {/* Drawer Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 overscroll-contain">
               {/* Direct Primary Links */}
-              <div className="space-y-1 border-b border-stone/50 pb-3">
+              <div className="space-y-1.5 border-b border-stone/50 pb-3">
                 <button
                   type="button"
                   onClick={() => handleAction('home', null, '/')}
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-bold text-sm text-charcoal hover:bg-ivory hover:text-navy transition-colors text-left"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-semibold text-[15.5px] text-navy hover:bg-ivory transition-colors text-left"
                 >
                   <span>Home</span>
                   <ArrowRight className="w-3.5 h-3.5 text-stone-dark" />
@@ -580,7 +578,7 @@ export default function Navbar({
                   onClick={() =>
                     handleAction('listings', { transactionType: 'buy', category: 'all' }, '/buy')
                   }
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-bold text-sm text-charcoal hover:bg-ivory hover:text-navy transition-colors text-left"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-semibold text-[15.5px] text-navy hover:bg-ivory transition-colors text-left"
                 >
                   <span>Buy Properties (New & Resale)</span>
                   <ArrowRight className="w-3.5 h-3.5 text-stone-dark" />
@@ -591,7 +589,7 @@ export default function Navbar({
                   onClick={() =>
                     handleAction('listings', { transactionType: 'rent', category: 'all' }, '/rent')
                   }
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-bold text-sm text-charcoal hover:bg-ivory hover:text-navy transition-colors text-left"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-semibold text-[15.5px] text-navy hover:bg-ivory transition-colors text-left"
                 >
                   <span>Rental Properties</span>
                   <ArrowRight className="w-3.5 h-3.5 text-stone-dark" />
@@ -602,7 +600,7 @@ export default function Navbar({
                   onClick={() =>
                     handleAction('listings', { transactionType: 'commercial', category: 'all' }, '/commercial')
                   }
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-bold text-sm text-charcoal hover:bg-ivory hover:text-navy transition-colors text-left"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-semibold text-[15.5px] text-navy hover:bg-ivory transition-colors text-left"
                 >
                   <span>Commercial Shops & Offices</span>
                   <ArrowRight className="w-3.5 h-3.5 text-stone-dark" />
@@ -613,7 +611,7 @@ export default function Navbar({
                   onClick={() =>
                     handleAction('listings', { transactionType: 'plots-land', category: 'all' }, '/plots')
                   }
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-bold text-sm text-charcoal hover:bg-ivory hover:text-navy transition-colors text-left"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl font-semibold text-[15.5px] text-navy hover:bg-ivory transition-colors text-left"
                 >
                   <span>Plots & Land (NA & Sanctioned)</span>
                   <ArrowRight className="w-3.5 h-3.5 text-stone-dark" />

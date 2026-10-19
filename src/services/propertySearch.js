@@ -40,13 +40,15 @@ export function matchesCategoryTab(property, tabId) {
     case 'buy':
       return (
         property.transactionType === 'buy' ||
+        property.transactionType === 'plots-land' ||
         (property.transactionType === 'commercial' &&
           ['commercial-shop', 'commercial-office', 'commercial-property'].includes(property.category))
       );
 
     case 'rentals':
       return (
-        property.transactionType === 'rent' &&
+        property.transactionType === 'rent' ||
+        property.transactionType === 'lease' ||
         ['flat-rent', 'shop-rent', 'office-rent'].includes(property.category)
       );
 
@@ -133,29 +135,69 @@ export function isCategoryMatch(item, targetCat) {
   }
 
   // Residential / Flats grouping
-  if (t === 'residential' || t === 'residential-property' || t === 'flats' || t === 'flat') {
+  if (t === 'residential' || t === 'residential-property' || t === 'flats' || t === 'flat' || t === 'flats / apartments' || t === 'apartments') {
     return (
       ['new-flat', 'resale-flat', 'residential-property', 'flat-rent'].includes(itemCat) ||
       itemCat.includes('flat')
     );
   }
 
+  // Resale Properties grouping
+  if (t === 'resale' || t === 'resale properties' || t === 'resale-flat' || t === 'resale-properties') {
+    return itemCat === 'resale-flat' || (item.title && item.title.toLowerCase().includes('resale'));
+  }
+
   // Shops grouping
-  if (t === 'shops' || t === 'shop' || t === 'retail') {
+  if (t === 'shops' || t === 'shop' || t === 'retail' || t === 'commercial shops' || t === 'commercial-shop') {
     return ['commercial-shop', 'shop-rent'].includes(itemCat) || itemCat.includes('shop');
   }
 
   // Offices grouping
-  if (t === 'offices' || t === 'office') {
+  if (t === 'offices' || t === 'office' || t === 'commercial offices' || t === 'commercial-office') {
     return ['commercial-office', 'office-rent'].includes(itemCat) || itemCat.includes('office');
   }
 
+  // Residential Plots grouping
+  if (t === 'residential-plot' || t === 'residential plots' || t === 'residential plot') {
+    return itemCat === 'residential-plot';
+  }
+
+  // Industrial Plots grouping
+  if (t === 'industrial-plot' || t === 'industrial plots' || t === 'industrial plot') {
+    return itemCat === 'industrial-plot';
+  }
+
   // Rentals grouping
-  if (t === 'rent' || t === 'rentals') {
+  if (t === 'rent' || t === 'rentals' || t === 'flat-rent') {
     return itemType === 'rent' || ['flat-rent', 'shop-rent', 'office-rent'].includes(itemCat);
   }
 
   return itemCat.includes(t);
+}
+
+/**
+ * Reliably extracts numeric price from property item in rupees.
+ * Handles numbers, priceNumber, priceNumeric, and formatted string expressions like '₹31.50 Lakh' or '₹1.45 Crore'.
+ */
+export function getNumericPrice(item) {
+  if (!item) return null;
+  if (typeof item.price === 'number' && !isNaN(item.price)) return item.price;
+  if (typeof item.priceNumber === 'number' && !isNaN(item.priceNumber)) return item.priceNumber;
+  if (typeof item.priceNumeric === 'number' && !isNaN(item.priceNumeric)) return item.priceNumeric;
+  if (typeof item.price === 'string') {
+    const clean = item.price.toLowerCase().trim();
+    if (clean.includes('cr') || clean.includes('crore')) {
+      const match = clean.match(/([0-9.]+)/);
+      if (match) return Math.round(parseFloat(match[1]) * 10000000);
+    }
+    if (clean.includes('lakh') || clean.includes('lac')) {
+      const match = clean.match(/([0-9.]+)/);
+      if (match) return Math.round(parseFloat(match[1]) * 100000);
+    }
+    const digits = clean.replace(/[^0-9]/g, '');
+    if (digits) return Number(digits);
+  }
+  return null;
 }
 
 /**
@@ -180,6 +222,7 @@ export function isLocalityMatch(itemLocality, searchLocality) {
   if ((s === 'palghar') && (i === 'palghar')) return true;
   if ((s === 'vaitarna') && (i === 'vaitarna')) return true;
   if ((s === 'saphale') && (i === 'saphale')) return true;
+  if ((s === 'boisar' || s === 'tarapur') && (i === 'boisar' || i === 'tarapur')) return true;
 
   // Canonical resolution check
   const resolvedSearch = resolveCanonicalLocation(s);
@@ -253,6 +296,7 @@ export function matchSearchQuery(item, rawQuery) {
     'saphale': ['saphale', 'safale'],
     'kelve': ['kelve', 'kelve road', 'kelva'],
     'vaitarna': ['vaitarna'],
+    'boisar': ['boisar', 'boisar midc', 'tarapur', 'tarapur midc', 'boisar west', 'boisar east'],
   };
 
   return tokens.every((rawTok) => {
@@ -371,7 +415,7 @@ export function filterProperties(properties, filters = {}) {
     }
 
     // 4. Budget Filters (Numeric exact bounds)
-    const itemPrice = typeof item.price === 'number' ? item.price : null;
+    const itemPrice = getNumericPrice(item);
 
     if (active.minBudget !== null && active.minBudget !== undefined && active.minBudget !== 'all') {
       const min = Number(active.minBudget);
@@ -424,9 +468,27 @@ export function filterProperties(properties, filters = {}) {
 
     // 7. Availability Status Filter
     if (active.availabilityStatus && active.availabilityStatus !== 'all') {
-      const itemStatus = item.possessionStatus || '';
-      if (itemStatus !== active.availabilityStatus) {
-        return false;
+      const statusFilter = String(active.availabilityStatus).toLowerCase().trim();
+      const isSold = item.status === 'sold' || item.status === 'sold_out' || item.status === 'sold-out';
+      const isRented = item.status === 'rented';
+      const possession = String(item.possessionStatus || item.possessionDisplay || '').toLowerCase();
+
+      if (statusFilter === 'available') {
+        if (isSold || isRented) return false;
+      } else if (statusFilter === 'ready-to-move' || statusFilter === 'ready') {
+        if (isSold || isRented) return false;
+        if (!possession.includes('ready')) return false;
+      } else if (statusFilter === 'under-construction') {
+        if (isSold || isRented) return false;
+        if (!possession.includes('under-construction') && !possession.includes('under construction') && !possession.includes('mid 202')) return false;
+      } else if (statusFilter === 'sold') {
+        if (!isSold) return false;
+      } else if (statusFilter === 'rented') {
+        if (!isRented) return false;
+      } else {
+        if (item.possessionStatus !== active.availabilityStatus && item.status !== active.availabilityStatus) {
+          return false;
+        }
       }
     }
 
@@ -452,9 +514,9 @@ export function sortProperties(properties, sortBy = 'recommended') {
   const list = [...properties];
   switch (sortBy) {
     case 'price-asc':
-      return list.sort((a, b) => (a.price || 0) - (b.price || 0));
+      return list.sort((a, b) => (getNumericPrice(a) || 0) - (getNumericPrice(b) || 0));
     case 'price-desc':
-      return list.sort((a, b) => (b.price || 0) - (a.price || 0));
+      return list.sort((a, b) => (getNumericPrice(b) || 0) - (getNumericPrice(a) || 0));
     case 'area-desc':
       return list.sort((a, b) => (b.areaSqFt || 0) - (a.areaSqFt || 0));
     case 'newest':

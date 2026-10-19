@@ -124,15 +124,15 @@ export default function PropertyCard({
           {/* Top Left Transaction & Category Badges / Sold Out Badge */}
           <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap z-10">
             {isSoldOut ? (
-              <span className="px-3 py-1 rounded bg-rose-600 text-[11px] font-black uppercase tracking-widest text-white shadow-md border border-white/20">
+              <span className="px-3 py-1 rounded bg-rose-600 text-[12px] font-black uppercase tracking-widest text-white shadow-md border border-white/20">
                 SOLD OUT
               </span>
             ) : (
               <>
-                <span className="px-2.5 py-1 rounded-sm bg-navy/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-xs">
+                <span className="px-2.5 py-1 rounded-sm bg-navy/90 backdrop-blur-md text-[12px] font-bold uppercase tracking-wider text-white shadow-xs">
                   {property.transactionType?.toUpperCase() || 'PROPERTY'}
                 </span>
-                <span className="px-2.5 py-1 rounded-sm bg-royal/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-xs">
+                <span className="px-2.5 py-1 rounded-sm bg-royal/90 backdrop-blur-md text-[12px] font-bold uppercase tracking-wider text-white shadow-xs">
                   {property.category ? property.category.replace('-', ' ') : 'Prime'}
                 </span>
               </>
@@ -158,14 +158,14 @@ export default function PropertyCard({
 
           {/* Review Notice if outside primary service zone */}
           {property.isOutsidePrimaryServiceArea && (
-            <div className="absolute top-12 right-3 px-2 py-0.5 rounded bg-amber-900/80 backdrop-blur-md text-[9px] font-bold uppercase tracking-wider text-amber-200">
+            <div className="absolute top-12 right-3 px-2 py-0.5 rounded bg-amber-900/80 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-amber-200">
               Outside Primary Zone
             </div>
           )}
 
           {/* Bottom Locality Badge on Image */}
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-navy/85 backdrop-blur-md text-white text-[11px] font-semibold shadow-xs max-w-full truncate">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-navy/90 backdrop-blur-md text-white text-[12.5px] sm:text-[13px] font-semibold shadow-xs max-w-full truncate">
               <MapPin className="w-3.5 h-3.5 text-brandRed flex-shrink-0" />
               <span className="truncate">{property.subLocation || localityName}</span>
             </div>
@@ -176,53 +176,53 @@ export default function PropertyCard({
         <div className="p-4 sm:p-5 pb-2">
           {/* Price Header */}
           <div className="flex items-baseline justify-between mb-1.5">
-            <div className="font-serif text-xl sm:text-2xl font-bold text-navy tracking-tight">
+            <div className="font-serif text-2xl sm:text-[26px] font-bold text-navy tracking-tight">
               {displayPrice}
             </div>
             {property.pricePerSqft && (
-              <div className="text-xs text-muted font-semibold">
+              <div className="text-[13px] text-muted font-semibold">
                 {property.pricePerSqft}
               </div>
             )}
           </div>
 
           {/* Title */}
-          <h3 className="font-serif text-base sm:text-lg font-normal text-charcoal group-hover:text-navy transition-colors mb-2.5 line-clamp-1">
+          <h3 className="font-serif text-[19px] sm:text-[21px] font-bold text-charcoal group-hover:text-navy transition-colors mb-2.5 line-clamp-1">
             {property.title}
           </h3>
 
           {/* Specifications Grid — Adaptive for Plots vs Flats vs Commercial */}
-          <div className="grid grid-cols-2 gap-2 py-2.5 border-y border-stone/60 text-xs text-charcoal/90 my-2">
+          <div className="grid grid-cols-2 gap-2.5 py-2.5 border-y border-stone/60 text-[13px] sm:text-[14px] text-charcoal my-2">
             {/* Spec 1: Area */}
             <div className="flex items-center gap-1.5 min-w-0">
-              <Maximize2 className="w-3.5 h-3.5 text-royal flex-shrink-0" />
+              <Maximize2 className="w-4 h-4 text-royal flex-shrink-0" />
               <span className="truncate font-medium">{displayArea}</span>
             </div>
 
             {/* Spec 2: Adaptive Configuration */}
             <div className="flex items-center gap-1.5 min-w-0">
               {isPlot ? (
-                <Landmark className="w-3.5 h-3.5 text-royal flex-shrink-0" />
+                <Landmark className="w-4 h-4 text-royal flex-shrink-0" />
               ) : isCommercial ? (
-                <Building className="w-3.5 h-3.5 text-royal flex-shrink-0" />
+                <Building className="w-4 h-4 text-royal flex-shrink-0" />
               ) : (
-                <Home className="w-3.5 h-3.5 text-royal flex-shrink-0" />
+                <Home className="w-4 h-4 text-royal flex-shrink-0" />
               )}
               <span className="truncate font-medium capitalize">{configDisplay}</span>
             </div>
 
             {/* Spec 3: Possession / Status */}
-            <div className="col-span-2 text-[11px] text-muted truncate flex items-center justify-between">
+            <div className="col-span-2 text-[12.5px] sm:text-[13px] text-muted truncate flex items-center justify-between">
               <span>
                 <strong className="text-charcoal font-semibold">Status: </strong>
                 {possessionDisplay}
               </span>
-              <span className="text-[10px] text-charcoal/60 uppercase">Ref: {property.id}</span>
+              <span className="text-[11.5px] text-charcoal/70 uppercase font-medium">Ref: {property.id}</span>
             </div>
           </div>
 
           {/* Description Snippet */}
-          <p className="text-xs text-muted line-clamp-2 mb-2 leading-relaxed">
+          <p className="text-[13.5px] sm:text-[14px] text-charcoal/80 line-clamp-2 mb-2 leading-relaxed">
             {property.description}
           </p>
         </div>
@@ -239,10 +239,10 @@ export default function PropertyCard({
                 e.stopPropagation();
                 handleCardClick();
               }}
-              className="flex-1 inline-flex items-center justify-center gap-1 h-9 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-navy bg-ivory hover:bg-stone/60 border border-stone transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl text-[13px] sm:text-[14px] font-bold uppercase tracking-wider text-navy bg-ivory hover:bg-stone/60 border border-stone transition-colors"
             >
               <span>View Details</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-royal" />
+              <ArrowUpRight className="w-4 h-4 text-royal" />
             </button>
 
             {isSoldOut ? (
@@ -252,7 +252,7 @@ export default function PropertyCard({
                   e.stopPropagation();
                   if (onNavigate) onNavigate('/properties');
                 }}
-                className="flex-1 inline-flex items-center justify-center gap-1 h-9 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl text-[13px] sm:text-[14px] font-bold uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors"
               >
                 <span>Browse Similar</span>
               </button>
@@ -263,25 +263,25 @@ export default function PropertyCard({
                   e.stopPropagation();
                   if (onEnquire) onEnquire(property);
                 }}
-                className="flex-1 inline-flex items-center justify-center gap-1 h-9 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-white bg-brandRed hover:bg-brandRed-700 transition-colors shadow-2xs"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl text-[13px] sm:text-[14px] font-bold uppercase tracking-wider text-white bg-brandRed hover:bg-brandRed-700 transition-colors shadow-2xs"
               >
-                <MessageSquare className="w-3.5 h-3.5 text-white" />
+                <MessageSquare className="w-4 h-4 text-white" />
                 <span>Enquire</span>
               </button>
             )}
           </div>
 
           {/* Secondary Quick Channels: WhatsApp & Compare */}
-          <div className="flex items-center justify-between text-[11px] text-muted pt-1">
+          <div className="flex items-center justify-between text-[13px] text-muted pt-1">
             {showCompare && (
               <button
                 type="button"
                 onClick={handleToggleCompare}
-                className={`inline-flex items-center gap-1 font-semibold hover:text-navy transition-colors ${
+                className={`inline-flex items-center gap-1.5 font-semibold hover:text-navy transition-colors ${
                   inComp ? 'text-navy font-bold' : 'text-muted'
                 }`}
               >
-                <Scale className={`w-3 h-3 ${inComp ? 'text-royal' : ''}`} />
+                <Scale className={`w-3.5 h-3.5 ${inComp ? 'text-royal' : ''}`} />
                 <span>{inComp ? 'In Compare (✓)' : '+ Compare'}</span>
               </button>
             )}
@@ -293,7 +293,7 @@ export default function PropertyCard({
               onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800 font-semibold transition-colors ml-auto"
             >
-              <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
+              <WhatsAppIcon className="w-4 h-4 text-emerald-600" />
               <span>WhatsApp</span>
             </a>
           </div>

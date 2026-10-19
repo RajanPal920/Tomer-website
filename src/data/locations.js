@@ -59,29 +59,12 @@ export const APPROVED_STATIONS = [
     ],
   },
   {
-    locationId: 'vaitarna',
-    canonicalName: 'Vaitarna',
-    displayName: 'Vaitarna',
-    stationName: 'Vaitarna Railway Station',
-    slug: 'vaitarna',
-    displayOrder: 4,
-    isEnabled: true,
-    tagline: 'Scenic riverfront belt, emerging agricultural & plotted retreat land',
-    description: 'Surrounded by the scenic Vaitarna river estuary and lush open expanses, this tranquil stop is an emerging region for eco-retreats, private farm lands, and long-term land parcel investments.',
-    image: '/images/buildingImages/image copy 20.png',
-    keyHighlights: ['Scenic Vaitarna Riverfront', 'Tranquil countryside environment', 'Farmhouse & long-horizon land potential'],
-    alternativeNames: ['vaitarna', 'vaitarana', 'vaitarna station'],
-    localities: [
-      { id: 'vaitarna-riverfront', name: 'Vaitarna Riverfront & Rural Belt', highlights: 'Scenic open parcels' },
-    ],
-  },
-  {
     locationId: 'saphale',
     canonicalName: 'Saphale',
     displayName: 'Saphale',
     slug: 'saphale',
     stationName: 'Saphale Railway Station',
-    displayOrder: 5,
+    displayOrder: 4,
     isEnabled: true,
     tagline: 'Green countryside, agro-tourism plots, second homes & serene nature',
     description: 'Known for its peaceful greenery, proximity to Tandulwadi Fort and coastal gateways, Saphale is a popular micro-market for bungalow plots, organic retreats, and quiet residential living.',
@@ -99,7 +82,7 @@ export const APPROVED_STATIONS = [
     displayName: 'Kelve Road (Kelva Beach Belt)',
     stationName: 'Kelve Road Railway Station',
     slug: 'kelve-road',
-    displayOrder: 6,
+    displayOrder: 5,
     isEnabled: true,
     tagline: 'Famous coastal beach gateway, tourism plots & leisure properties',
     description: 'Famous for the picturesque Kelva Beach and suru tree plantations, Kelve Road is ideal for holiday home plots, hospitality ventures, and residential land away from urban congestion.',
@@ -117,7 +100,7 @@ export const APPROVED_STATIONS = [
     displayName: 'Palghar (District Capital & Town)',
     stationName: 'Palghar Railway Station',
     slug: 'palghar',
-    displayOrder: 7,
+    displayOrder: 6,
     isEnabled: true,
     tagline: 'Palghar District administrative capital, sanctioned NA plots & institutional hub',
     description: 'The administrative heart of Palghar District, featuring the new Collectorate complex, expanding broad road networks, educational institutions, and high-potential collector-sanctioned NA land layouts.',
@@ -129,30 +112,57 @@ export const APPROVED_STATIONS = [
       { id: 'palghar-east', name: 'Palghar East & Manor Road', highlights: 'Highway link & plotted expansions' },
     ],
   },
-];
-
-// Locations flagged for review (outside approved primary 7-station corridor)
-export const FLAGGED_LOCATIONS = [
   {
     locationId: 'boisar',
     canonicalName: 'Boisar',
     displayName: 'Boisar (MIDC & Residential)',
     stationName: 'Boisar Railway Station',
     slug: 'boisar',
-    isOutsidePrimaryServiceArea: true,
-    reviewStatus: 'Pending client confirmation for extension beyond Palghar',
-    description: 'Major industrial powerhouse north of Palghar district capital.',
-    alternativeNames: ['boisar', 'boisar midc', 'tarapur'],
+    displayOrder: 7,
+    isEnabled: true,
+    tagline: 'Major industrial powerhouse, Tarapur MIDC, affordable residential townships & plotted layouts',
+    description: 'Located immediately north of Palghar district headquarters, Boisar is a prime industrial and residential growth node anchored by Tarapur MIDC, offering dynamic opportunities for manufacturing plots, warehousing, rental residences, and planned worker housing.',
+    image: '/images/locations/boisar-township.jpg',
+    keyHighlights: ['Tarapur MIDC Industrial & Logistics Hub', 'Affordable residential townships & row houses', 'Direct Western Railway express connectivity'],
+    alternativeNames: ['boisar', 'boisar midc', 'tarapur', 'boisar west', 'boisar east', 'tarapur midc'],
+    localities: [
+      { id: 'boisar-midc', name: 'Tarapur MIDC & Industrial Zone', highlights: 'Manufacturing, logistics & warehouse plots' },
+      { id: 'boisar-residential', name: 'Boisar Town & Nawapur Road', highlights: 'Townships, residential flats & row houses' },
+    ],
   },
 ];
+
+// Preserved historical corridor stations (retained for backward compatibility and catalog integrity)
+export const HISTORICAL_CORRIDOR_STATIONS = [
+  {
+    locationId: 'vaitarna',
+    canonicalName: 'Vaitarna',
+    displayName: 'Vaitarna',
+    stationName: 'Vaitarna Railway Station',
+    slug: 'vaitarna',
+    displayOrder: 99,
+    isEnabled: true,
+    tagline: 'Scenic riverfront belt, emerging agricultural & plotted retreat land',
+    description: 'Surrounded by the scenic Vaitarna river estuary and lush open expanses, this tranquil stop is an emerging region for eco-retreats, private farm lands, and long-term land parcel investments.',
+    image: '/images/buildingImages/image copy 20.png',
+    keyHighlights: ['Scenic Vaitarna Riverfront', 'Tranquil countryside environment', 'Farmhouse & long-horizon land potential'],
+    alternativeNames: ['vaitarna', 'vaitarana', 'vaitarna station'],
+    localities: [
+      { id: 'vaitarna-riverfront', name: 'Vaitarna Riverfront & Rural Belt', highlights: 'Scenic open parcels' },
+    ],
+  },
+];
+
+// Locations flagged for review (outside approved primary corridor)
+export const FLAGGED_LOCATIONS = [];
 
 export const APPROVED_LOCATION_IDS = APPROVED_STATIONS.map((loc) => loc.locationId);
 
 /**
- * Dropdown options list for search panels and form dropdowns (Strictly 7 approved stations)
+ * Dropdown options list for search panels and form dropdowns (7 approved stations: Vasai to Boisar)
  */
 export const LOCATION_DROPDOWN_OPTIONS = [
-  { id: 'all', label: 'All Locations (Vasai to Palghar Corridor)' },
+  { id: 'all', label: 'All Locations (Vasai to Boisar Corridor)' },
   ...APPROVED_STATIONS.map((loc) => ({
     id: loc.locationId,
     label: loc.displayName,
@@ -164,12 +174,15 @@ export function isLocationInApprovedCorridor(locationId) {
   if (!locationId || locationId === 'all') return true;
   const resolved = resolveCanonicalLocation(locationId);
   if (!resolved) return false;
-  return APPROVED_STATIONS.some((st) => st.locationId === resolved.locationId);
+  return (
+    APPROVED_STATIONS.some((st) => st.locationId === resolved.locationId) ||
+    HISTORICAL_CORRIDOR_STATIONS.some((st) => st.locationId === resolved.locationId)
+  );
 }
 
 /**
  * Resolves any spelling variation or alias to the canonical location object or null.
- * Handles cases like "Vasai", "Kelva Road", "Nallasopara", "Saphale".
+ * Handles cases like "Vasai", "Kelva Road", "Nallasopara", "Saphale", "Boisar", "Vaitarna".
  */
 export function resolveCanonicalLocation(searchTerm) {
   if (!searchTerm) return null;
@@ -178,6 +191,19 @@ export function resolveCanonicalLocation(searchTerm) {
   if (term === 'all') return null;
 
   for (const station of APPROVED_STATIONS) {
+    if (station.locationId.toLowerCase() === term || station.slug.toLowerCase() === term) {
+      return station;
+    }
+    if (station.canonicalName.toLowerCase() === term) {
+      return station;
+    }
+    if (station.alternativeNames.some((alias) => alias.toLowerCase() === term || term.includes(alias.toLowerCase()))) {
+      return station;
+    }
+  }
+
+  // Check preserved historical corridor stations (e.g., Vaitarna)
+  for (const station of HISTORICAL_CORRIDOR_STATIONS) {
     if (station.locationId.toLowerCase() === term || station.slug.toLowerCase() === term) {
       return station;
     }
@@ -206,7 +232,7 @@ export function resolveCanonicalLocation(searchTerm) {
  * Gets clean display name for a location ID
  */
 export function getLocationDisplayName(locationId) {
-  if (!locationId || locationId === 'all') return 'All Locations (Vasai to Palghar)';
+  if (!locationId || locationId === 'all') return 'All Locations (Vasai to Boisar)';
   const resolved = resolveCanonicalLocation(locationId);
   return resolved ? resolved.displayName || resolved.canonicalName : locationId;
 }

@@ -12,12 +12,12 @@ export default function BrandLogo({
 }) {
   const isDarkBg = variant === 'light' || variant === 'on-dark';
 
-  // Responsive height scale ensuring the ~2.94:1 logo proportions stay visually balanced, prominent, and crisp
+  // Responsive height scale scaled 10-15% larger while preserving ~2.94:1 aspect ratio and crisp clarity
   const heightClasses = {
-    large: 'h-[58px] sm:h-[66px] md:h-[72px] lg:h-[78px] xl:h-[82px]',
-    default: 'h-[44px] sm:h-[52px] md:h-[58px] lg:h-[64px]',
-    small: 'h-[36px] sm:h-[40px] md:h-[46px]',
-  }[size] || 'h-[58px] sm:h-[66px] md:h-[74px]';
+    large: 'h-[66px] sm:h-[74px] md:h-[80px] lg:h-[88px] xl:h-[94px]',
+    default: 'h-[48px] sm:h-[58px] md:h-[64px] lg:h-[72px]',
+    small: 'h-[38px] sm:h-[44px] md:h-[50px]',
+  }[size] || 'h-[66px] sm:h-[74px] md:h-[84px]';
 
   const logoImg = (
     <img

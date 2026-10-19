@@ -6,9 +6,9 @@ export const contactInfo = {
   // Business Identity
   brandName: "TOMAR ENTERPRISES",
   businessType: "Real Estate Agency",
-  tagline: "Vasai Road to Palghar Real Estate & Property Advisory",
-  serviceRegion: "Vasai Road – Nalasopara – Virar – Vaitarna – Saphale – Kelve Road – Palghar",
-  shortServiceArea: "Vasai Road to Palghar (7 Station Corridor)",
+  tagline: "Vasai Road to Boisar Real Estate & Property Advisory",
+  serviceRegion: "Vasai Road – Nalasopara – Virar – Saphale – Kelve Road – Palghar – Boisar",
+  shortServiceArea: "Vasai Road to Boisar (7 Station Corridor)",
   locationBadge: "Virar East, Palghar District & Vasai Corridor",
 
   // Business Services (Exact from visiting card)
@@ -42,7 +42,7 @@ export const contactInfo = {
       role: "Principal Real Estate Advisor",
       phones: [
         { display: "+91 82370 92224", raw: "+918237092224", isWhatsApp: true },
-        { display: "+91 99703 55543", raw: "+919970355543", isWhatsApp: false },
+        { display: "+91 91588 93201", raw: "+919158893201", isWhatsApp: true },
       ],
       primaryPhone: "+91 82370 92224",
       primaryPhoneRaw: "+918237092224",
@@ -64,9 +64,9 @@ export const contactInfo = {
   phoneSanjay1: "8237092224",
   phoneSanjay1Display: "+91 82370 92224",
   phoneSanjay1Raw: "+918237092224",
-  phoneSanjay2: "9970355543",
-  phoneSanjay2Display: "+91 99703 55543",
-  phoneSanjay2Raw: "+919970355543",
+  phoneSanjay2: "9158893201",
+  phoneSanjay2Display: "+91 91588 93201",
+  phoneSanjay2Raw: "+919158893201",
   phoneShlok: "9356620596",
   phoneShlokDisplay: "+91 93566 20596",
   phoneShlokRaw: "+919356620596",
@@ -103,6 +103,20 @@ export const contactInfo = {
     "Flats, Shops, Bungalows & NA Land Plots",
     "Stamp Duty, Registration & Loan Assistance",
   ],
+
+  // Official MahaRERA Government Registration
+  reraRegistration: {
+    authority: "Maharashtra Real Estate Regulatory Authority",
+    form: "FORM 'H' [See rule 12(1)(b)]",
+    certificateNumber: "A99000043480",
+    agentName: "Sanjay Mewalal Tomar",
+    registeredOffice: "Tahsil: Vasai, District: Palghar, Pin-401305",
+    validFrom: "14/06/2023",
+    validTill: "14/06/2028",
+    certificateImageUrl: "/images/certificates/maharera-certificate.jpg",
+  },
+  reraNumber: "A99000043480",
+  reraCertificateUrl: "/images/certificates/maharera-certificate.jpg",
 
   // Server state
   demoMode: false,

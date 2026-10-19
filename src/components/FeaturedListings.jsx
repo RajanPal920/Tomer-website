@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Info, RotateCcw, Filter, ArrowRight, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Info, RotateCcw, Filter, ArrowRight, Sparkles, CheckCircle2, Clock, Check } from 'lucide-react';
 import {
   CATEGORY_TABS,
   normalizeTabId,
   isCategoryCompatibleWithTab,
 } from '../services/propertySearch';
+import { getLocationDisplayName } from '../data/locations';
 import PropertyCard from './PropertyCard';
 
 export { CATEGORY_TABS as FILTER_TABS };
@@ -29,6 +30,53 @@ export default function FeaturedListings({
     setVisibleCount(12);
   }, [currentTab]);
 
+  // Derived counts calculated strictly from the filtered properties
+  const counts = useMemo(() => {
+    let total = properties.length;
+    let available = 0;
+    let readyToMove = 0;
+    let underConstruction = 0;
+    let sold = 0;
+
+    for (const p of properties) {
+      const isSold = p.status === 'sold' || p.status === 'sold_out' || p.status === 'sold-out';
+      const isRented = p.status === 'rented';
+      const poss = String(p.possessionStatus || p.possessionDisplay || '').toLowerCase();
+
+      if (isSold) {
+        sold++;
+      } else if (!isRented) {
+        available++;
+        if (poss.includes('ready')) {
+          readyToMove++;
+        } else if (poss.includes('under-construction') || poss.includes('construction') || poss.includes('mid 202')) {
+          underConstruction++;
+        }
+      }
+    }
+
+    return { total, available, readyToMove, underConstruction, sold };
+  }, [properties]);
+
+  // Dynamic heading indicating location, query, or category
+  const resultsHeading = useMemo(() => {
+    const loc = activeFilters.locality && activeFilters.locality !== 'all'
+      ? getLocationDisplayName(activeFilters.locality)
+      : null;
+
+    if (loc) {
+      return `Properties in ${loc}`;
+    }
+    if (activeFilters.searchQuery && activeFilters.searchQuery.trim()) {
+      return `Search Results for "${activeFilters.searchQuery.trim()}"`;
+    }
+    if (activeFilters.category && activeFilters.category !== 'all') {
+      const cleanCat = activeFilters.category.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      return `${cleanCat} in Corridor`;
+    }
+    return 'Featured Property Opportunities';
+  }, [activeFilters]);
+
   // Handle tab click: update tab state immediately and avoid stale subcategories
   const handleTabClick = (tabId) => {
     const normTab = normalizeTabId(tabId);
@@ -52,32 +100,63 @@ export default function FeaturedListings({
   return (
     <section id="listings" className="py-14 sm:py-18 bg-white border-y border-stone/60 scroll-mt-20">
       <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Heading & Filter Bar */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-6">
+        {/* Section Heading & Calculated Result Summary */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-8 gap-4">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-royal mb-2.5">
-              <span>Prime Inventory</span>
+              <span>Verified Inventory</span>
             </div>
-            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-charcoal font-normal tracking-tight text-balance mb-3">
-              Featured Property Opportunities
+            {/* Dynamic Results Heading */}
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-charcoal font-bold tracking-tight text-balance mb-2.5">
+              {resultsHeading}
             </h2>
-            <p className="text-muted text-base sm:text-lg leading-relaxed text-balance">
-              Explore selected property options across Vasai, Virar, Nalasopara, and Palghar.
+            <p className="text-muted text-sm sm:text-base leading-relaxed text-balance">
+              Verified real estate catalog across Vasai, Virar, Nalasopara, Saphale, Kelve Road, Palghar, and Boisar.
             </p>
           </div>
 
-          {/* Verified Inventory & Derived Result Count */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-shrink-0">
-            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-navy/5 border border-navy/20 text-xs font-bold text-navy shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-brandRed"></span>
-              <span>{properties.length} {properties.length === 1 ? 'Property' : 'Properties'} Available</span>
-            </div>
-
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-ivory border border-stone text-xs text-charcoal/80">
-              <Info className="w-3.5 h-3.5 text-royal flex-shrink-0" />
-              <span>Vasai to Palghar Corridor</span>
-            </div>
+          {/* Regional Tag */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-ivory border border-stone text-xs text-charcoal/80 flex-shrink-0 self-start md:self-auto">
+            <Info className="w-3.5 h-3.5 text-royal flex-shrink-0" />
+            <span>Vasai to Boisar Corridor</span>
           </div>
+        </div>
+
+        {/* Calculated Summary Pills: Total, Available, Ready-to-move, Under-construction, Sold */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mb-7">
+          <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-navy text-white text-[13px] font-bold shadow-2xs">
+            <span>Total Matching:</span>
+            <span className="bg-white/20 px-2.5 py-0.5 rounded text-white font-black">{counts.total}</span>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-[13px] font-bold shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Available:</span>
+            <span className="bg-emerald-200/60 px-2.5 py-0.5 rounded font-black">{counts.available}</span>
+          </div>
+
+          {counts.readyToMove > 0 && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-royal text-xs font-bold shadow-2xs">
+              <Check className="w-3.5 h-3.5 text-royal" />
+              <span>Ready to Move:</span>
+              <span className="bg-blue-100 px-2 py-0.5 rounded font-black">{counts.readyToMove}</span>
+            </div>
+          )}
+
+          {counts.underConstruction > 0 && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold shadow-2xs">
+              <Clock className="w-3.5 h-3.5 text-amber-700" />
+              <span>Under Construction:</span>
+              <span className="bg-amber-200/60 px-2 py-0.5 rounded font-black">{counts.underConstruction}</span>
+            </div>
+          )}
+
+          {counts.sold > 0 && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold shadow-2xs">
+              <span>Sold:</span>
+              <span className="bg-rose-200/60 px-2 py-0.5 rounded font-black">{counts.sold}</span>
+            </div>
+          )}
         </div>
 
         {/* Transaction / Category Filter Pills (Immediate Derived Filtering) */}
@@ -89,7 +168,7 @@ export default function FeaturedListings({
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabClick(tab.id)}
-                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                className={`px-4 sm:px-5 py-2.5 rounded-full text-[13.5px] sm:text-[14.5px] font-bold tracking-wide whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-navy text-white shadow-sm ring-1 ring-navy'
                     : 'bg-ivory text-charcoal hover:bg-stone/60 border border-stone/50'
@@ -184,43 +263,28 @@ export default function FeaturedListings({
             <div className="w-16 h-16 rounded-full bg-stone/70 text-navy flex items-center justify-center mx-auto mb-4">
               <Info className="w-8 h-8 text-royal" />
             </div>
-            <h3 className="font-serif text-2xl sm:text-3xl text-charcoal mb-2 font-normal">
-              No properties available in this category yet.
+            <h3 className="font-serif text-2xl sm:text-3xl text-charcoal mb-2.5 font-bold">
+              No matching properties found.
             </h3>
-            <p className="text-muted text-sm max-w-md mx-auto mb-6 leading-relaxed">
-              We frequently handle offline inventory and upcoming mandates across Vasai, Virar, Nalasopara, Saphale, Kelve Road, and Palghar. Enquire with our property desk for upcoming opportunities or reset your search view.
+            <p className="text-muted text-sm sm:text-base max-w-md mx-auto mb-6 leading-relaxed">
+              We frequently handle offline inventory, newly signed mandates, and private listings across Vasai, Virar, Nalasopara, Saphale, Kelve Road, Palghar, and Boisar. Try clearing your filters or contact our property advisory desk.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  if (onFilterChange) {
-                    onFilterChange({
-                      transactionType: 'all',
-                      categoryTab: 'all',
-                      category: 'all',
-                    });
-                  }
-                }}
-                className="px-5 py-2.5 rounded-lg bg-navy text-white text-xs uppercase font-bold tracking-wider hover:bg-navy-900 transition-colors shadow-sm cursor-pointer"
-              >
-                Reset to All Opportunities
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onEnquire({ title: 'Upcoming Property Requirement across Vasai-Palghar' })}
-                className="px-5 py-2.5 rounded-lg bg-brandRed text-white text-xs uppercase font-bold tracking-wider hover:bg-brandRed-700 transition-colors shadow-sm cursor-pointer"
-              >
-                Contact Property Team
-              </button>
-
-              <button
-                type="button"
                 onClick={onResetFilters}
-                className="px-5 py-2.5 rounded-lg bg-white border border-stone text-charcoal text-xs uppercase font-bold tracking-wider hover:bg-stone/30 transition-colors cursor-pointer"
+                className="px-6 py-3 rounded-xl bg-navy text-white text-xs sm:text-sm uppercase font-bold tracking-wider hover:bg-navy-900 transition-colors shadow-sm cursor-pointer inline-flex items-center gap-2"
               >
-                Reset All Filters
+                <RotateCcw className="w-4 h-4" />
+                <span>Clear All Filters</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onEnquire({ title: 'Corridor Property Enquiry across Vasai to Boisar' })}
+                className="px-6 py-3 rounded-xl bg-brandRed text-white text-xs sm:text-sm uppercase font-bold tracking-wider hover:bg-brandRed-700 transition-colors shadow-sm cursor-pointer"
+              >
+                Enquire With Property Desk
               </button>
             </div>
           </div>

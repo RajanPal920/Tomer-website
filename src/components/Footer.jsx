@@ -55,8 +55,8 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
           {/* Column 1: Brand & Contact Info from Visiting Card (4 Cols) */}
           <div className="lg:col-span-4">
             <BrandLogo variant="light" size="large" className="mb-4" />
-            <p className="text-white text-sm leading-relaxed mb-6 max-w-sm">
-              TOMAR ENTERPRISES is an authorized real estate agency located in Virar East. We specialize in property sales, purchase assistance, rentals, NA plots, home loans, and registration assistance across the Vasai-to-Palghar corridor.
+            <p className="text-stone-200 text-[15px] leading-relaxed mb-6 max-w-sm">
+              TOMAR ENTERPRISES is an authorized real estate agency located in Virar East. We specialize in property sales, purchase assistance, rentals, NA plots, home loans, and registration assistance across the Vasai-to-Boisar corridor.
             </p>
 
             <div className="space-y-3 text-white text-sm">
@@ -206,8 +206,8 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
               ))}
             </div>
 
-            <div className="mt-5 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-[12px] text-white leading-relaxed">
-              <strong className="text-white block mb-0.5">Vasai Road to Palghar:</strong>
+            <div className="mt-5 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-[13.5px] text-stone-200 leading-relaxed">
+              <strong className="text-white block mb-0.5">Vasai Road to Boisar:</strong>
               Continuous mainline rail corridor & highway connectivity across Palghar district.
             </div>
           </div>
@@ -215,11 +215,11 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
       </div>
 
       {/* Bottom Sub-Footer Bar */}
-      <div className="border-t border-white/10 bg-black/40 py-5">
-        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-white">
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
-            <span>&copy; {currentYear} TOMAR ENTERPRISES. All rights reserved. Shop No. 06, Nakshtra Apt., Viva Jangid Complex, Manvelpada, Virar (East), Palghar - 401305.</span>
-            <span className="hidden sm:inline text-white/30">&bull;</span>
+      <div className="border-t border-white/10 bg-black/40 py-4">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-3 text-[13px] text-stone-300">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-2.5 text-center md:text-left">
+            <span>&copy; {currentYear} TOMAR ENTERPRISES. All rights reserved.</span>
+            <span className="text-white/30">&bull;</span>
             <span className="text-white">
               Design and SEO by{' '}
               <a

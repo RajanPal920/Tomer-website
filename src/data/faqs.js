@@ -8,7 +8,7 @@ export const faqs = [
   {
     id: "faq-2",
     question: "Which locations does Tomar Enterprises serve?",
-    answer: "Our primary service area spans the western suburban and regional corridor of Maharashtra from Vasai Road to Palghar. This includes Vasai Road (East & West), Nalasopara (East & West), Virar (East & West), Vaitarna, Saphale, Kelve Road (Kelva Beach belt), and the Palghar district headquarters."
+    answer: "Our primary service area spans the western suburban and regional corridor of Maharashtra from Vasai Road to Boisar. This includes Vasai Road (East & West), Nalasopara (East & West), Virar (East & West), Saphale, Kelve Road (Kelva Beach belt), Palghar (District Headquarters), and Boisar (Tarapur MIDC)."
   },
   {
     id: "faq-3",

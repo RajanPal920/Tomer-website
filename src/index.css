@@ -20,23 +20,29 @@
 @layer base {
   html {
     color-scheme: light;
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    font-style: normal;
   }
   
   body {
     background-color: var(--brand-background);
     color: #1E293B;
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    font-style: normal;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  h1, h2, h3, h4 {
-    font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
-    letter-spacing: -0.02em;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    letter-spacing: -0.015em;
     color: var(--brand-blue);
   }
 
   .font-serif {
-    font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: Inter, Arial, Helvetica, sans-serif !important;
+    font-style: normal !important;
+    letter-spacing: -0.015em;
   }
 }
 

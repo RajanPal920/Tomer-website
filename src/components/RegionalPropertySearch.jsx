@@ -9,6 +9,7 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
       desc: 'New residential launches & premium 1, 2 & 3 BHK apartments',
       icon: Home,
       tag: 'New Homes',
+      image: '/images/categories/cat-flats-for-sale.png',
       filterParams: { transactionType: 'buy', locality: 'all', category: 'new-flat' },
     },
     {
@@ -17,6 +18,7 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
       desc: 'Verified family rental flats with municipal water & transit access',
       icon: Key,
       tag: 'Monthly Rentals',
+      image: '/images/categories/cat-flats-for-rent.jpg',
       filterParams: { transactionType: 'rent', locality: 'all', category: 'flat-rent' },
     },
     {
@@ -25,6 +27,7 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
       desc: 'Established ready-to-move society flats with clear bank titles',
       icon: RefreshCw,
       tag: 'Ready Possession',
+      image: '/images/categories/cat-resale-properties.png',
       filterParams: { transactionType: 'buy', locality: 'all', category: 'resale-flat' },
     },
     {
@@ -33,6 +36,7 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
       desc: 'Main road retail shops, market showrooms & furnished corporate suites',
       icon: Briefcase,
       tag: 'Commercial Space',
+      image: '/images/categories/cat-shops-and-offices.png',
       filterParams: { transactionType: 'commercial', locality: 'all', category: 'all' },
     },
     {
@@ -41,14 +45,16 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
       desc: 'Sanctioned NA plots & demarcated layouts for private villas',
       icon: Landmark,
       tag: 'NA & Plotted',
+      image: '/images/categories/cat-residential-plots.png',
       filterParams: { transactionType: 'plots-land', locality: 'all', category: 'residential-plot' },
     },
     {
       id: 'ind-plots',
       title: 'Industrial Plots',
-      desc: 'Palghar industrial & warehouse plots with heavy logistics road access',
+      desc: 'Palghar & Boisar industrial & warehouse plots with heavy logistics road access',
       icon: Layers,
       tag: 'Industrial & Warehousing',
+      image: '/images/categories/cat-industrial-plots.jpg',
       filterParams: { transactionType: 'plots-land', locality: 'all', category: 'industrial-plot' },
     },
   ];
@@ -57,10 +63,10 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
     { id: 'vasai-road', name: 'Vasai Road' },
     { id: 'nalasopara', name: 'Nalasopara' },
     { id: 'virar', name: 'Virar' },
-    { id: 'vaitarna', name: 'Vaitarna' },
     { id: 'saphale', name: 'Saphale' },
     { id: 'kelve-road', name: 'Kelve Road' },
     { id: 'palghar', name: 'Palghar' },
+    { id: 'boisar', name: 'Boisar' },
   ];
 
   return (
@@ -74,7 +80,7 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
               <span>Corridor Discovery</span>
             </div>
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-charcoal font-normal tracking-tight text-balance mb-4">
-              Your Property Search, From Vasai to Palghar
+              Your Property Search, From Vasai to Boisar
             </h2>
             <p className="text-muted text-base sm:text-lg leading-relaxed text-balance">
               Customers can enquire about residential, commercial, rental, and land opportunities across the entire Western suburban and industrial corridor.
@@ -83,7 +89,7 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
 
           {/* Locality Quick Selector Pills */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-charcoal mr-1 flex items-center gap-1">
+            <span className="text-[13px] font-bold uppercase tracking-wider text-charcoal mr-1 flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-brandRed" />
               <span>Jump To:</span>
             </span>
@@ -92,7 +98,7 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
                 key={loc.id}
                 type="button"
                 onClick={() => onSelectLocality(loc.id)}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-stone hover:border-royal hover:text-royal hover:bg-royal/5 transition-all duration-200 shadow-2xs"
+                className="px-3.5 py-1.5 rounded-full text-[13px] font-semibold bg-white border border-stone hover:border-royal hover:text-royal hover:bg-royal/5 transition-all duration-200 shadow-2xs cursor-pointer"
               >
                 {loc.name}
               </button>
@@ -100,8 +106,8 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
           </div>
         </div>
 
-        {/* 6 Quick-Search Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        {/* 6 Quick-Search Cards: Property Image → Category Badge/Icon → Title → Description → EXPLORE IN CORRIDOR */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
           {quickSearchOptions.map((opt) => {
             const Icon = opt.icon;
             return (
@@ -109,30 +115,53 @@ export default function RegionalPropertySearch({ onQuickSearch, onSelectLocality
                 key={opt.id}
                 type="button"
                 onClick={() => onQuickSearch(opt.filterParams)}
-                className="group p-6 rounded-xl bg-white border border-stone hover:border-royal/50 shadow-subtle hover:shadow-card transition-all duration-300 text-left flex flex-col justify-between"
+                className="group rounded-2xl bg-white border border-stone hover:border-royal/50 shadow-subtle hover:shadow-card transition-all duration-300 text-left flex flex-col justify-between overflow-hidden h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-royal"
               >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-11 h-11 rounded-lg bg-ivory text-navy flex items-center justify-center group-hover:bg-navy group-hover:text-white transition-colors duration-200">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-sm bg-stone/50 text-charcoal/80 group-hover:bg-royal/10 group-hover:text-royal transition-colors">
-                      {opt.tag}
-                    </span>
-                  </div>
-
-                  <h3 className="font-serif text-xl font-normal text-charcoal group-hover:text-royal transition-colors mb-2">
-                    {opt.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-muted leading-relaxed mb-6">
-                    {opt.desc}
-                  </p>
+                {/* 1. Property Image (Top of card with consistent dimensions & aspect ratio) */}
+                <div className="relative aspect-[16/10] sm:aspect-[4/3] w-full overflow-hidden bg-stone/30">
+                  <img
+                    src={opt.image}
+                    alt={opt.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-navy/30 via-transparent to-transparent opacity-40 group-hover:opacity-20 transition-opacity" />
                 </div>
 
-                <div className="pt-3 border-t border-stone/50 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-navy group-hover:text-brandRed transition-colors">
-                  <span>Explore In Corridor</span>
-                  <div className="w-6 h-6 rounded-full bg-ivory flex items-center justify-center group-hover:bg-brandRed/10 group-hover:text-brandRed group-hover:translate-x-1 transition-all">
-                    <ArrowRight className="w-3.5 h-3.5" />
+                {/* 2. Card Content (Category Badge/Icon → Title → Description) */}
+                <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between">
+                  <div>
+                    {/* Category Badge & Icon */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 rounded-lg bg-ivory text-navy flex items-center justify-center group-hover:bg-navy group-hover:text-white transition-colors duration-200 shadow-2xs">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-[13px] font-bold uppercase tracking-wider px-3 py-1 rounded-md bg-stone/50 text-navy group-hover:bg-royal/10 group-hover:text-royal transition-colors">
+                        {opt.tag}
+                      </span>
+                    </div>
+
+                    {/* Title: 21–24px on desktop, clear bold weight */}
+                    <h3 className="font-serif text-xl sm:text-2xl font-bold text-charcoal group-hover:text-navy transition-colors mb-2.5 tracking-tight leading-snug">
+                      {opt.title}
+                    </h3>
+
+                    {/* Description: 15–16px with comfortable line height */}
+                    <p className="text-[15px] sm:text-[16px] text-charcoal/80 leading-relaxed mb-6 font-normal">
+                      {opt.desc}
+                    </p>
+                  </div>
+
+                  {/* 3. EXPLORE IN CORRIDOR Action Bar */}
+                  <div className="pt-4 border-t border-stone/50 flex items-center justify-between text-[13.5px] sm:text-[14.5px] font-bold uppercase tracking-wider text-navy group-hover:text-brandRed transition-colors">
+                    <span>Explore In Corridor</span>
+                    <div className="w-7 h-7 rounded-full bg-ivory flex items-center justify-center group-hover:bg-brandRed/10 group-hover:text-brandRed group-hover:translate-x-1 transition-all">
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
               </button>

@@ -462,13 +462,13 @@ export default function ContactSection({ prefilledInterest = '', prefilledLocati
                           onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                           className="w-full bg-white border border-stone rounded-xl px-3.5 py-2.5 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-royal transition-colors"
                         >
-                          <option value="Virar">Virar (East & West)</option>
                           <option value="Vasai Road">Vasai Road (East & West)</option>
                           <option value="Nalasopara">Nalasopara (East & West)</option>
-                          <option value="Vaitarna">Vaitarna (Riverfront & Rural)</option>
+                          <option value="Virar">Virar (East & West)</option>
                           <option value="Saphale">Saphale (Agro & Bungalow plots)</option>
                           <option value="Kelve Road">Kelve Road (Coastal Beach belt)</option>
                           <option value="Palghar">Palghar (District Capital & NA Layouts)</option>
+                          <option value="Boisar">Boisar (Tarapur MIDC & Residential)</option>
                         </select>
                       </div>
 

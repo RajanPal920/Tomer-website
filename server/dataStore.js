@@ -8,7 +8,7 @@
 import { query, get, run } from './db/index.js';
 
 export const APPROVED_CORRIDOR_LOCALITIES = [
-  'vasai', 'vasai-road', 'vasai road', 'nalasopara', 'virar', 'vaitarna', 'saphale', 'kelve-road', 'kelve', 'palghar'
+  'vasai', 'vasai-road', 'vasai road', 'nalasopara', 'virar', 'vaitarna', 'saphale', 'kelve-road', 'kelve', 'palghar', 'boisar'
 ];
 
 export function isLocalityInApprovedCorridor(locality) {
@@ -227,7 +227,7 @@ export async function findProperty(slugOrId, isOwner = false) {
   return mapRowToProperty(row);
 }
 
-export const DEFAULT_MAX_ACTIVE_LISTINGS = 30;
+export const DEFAULT_MAX_ACTIVE_LISTINGS = 150;
 export const DEFAULT_MAX_PROPERTY_LISTINGS = DEFAULT_MAX_ACTIVE_LISTINGS;
 let overrideMaxListingsForTest = null;
 

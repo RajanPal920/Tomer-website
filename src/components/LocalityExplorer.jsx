@@ -20,7 +20,7 @@ export default function LocalityExplorer({ onSelectLocality, onNavigate }) {
             <span>Regional Footprint</span>
           </div>
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-charcoal font-normal tracking-tight text-balance mb-4">
-            Discover Properties Across Vasai to Palghar
+            Discover Properties Across Vasai to Boisar
           </h2>
           <p className="text-muted text-base sm:text-lg leading-relaxed text-balance">
             Explore active hubs across the western rail line and national highway corridor, from established residential coastal pockets to emerging industrial belts.
@@ -76,19 +76,19 @@ export default function LocalityExplorer({ onSelectLocality, onNavigate }) {
               {/* Card Body */}
               <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                 <div>
-                  <p className="text-xs font-bold text-brandRed mb-1.5">
+                  <p className="text-[13px] font-bold text-brandRed mb-2">
                     {loc.tagline}
                   </p>
-                  <p className="text-muted text-xs sm:text-sm leading-relaxed mb-4">
+                  <p className="text-charcoal/80 text-[14px] sm:text-[15px] leading-relaxed mb-4">
                     {loc.description}
                   </p>
 
                   {/* Highlights tag pills */}
-                  <div className="flex flex-wrap gap-1.5 mb-5">
+                  <div className="flex flex-wrap gap-2 mb-5">
                     {loc.keyHighlights.map((hl, i) => (
                       <span
                         key={i}
-                        className="text-[11px] px-2.5 py-1 rounded bg-ivory border border-stone/80 text-charcoal/80 font-medium"
+                        className="text-[12.5px] px-3 py-1 rounded bg-ivory border border-stone/80 text-charcoal/90 font-semibold"
                       >
                         {hl}
                       </span>
@@ -97,10 +97,10 @@ export default function LocalityExplorer({ onSelectLocality, onNavigate }) {
                 </div>
 
                 {/* CTA Action */}
-                <div className="pt-3.5 border-t border-stone/60 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-navy group-hover:text-brandRed transition-colors">
+                <div className="pt-3.5 border-t border-stone/60 flex items-center justify-between text-[13.5px] font-bold uppercase tracking-wider text-navy group-hover:text-brandRed transition-colors">
                   <span>Explore Properties in {loc.name}</span>
                   <div className="w-7 h-7 rounded-full bg-ivory flex items-center justify-center group-hover:bg-brandRed/10 group-hover:translate-x-1 transition-all">
-                    <ArrowRight className="w-3.5 h-3.5 text-navy group-hover:text-brandRed" />
+                    <ArrowRight className="w-4 h-4 text-navy group-hover:text-brandRed" />
                   </div>
                 </div>
               </div>

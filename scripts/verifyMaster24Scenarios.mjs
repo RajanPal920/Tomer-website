@@ -74,10 +74,10 @@ async function runSuite() {
   const homeRoute = parseRoute('/');
   assert(homeRoute.view === 'home', 1, 'Homepage route parses to view: "home"');
 
-  // Scenario 2: Responsive Navigation Definitions
-  const expectedStations = ['vasai-road', 'nalasopara', 'virar', 'vaitarna', 'saphale', 'kelve-road', 'palghar'];
+  // Scenario 2: Responsive Navigation Definitions (7 Approved Stations: Vasai to Boisar)
+  const expectedStations = ['vasai-road', 'nalasopara', 'virar', 'saphale', 'kelve-road', 'palghar', 'boisar'];
   const hasAll7Stations = expectedStations.every(id => APPROVED_STATIONS.some(st => st.locationId === id));
-  assert(hasAll7Stations && APPROVED_STATIONS.length === 7, 2, 'Navigation has exactly 7 approved stations');
+  assert(hasAll7Stations && APPROVED_STATIONS.length === 7, 2, 'Navigation has exactly 7 approved stations (Vasai to Boisar)');
 
   // Scenario 3: Every approved location opens the correct route & resolves
   let allLocationsResolve = true;
@@ -91,11 +91,11 @@ async function runSuite() {
   }
   assert(allLocationsResolve, 3, 'Every approved location route opens view: "location" and resolves canonical metadata');
 
-  // Scenario 4: Boisar and all out-of-scope locations are absent from supported search options
+  // Scenario 4: Boisar approved in corridor search options & Naigaon strictly excluded
   const boisarInDropdown = LOCATION_DROPDOWN_OPTIONS.some(o => o.id === 'boisar' || o.canonicalName === 'Boisar');
   const boisarInApproved = APPROVED_STATIONS.some(s => s.locationId === 'boisar' || s.canonicalName === 'Boisar');
   const naigaonInDropdown = LOCATION_DROPDOWN_OPTIONS.some(o => o.id === 'naigaon' || o.canonicalName?.toLowerCase().includes('naigaon'));
-  assert(!boisarInDropdown && !boisarInApproved && !naigaonInDropdown, 4, 'Boisar & Naigaon strictly excluded from search dropdowns & approved stations');
+  assert(boisarInDropdown && boisarInApproved && !naigaonInDropdown, 4, 'Boisar approved in corridor dropdowns & stations; Naigaon strictly excluded');
 
   // Scenario 5: Each major category opens a valid listing page
   const categoryPaths = [

@@ -259,15 +259,15 @@ export default function Hero({
             </div>
 
             {/* 3. Main Heading */}
-            <h1 className="font-serif text-2xl sm:text-4xl lg:text-[44px] font-normal leading-[1.18] tracking-tight text-white mb-3 transition-all duration-300">
+            <h1 className="font-serif text-2xl sm:text-4xl lg:text-[46px] font-bold leading-[1.18] tracking-tight text-white mb-3 transition-all duration-300">
               {activeSlideData.headline}{' '}
-              <span className="italic font-normal text-white block sm:inline">
+              <span className="font-bold text-white block sm:inline">
                 {activeSlideData.highlighted}
               </span>
             </h1>
 
             {/* 4. Supporting Description */}
-            <p className="text-white text-sm sm:text-base leading-relaxed mb-6 font-normal max-w-xl transition-all duration-300">
+            <p className="text-stone-100 text-[15px] sm:text-[17px] leading-relaxed mb-6 font-normal max-w-xl transition-all duration-300">
               {activeSlideData.description}
             </p>
 
