@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generateSitemap.mjs && vite build",
+    "build": "node scripts/generateSitemap.mjs && vite build && node scripts/prerenderPublicPages.mjs",
     "seo:sitemap": "node scripts/generateSitemap.mjs",
     "seo:keywords": "node scripts/buildKeywordsCsv.mjs",
+    "seo:prerender": "node scripts/prerenderPublicPages.mjs",
     "start": "node server/server.js",
     "lint": "oxlint",
     "preview": "vite preview",

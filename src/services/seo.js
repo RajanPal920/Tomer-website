@@ -315,7 +315,7 @@ export function resolvePropertyTypeName(property) {
   if (cat === 'residential-plot') return 'Residential Plot';
   if (cat === 'na-plot') return 'Sanctioned NA Plot';
   if (cat === 'industrial-plot') return 'Industrial Plot';
-  if (cat === 'lease-property') return 'Heavy Deposit Property on Lease';
+  if (cat === 'lease-property') return bhk ? `${bhk}Heavy Deposit Flat on Lease` : 'Heavy Deposit Property on Lease';
 
   return bhk ? `${bhk}Property` : 'Property';
 }
@@ -337,9 +337,36 @@ export function buildPropertyListingSchema(property, canonicalPath) {
   const isRental = property.transactionType === 'rent' || property.category?.includes('rent');
   const locality = resolvePropertyLocation(property);
 
-  const offers = property.price ? {
+  // Parse numeric price safely from numeric properties or formatted strings
+  let numericPrice = undefined;
+  if (property.priceNumber && !Number.isNaN(Number(property.priceNumber))) {
+    numericPrice = Number(property.priceNumber);
+  } else if (property.priceNumeric && !Number.isNaN(Number(property.priceNumeric))) {
+    numericPrice = Number(property.priceNumeric);
+  } else if (property.price) {
+    if (typeof property.price === 'number') {
+      numericPrice = property.price;
+    } else {
+      const str = String(property.price).replace(/,/g, '');
+      const matchCr = str.match(/([\d.]+)\s*(?:cr|crore)/i);
+      const matchLakh = str.match(/([\d.]+)\s*(?:lakh|lac|l)/i);
+      const matchK = str.match(/([\d.]+)\s*(?:k|thousand)/i);
+      const matchPure = str.match(/[\d.]+/);
+      if (matchCr) {
+        numericPrice = Math.round(parseFloat(matchCr[1]) * 10000000);
+      } else if (matchLakh) {
+        numericPrice = Math.round(parseFloat(matchLakh[1]) * 100000);
+      } else if (matchK) {
+        numericPrice = Math.round(parseFloat(matchK[1]) * 1000);
+      } else if (matchPure && !Number.isNaN(Number(matchPure[0]))) {
+        numericPrice = Number(matchPure[0]);
+      }
+    }
+  }
+
+  const offers = (numericPrice && !Number.isNaN(numericPrice) && numericPrice > 0) ? {
     '@type': 'Offer',
-    price: Number(property.price),
+    price: numericPrice,
     priceCurrency: 'INR',
     availability: (property.status === 'sold' || property.status === 'sold_out' || property.status === 'sold-out')
       ? 'https://schema.org/SoldOut'
@@ -411,10 +438,43 @@ export function generatePropertySeo(property) {
   const subHeading = hasDistinctTitle ? property.title : null;
 
   // Title pattern: Example: "1 BHK Resale Flat in Nalasopara West | Tomar Enterprises"
-  // If distinct title exists: "1 BHK Resale Flat in Nalasopara West - Sriprastha | Tomar Enterprises"
-  const seoTitle = subHeading
-    ? `${baseHeading} - ${subHeading} | Tomar Enterprises`
-    : `${baseHeading} | Tomar Enterprises`;
+  // Keep under 70 chars for optimal SERP display without truncation, ensuring unique distinct titles
+  let seoTitle = `${baseHeading} | Tomar Enterprises`;
+  if (subHeading) {
+    const candidate = `${baseHeading} - ${subHeading} | Tomar Enterprises`;
+    if (candidate.length <= 65) {
+      seoTitle = candidate;
+    } else {
+      const cleanSub = subHeading
+        .replace(/\b(spacious|well-maintained|comfortable|budget|cozy|contemporary|brand-new|ready|pleasant|smart)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const cand2 = `${baseHeading} - ${cleanSub} | Tomar Enterprises`;
+      if (cand2.length <= 68) {
+        seoTitle = cand2;
+      } else {
+        const sublocLower = sublocality.toLowerCase();
+        const words = cleanSub.split(' ').filter(w => !sublocLower.includes(w.toLowerCase()) && !'corridor industrial'.includes(w.toLowerCase()));
+        let truncated = '';
+        for (const w of words) {
+          const test = `${baseHeading} - ${truncated ? truncated + ' ' : ''}${w} | Tomar Enterprises`;
+          if (test.length <= 70) {
+            truncated = truncated ? `${truncated} ${w}` : w;
+          } else {
+            break;
+          }
+        }
+        if (truncated && truncated.length >= 3) {
+          seoTitle = `${baseHeading} - ${truncated} | Tomar Enterprises`;
+        } else if (priceDisplay) {
+          const priceCand = `${baseHeading} (${priceDisplay}) | Tomar Enterprises`;
+          if (priceCand.length <= 68) {
+            seoTitle = priceCand;
+          }
+        }
+      }
+    }
+  }
 
   const h1 = baseHeading;
 

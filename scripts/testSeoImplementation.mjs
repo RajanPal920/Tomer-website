@@ -199,12 +199,22 @@ const propSchema = buildPropertyListingSchema(sampleProp);
 assert(propSchema['@type'] === 'RealEstateListing', 'Property schema @type is RealEstateListing');
 assert(propSchema.offers && propSchema.offers.priceCurrency === 'INR', 'Property schema includes valid INR offers');
 
+let allOffersValid = true;
+for (const p of sampleProperties) {
+  const schema = buildPropertyListingSchema(p);
+  if (schema.offers && (typeof schema.offers.price !== 'number' || Number.isNaN(schema.offers.price))) {
+    allOffersValid = false;
+    break;
+  }
+}
+assert(allOffersValid, 'All property schemas have strictly valid numeric INR prices without NaN');
+
 const sampleFaqs = [{ question: 'What are office hours?', answer: 'Contact us for hours.' }];
 const faqSchema = buildFaqSchema(sampleFaqs);
 assert(faqSchema['@type'] === 'FAQPage' && faqSchema.mainEntity.length === 1, 'FAQPage schema syntax valid');
 
-// 7. Production Build Artifacts Check
-console.log('\n--- 7. PRODUCTION BUILD ARTIFACTS (dist/index.html) ---');
+// 7. Production Build Artifacts & Crawler Static Prerender Check
+console.log('\n--- 7. PRODUCTION BUILD ARTIFACTS & PRERENDER SNAPSHOTS ---');
 const distIndexPath = path.resolve('dist/index.html');
 assert(fs.existsSync(distIndexPath), 'dist/index.html exists');
 const distHtml = fs.readFileSync(distIndexPath, 'utf8');
@@ -212,6 +222,37 @@ assert(distHtml.includes('<link rel="canonical"'), 'dist/index.html includes can
 assert(distHtml.includes('property="og:title"'), 'dist/index.html includes OpenGraph title');
 assert(distHtml.includes('name="twitter:card"'), 'dist/index.html includes Twitter card');
 assert(distHtml.includes('application/ld+json'), 'dist/index.html includes static JSON-LD schema');
+
+// Verify Prerendered Static HTML Files
+const sampleDistPropPath = path.resolve('dist/properties/apex-corporate-suite-vasai-east/index.html');
+if (fs.existsSync(sampleDistPropPath)) {
+  const propHtml = fs.readFileSync(sampleDistPropPath, 'utf8');
+  assert(propHtml.includes('Commercial Office Space in Vasai East') && propHtml.includes('Tomar Enterprises'), 'Prerendered property has exact title');
+  assert(propHtml.includes('canonical" href="https://tomer-website-tawny.vercel.app/properties/apex-corporate-suite-vasai-east"'), 'Prerendered property has exact canonical URL');
+  assert(propHtml.includes('<h1') && propHtml.includes('Commercial Office Space in Vasai East</h1>'), 'Prerendered property has exact <h1> tag in initial HTML');
+  assert(propHtml.includes('"@type": "RealEstateListing"'), 'Prerendered property contains RealEstateListing schema');
+} else {
+  assert(false, 'Prerendered property detail page exists in dist/properties/');
+}
+
+const sampleDistLocPath = path.resolve('dist/locations/virar/index.html');
+if (fs.existsSync(sampleDistLocPath)) {
+  const locHtml = fs.readFileSync(sampleDistLocPath, 'utf8');
+  assert(locHtml.includes('Virar (East &amp; West) Real Estate') || locHtml.includes('Virar'), 'Prerendered location page has exact title');
+  assert(locHtml.includes('canonical" href="https://tomer-website-tawny.vercel.app/locations/virar"'), 'Prerendered location page has exact canonical URL');
+} else {
+  assert(false, 'Prerendered location page exists in dist/locations/virar/');
+}
+
+const sampleDistSeoPath = path.resolve('dist/flats-for-sale-in-vasai-east/index.html');
+if (fs.existsSync(sampleDistSeoPath)) {
+  const seoHtml = fs.readFileSync(sampleDistSeoPath, 'utf8');
+  assert(seoHtml.includes('Flats for Sale in Vasai East'), 'Prerendered SEO landing page has exact title');
+  assert(seoHtml.includes('canonical" href="https://tomer-website-tawny.vercel.app/flats-for-sale-in-vasai-east"'), 'Prerendered SEO landing page has exact canonical URL');
+  assert(seoHtml.includes('"@type": "FAQPage"'), 'Prerendered SEO landing page contains FAQPage schema');
+} else {
+  assert(false, 'Prerendered SEO landing page exists in dist/');
+}
 
 console.log('\n============================================================');
 console.log(`   TEST RESULTS: ${passed} PASSED | ${failed} FAILED         `);
