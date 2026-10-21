@@ -5,12 +5,16 @@ import { LOCALITY_OPTIONS } from '../data/localities';
 export const SEARCH_PROPERTY_TYPES = [
   { id: 'all', label: 'All Properties' },
   { id: 'flats', label: 'Flats / Apartments' },
+  { id: 'new-flat', label: 'New Flats / New Homes' },
   { id: 'resale-flat', label: 'Resale Properties' },
+  { id: 'flat-rent', label: 'Rental Properties' },
   { id: 'commercial-shop', label: 'Commercial Shops' },
   { id: 'commercial-office', label: 'Offices' },
+  { id: 'commercial', label: 'Commercial Spaces' },
   { id: 'residential-plot', label: 'Residential Plots' },
   { id: 'industrial-plot', label: 'Industrial Plots' },
   { id: 'na-plot', label: 'Land / NA Plots' },
+  { id: 'lease-property', label: 'Lease / Heavy Deposit' },
 ];
 
 export const STATUS_OPTIONS = [
@@ -60,6 +64,17 @@ export default function SearchPanel({ onSearch, activeFilters = {}, onReset }) {
       }
     }
   }, [activeFilters]);
+
+  const handlePropertyTypeChange = (newType) => {
+    setSelectedPropertyType(newType);
+    if (newType === 'flat-rent') {
+      setLookingFor('rent');
+    } else if (['new-flat', 'resale-flat', 'residential-plot', 'industrial-plot', 'na-plot'].includes(newType)) {
+      setLookingFor('buy');
+    } else if (newType === 'lease-property') {
+      setLookingFor('all');
+    }
+  };
 
   const handleLookingForChange = (type) => {
     setLookingFor(type);
@@ -192,7 +207,7 @@ export default function SearchPanel({ onSearch, activeFilters = {}, onReset }) {
                 <select
                   id="search-property-type"
                   value={selectedPropertyType}
-                  onChange={(e) => setSelectedPropertyType(e.target.value)}
+                  onChange={(e) => handlePropertyTypeChange(e.target.value)}
                   className="w-full h-[52px] appearance-none bg-white border border-stone-300 hover:border-stone-400 rounded-xl pl-4 pr-10 text-[16px] sm:text-[17px] font-medium text-charcoal focus:outline-none focus:ring-2 focus:ring-royal/30 focus:border-royal transition-all cursor-pointer shadow-xs"
                 >
                   {SEARCH_PROPERTY_TYPES.map((pt) => (

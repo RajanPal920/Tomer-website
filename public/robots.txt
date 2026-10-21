@@ -1,0 +1,22 @@
+# =========================================================================
+# TOMAR ENTERPRISES — ROBOTS.TXT
+# Production Domain: https://tomer-website-tawny.vercel.app
+# =========================================================================
+
+User-agent: *
+Allow: /
+
+# Allow public API endpoints for crawling where applicable
+Allow: /api/properties
+
+# Disallow private administrative, owner dashboard, authentication & internal endpoints
+Disallow: /owner-login
+Disallow: /admin
+Disallow: /admin/
+Disallow: /owner/dashboard
+Disallow: /owner-dashboard
+Disallow: /api/auth
+Disallow: /api/owner
+
+# Canonical XML Sitemap
+Sitemap: https://tomer-website-tawny.vercel.app/sitemap.xml

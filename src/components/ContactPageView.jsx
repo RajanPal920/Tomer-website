@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Phone,
   Mail,
@@ -20,18 +20,50 @@ import {
   BadgePercent,
   Download,
   Award,
-  X,
   ZoomIn,
 } from 'lucide-react';
 import { contactInfo } from '../data/contactInfo';
 import { submitEnquiry } from '../services/propertyStore';
 import { buildGmailComposeUrl, openGmailCompose } from '../services/emailService';
+import { updateSeoMetadata, buildRealEstateAgentSchema, buildBreadcrumbSchema } from '../services/seo';
 
 import WhatsAppIcon from './WhatsAppIcon';
 export { WhatsAppIcon };
 
 export default function ContactPageView({ onNavigate }) {
-  const [modalCertificate, setModalCertificate] = useState(null);
+  useEffect(() => {
+    if (window.location.hash === '#certificates') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('certificates');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Dynamic SEO metadata & Schema updates for Contact Desk
+  useEffect(() => {
+    const breadcrumbs = [
+      { name: 'Home', url: '/' },
+      { name: 'Contact Desk', url: '/contact' },
+    ];
+
+    updateSeoMetadata({
+      title: 'Contact Real Estate Advisory Desk | Tomar Enterprises — Virar East',
+      description: 'Contact Tomar Enterprises (MahaRERA: A99000043480). Shop No. 06, Nakshatra Apt., Manvelpada, Virar East. Phone: +91 82370 92224. Real estate sales, rentals, and loans.',
+      canonicalPath: '/contact',
+      ogType: 'website',
+      noindex: false,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          buildRealEstateAgentSchema(),
+          buildBreadcrumbSchema(breadcrumbs),
+        ],
+      },
+    });
+  }, []);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -626,7 +658,7 @@ export default function ContactPageView({ onNavigate }) {
         </div>
 
         {/* Section: Official Government & Statutory Certifications */}
-        <div className="bg-white rounded-3xl border border-stone p-6 sm:p-10 lg:p-12 mb-12 shadow-card">
+        <div id="certificates" className="bg-white rounded-3xl border border-stone p-6 sm:p-10 lg:p-12 mb-12 shadow-card">
           <div className="max-w-3xl mb-8">
             <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-royal mb-2">
               <Award className="w-3.5 h-3.5" />
@@ -646,17 +678,11 @@ export default function ContactPageView({ onNavigate }) {
               <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10">
                 {/* Certificate Preview Image */}
                 <div className="w-full lg:w-5/12 flex-shrink-0">
-                  <div
-                    onClick={() =>
-                      setModalCertificate({
-                        title: "Maharashtra Real Estate Regulatory Authority — Form 'H' Registration Certificate",
-                        subtitle: "MahaRERA Reg. No: A99000043480 | Sanjay Mewalal Tomar",
-                        imageUrl: "/images/certificates/maharera-certificate.jpg",
-                        downloadUrl: "/images/certificates/maharera-certificate.jpg",
-                        downloadName: "MahaRERA-Certificate-A99000043480-Tomar-Enterprises.jpg",
-                      })
-                    }
-                    className="group block relative rounded-2xl overflow-hidden border-2 border-stone-dark/40 hover:border-royal transition-all duration-300 shadow-md hover:shadow-xl bg-white cursor-pointer"
+                  <a
+                    href="/images/certificates/maharera-certificate.jpg"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group block relative rounded-2xl overflow-hidden border-2 border-stone-dark/40 hover:border-royal transition-all duration-300 shadow-md hover:shadow-xl bg-white"
                     title="Click to view full MahaRERA Registration Certificate"
                   >
                     <img
@@ -671,7 +697,7 @@ export default function ContactPageView({ onNavigate }) {
                         <span>Enlarge Certificate</span>
                       </span>
                     </div>
-                  </div>
+                  </a>
                 </div>
 
                 {/* Certificate Details & Actions */}
@@ -720,22 +746,15 @@ export default function ContactPageView({ onNavigate }) {
 
                   {/* Action Buttons: View Full & Download */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setModalCertificate({
-                          title: "Maharashtra Real Estate Regulatory Authority — Form 'H' Registration Certificate",
-                          subtitle: "MahaRERA Reg. No: A99000043480 | Sanjay Mewalal Tomar",
-                          imageUrl: "/images/certificates/maharera-certificate.jpg",
-                          downloadUrl: "/images/certificates/maharera-certificate.jpg",
-                          downloadName: "MahaRERA-Certificate-A99000043480-Tomar-Enterprises.jpg",
-                        })
-                      }
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg cursor-pointer"
+                    <a
+                      href="/images/certificates/maharera-certificate.jpg"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg"
                     >
                       <ZoomIn className="w-4 h-4" />
                       <span>View Full Certificate</span>
-                    </button>
+                    </a>
 
                     <a
                       href="/images/certificates/maharera-certificate.jpg"
@@ -872,73 +891,7 @@ export default function ContactPageView({ onNavigate }) {
           </div>
         </div>
 
-        {/* Certificate Modal Lightbox */}
-        {modalCertificate && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={modalCertificate.title}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-navy-950/80 backdrop-blur-sm animate-fade-in"
-            onClick={() => setModalCertificate(null)}
-          >
-            <div
-              className="relative max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone flex flex-col max-h-[92vh]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-stone bg-ivory">
-                <div>
-                  <h3 className="font-serif text-lg sm:text-xl font-bold text-navy">
-                    {modalCertificate.title}
-                  </h3>
-                  <p className="text-xs text-muted mt-0.5">{modalCertificate.subtitle}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setModalCertificate(null)}
-                  className="w-9 h-9 rounded-full bg-stone hover:bg-stone-dark/30 flex items-center justify-center text-charcoal hover:text-navy transition-colors cursor-pointer"
-                  title="Close Certificate Viewer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
 
-              {/* Modal Body Image */}
-              <div className="p-4 sm:p-6 overflow-y-auto flex items-center justify-center bg-stone/20 max-h-[calc(92vh-140px)]">
-                <img
-                  src={modalCertificate.imageUrl}
-                  alt={modalCertificate.title}
-                  className="max-w-full h-auto max-h-[72vh] object-contain rounded-xl shadow-lg border border-stone"
-                />
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-stone bg-white">
-                <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Officially Verified Real Estate Document</span>
-                </span>
-                <div className="flex items-center gap-3">
-                  <a
-                    href={modalCertificate.downloadUrl}
-                    download={modalCertificate.downloadName}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-navy hover:bg-navy-900 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-xs"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download Certificate</span>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setModalCertificate(null)}
-                    className="px-4 py-2.5 rounded-xl bg-ivory hover:bg-stone text-charcoal font-bold text-xs uppercase tracking-wider border border-stone transition-colors cursor-pointer"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
     </div>

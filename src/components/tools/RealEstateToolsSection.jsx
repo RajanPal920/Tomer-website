@@ -1,10 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calculator, Landmark, Wrench } from 'lucide-react';
 import EmiCalculator from './EmiCalculator';
 import AreaConverter from './AreaConverter';
+import { updateSeoMetadata, buildBreadcrumbSchema } from '../../services/seo';
 
 export default function RealEstateToolsSection({ defaultTab = 'emi' }) {
   const [activeTab, setActiveTab] = useState(defaultTab);
+
+  useEffect(() => {
+    const isEmi = activeTab === 'emi';
+    const canonicalPath = isEmi ? '/tools/emi-calculator' : '/tools/plot-area-converter';
+    const title = isEmi
+      ? 'Home Loan EMI Calculator | Property Loans — Tomar Enterprises'
+      : 'Plot Area Converter (Guntha, Bigha, Sq.Ft) | Tomar Enterprises';
+    const description = isEmi
+      ? 'Calculate your monthly home loan EMI installments, total interest, and loan amortization for property purchases across the Vasai-to-Boisar corridor.'
+      : 'Convert Maharashtra land measurements accurately between Guntha, Square Feet, Square Meters, Bigha, and Acres for NA plots and farm land.';
+
+    updateSeoMetadata({
+      title,
+      description,
+      canonicalPath,
+      ogType: 'website',
+      noindex: false,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          buildBreadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Real Estate Tools', url: '/tools' },
+            { name: isEmi ? 'EMI Calculator' : 'Area Converter', url: canonicalPath }
+          ]),
+        ],
+      },
+    });
+  }, [activeTab]);
 
   return (
     <section id="tools" className="py-20 sm:py-24 bg-ivory border-t border-stone/70">

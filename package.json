@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/generateSitemap.mjs && vite build",
+    "seo:sitemap": "node scripts/generateSitemap.mjs",
+    "seo:keywords": "node scripts/buildKeywordsCsv.mjs",
     "start": "node server/server.js",
     "lint": "oxlint",
     "preview": "vite preview",

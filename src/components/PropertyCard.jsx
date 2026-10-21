@@ -15,6 +15,17 @@ import { isFavourite, toggleFavourite, isInCompare, toggleCompare, subscribeToPr
 import { contactInfo } from '../data/contactInfo';
 import { getLocationDisplayName } from '../data/locations';
 
+// Clean presentation helpers to ensure titles and descriptions appear natural and clean
+function cleanTitle(title) {
+  if (!title) return '';
+  return String(title).replace(/\s*\(Sample\)\s*/gi, '').trim();
+}
+
+function cleanDescription(desc) {
+  if (!desc) return '';
+  return String(desc).replace(/^Sample\s+inventory:\s*/i, '').trim();
+}
+
 export default function PropertyCard({
   property,
   onViewDetails,
@@ -90,8 +101,8 @@ export default function PropertyCard({
   // WhatsApp quick query
   const whatsappUrl = `https://wa.me/${contactInfo.whatsappNumber}?text=${encodeURIComponent(
     isSoldOut
-      ? `Hello Tomar Enterprises, I saw that property: ${property.title} (${displayPrice}, Ref: ${property.id}) in ${property.locality} is Sold Out. Could you share details of similar available properties?`
-      : `Hello Tomar Enterprises, I am interested in: ${property.title} (${displayPrice}, Ref: ${property.id}) in ${property.locality}. Please provide unit details.`
+      ? `Hello Tomar Enterprises, I saw that property: ${cleanTitle(property.title)} (${displayPrice}, Ref: ${property.id}) in ${property.locality} is Sold Out. Could you share details of similar available properties?`
+      : `Hello Tomar Enterprises, I am interested in: ${cleanTitle(property.title)} (${displayPrice}, Ref: ${property.id}) in ${property.locality}. Please provide unit details.`
   )}`;
 
   const handleCardClick = () => {
@@ -101,6 +112,10 @@ export default function PropertyCard({
       onViewDetails(property);
     }
   };
+
+  const displayTitle = cleanTitle(property.title);
+  const displayDesc = cleanDescription(property.description);
+  const detailUrl = `/properties/${property.slug || property.id}`;
 
   return (
     <div
@@ -112,7 +127,7 @@ export default function PropertyCard({
         <div className="relative aspect-[16/11] overflow-hidden bg-stone/40">
           <img
             src={property.image}
-            alt={property.title}
+            alt={displayTitle}
             loading="lazy"
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
             onError={(e) => {
@@ -121,18 +136,18 @@ export default function PropertyCard({
             }}
           />
 
-          {/* Top Left Transaction & Category Badges / Sold Out Badge */}
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap z-10">
+          {/* Top Left Transaction & Category Badges (constrained to right-12 so never overlaps with heart icon) */}
+          <div className="absolute top-3 left-3 right-12 flex items-center gap-1.5 flex-wrap z-10 pointer-events-none">
             {isSoldOut ? (
-              <span className="px-3 py-1 rounded bg-rose-600 text-[12px] font-black uppercase tracking-widest text-white shadow-md border border-white/20">
+              <span className="px-3 py-1 rounded bg-rose-600 text-[11px] sm:text-[12px] font-black uppercase tracking-widest text-white shadow-md border border-white/20 whitespace-nowrap">
                 SOLD OUT
               </span>
             ) : (
               <>
-                <span className="px-2.5 py-1 rounded-sm bg-navy/90 backdrop-blur-md text-[12px] font-bold uppercase tracking-wider text-white shadow-xs">
+                <span className="px-2.5 py-1 rounded-sm bg-navy/90 backdrop-blur-md text-[11px] sm:text-[12px] font-bold uppercase tracking-wider text-white shadow-xs whitespace-nowrap">
                   {property.transactionType?.toUpperCase() || 'PROPERTY'}
                 </span>
-                <span className="px-2.5 py-1 rounded-sm bg-royal/90 backdrop-blur-md text-[12px] font-bold uppercase tracking-wider text-white shadow-xs">
+                <span className="px-2.5 py-1 rounded-sm bg-royal/90 backdrop-blur-md text-[11px] sm:text-[12px] font-bold uppercase tracking-wider text-white shadow-xs whitespace-nowrap">
                   {property.category ? property.category.replace('-', ' ') : 'Prime'}
                 </span>
               </>
@@ -140,7 +155,7 @@ export default function PropertyCard({
           </div>
 
           {/* Top Right Actions: Favourite Heart */}
-          <div className="absolute top-3 right-3 flex items-center gap-2">
+          <div className="absolute top-3 right-3 z-20">
             <button
               type="button"
               onClick={handleToggleFav}
@@ -164,8 +179,8 @@ export default function PropertyCard({
           )}
 
           {/* Bottom Locality Badge on Image */}
-          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-navy/90 backdrop-blur-md text-white text-[12.5px] sm:text-[13px] font-semibold shadow-xs max-w-full truncate">
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-navy/90 backdrop-blur-md text-white text-[12px] sm:text-[12.5px] font-semibold shadow-xs max-w-full">
               <MapPin className="w-3.5 h-3.5 text-brandRed flex-shrink-0" />
               <span className="truncate">{property.subLocation || localityName}</span>
             </div>
@@ -175,28 +190,40 @@ export default function PropertyCard({
         {/* Card Body */}
         <div className="p-4 sm:p-5 pb-2">
           {/* Price Header */}
-          <div className="flex items-baseline justify-between mb-1.5">
-            <div className="font-serif text-2xl sm:text-[26px] font-bold text-navy tracking-tight">
+          <div className="flex items-baseline justify-between gap-2 mb-1.5">
+            <div className="font-serif text-2xl sm:text-[26px] font-bold text-navy tracking-tight truncate">
               {displayPrice}
             </div>
             {property.pricePerSqft && (
-              <div className="text-[13px] text-muted font-semibold">
+              <div className="text-[12px] sm:text-[13px] text-muted font-semibold flex-shrink-0 whitespace-nowrap">
                 {property.pricePerSqft}
               </div>
             )}
           </div>
 
           {/* Title */}
-          <h3 className="font-serif text-[19px] sm:text-[21px] font-bold text-charcoal group-hover:text-navy transition-colors mb-2.5 line-clamp-1">
-            {property.title}
+          <h3
+            className="font-serif text-[18px] sm:text-[20px] font-bold text-charcoal group-hover:text-navy transition-colors mb-2.5 line-clamp-1 leading-snug"
+            title={displayTitle}
+          >
+            <a
+              href={detailUrl}
+              onClick={(e) => {
+                e.preventDefault();
+                handleCardClick();
+              }}
+              className="text-inherit hover:underline"
+            >
+              {displayTitle}
+            </a>
           </h3>
 
           {/* Specifications Grid — Adaptive for Plots vs Flats vs Commercial */}
-          <div className="grid grid-cols-2 gap-2.5 py-2.5 border-y border-stone/60 text-[13px] sm:text-[14px] text-charcoal my-2">
+          <div className="grid grid-cols-2 gap-2.5 py-2.5 border-y border-stone/60 text-[13px] sm:text-[13.5px] text-charcoal my-2">
             {/* Spec 1: Area */}
             <div className="flex items-center gap-1.5 min-w-0">
               <Maximize2 className="w-4 h-4 text-royal flex-shrink-0" />
-              <span className="truncate font-medium">{displayArea}</span>
+              <span className="truncate font-medium" title={displayArea}>{displayArea}</span>
             </div>
 
             {/* Spec 2: Adaptive Configuration */}
@@ -208,22 +235,27 @@ export default function PropertyCard({
               ) : (
                 <Home className="w-4 h-4 text-royal flex-shrink-0" />
               )}
-              <span className="truncate font-medium capitalize">{configDisplay}</span>
+              <span className="truncate font-medium capitalize" title={configDisplay}>{configDisplay}</span>
             </div>
 
-            {/* Spec 3: Possession / Status */}
-            <div className="col-span-2 text-[12.5px] sm:text-[13px] text-muted truncate flex items-center justify-between">
-              <span>
-                <strong className="text-charcoal font-semibold">Status: </strong>
-                {possessionDisplay}
-              </span>
-              <span className="text-[11.5px] text-charcoal/70 uppercase font-medium">Ref: {property.id}</span>
+            {/* Spec 3: Possession / Status & Reference ID without text collision */}
+            <div className="col-span-2 flex items-center justify-between gap-2 text-[12px] sm:text-[12.5px] text-muted pt-0.5">
+              <div className="truncate min-w-0 flex items-center gap-1">
+                <strong className="text-charcoal font-semibold whitespace-nowrap">Status:</strong>
+                <span className="truncate" title={possessionDisplay}>{possessionDisplay}</span>
+              </div>
+              <div
+                className="text-[11px] text-charcoal/60 uppercase font-mono truncate max-w-[48%] whitespace-nowrap flex-shrink-0 text-right"
+                title={`Ref: ${property.id}`}
+              >
+                Ref: {property.id}
+              </div>
             </div>
           </div>
 
           {/* Description Snippet */}
-          <p className="text-[13.5px] sm:text-[14px] text-charcoal/80 line-clamp-2 mb-2 leading-relaxed">
-            {property.description}
+          <p className="text-[13px] sm:text-[13.5px] text-charcoal/80 line-clamp-2 mb-2 leading-relaxed">
+            {displayDesc}
           </p>
         </div>
       </div>
@@ -233,17 +265,18 @@ export default function PropertyCard({
         <div className="pt-3 border-t border-stone/50 flex flex-col gap-2">
           {/* Primary Action Buttons */}
           <div className="flex items-center gap-2">
-            <button
-              type="button"
+            <a
+              href={detailUrl}
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 handleCardClick();
               }}
               className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl text-[13px] sm:text-[14px] font-bold uppercase tracking-wider text-navy bg-ivory hover:bg-stone/60 border border-stone transition-colors"
             >
               <span>View Details</span>
               <ArrowUpRight className="w-4 h-4 text-royal" />
-            </button>
+            </a>
 
             {isSoldOut ? (
               <button

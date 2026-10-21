@@ -27,6 +27,8 @@ import OwnerLoginPage from './components/owner/OwnerLoginPage';
 import OwnerDashboard from './components/owner/OwnerDashboard';
 import ContactPageView from './components/ContactPageView';
 import FloatingContactButtons from './components/FloatingContactButtons';
+import SeoLandingPageView from './components/SeoLandingPageView';
+import { updateSeoMetadata, buildRealEstateAgentSchema, buildWebSiteSchema } from './services/seo';
 
 // Modals
 import PropertyDetailModal from './components/PropertyDetailModal';
@@ -101,6 +103,31 @@ export default function App() {
       syncFiltersToUrl(activeFilters);
     }
   }, [activeFilters, route.view]);
+
+  // Dynamic SEO & Metadata synchronization for Homepage and Restricted Routes
+  useEffect(() => {
+    if (route.view === 'home') {
+      updateSeoMetadata({
+        title: 'TOMAR ENTERPRISES | Real Estate Agency — Virar, Vasai to Boisar Corridor',
+        description: 'MahaRERA registered real estate agency in Virar East (A99000043480). Search flats, resale homes, shops, offices, NA plots & rentals from Vasai to Boisar.',
+        canonicalPath: '/',
+        ogType: 'website',
+        noindex: false,
+        structuredData: {
+          '@context': 'https://schema.org',
+          '@graph': [
+            buildRealEstateAgentSchema(),
+            buildWebSiteSchema(),
+          ],
+        },
+      });
+    } else if (route.view === 'owner-login' || route.view === 'owner-dashboard' || route.view === 'not-found') {
+      updateSeoMetadata({
+        title: route.view === 'not-found' ? '404 Page Not Found' : 'Owner Portal — Tomar Enterprises',
+        noindex: true,
+      });
+    }
+  }, [route.view]);
 
   // Handle direct action routes (saved-properties, compare, list-your-property)
   useEffect(() => {
@@ -440,6 +467,15 @@ export default function App() {
         {/* DEDICATED CONTACT DESK VIEW (/contact) */}
         {route.view === 'contact' && (
           <ContactPageView onNavigate={goTo} />
+        )}
+
+        {/* DEDICATED HIGH-INTENT SEO LANDING VIEW (e.g. /flats-for-sale-in-vasai) */}
+        {route.view === 'seo-landing' && (
+          <SeoLandingPageView
+            slug={route.slug}
+            onNavigate={goTo}
+            onEnquire={(prop) => setEnquiryModalData(prop)}
+          />
         )}
 
         {/* DEDICATED 404 NOT FOUND VIEW */}

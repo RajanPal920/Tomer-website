@@ -25,6 +25,7 @@ import {
   syncFiltersToUrl,
 } from '../services/propertySearch';
 import { APPROVED_STATIONS, LOCATION_DROPDOWN_OPTIONS } from '../data/locations';
+import { updateSeoMetadata, buildBreadcrumbSchema, buildRealEstateAgentSchema } from '../services/seo';
 import PropertyCard from './PropertyCard';
 
 export default function ListingPageView({
@@ -83,6 +84,55 @@ export default function ListingPageView({
       searchQuery: searchQuery,
     });
   }, [activeTab, selectedLocality, selectedCategory, selectedMaxBudget, selectedBhk, selectedSort, searchQuery]);
+
+  // Dynamic SEO metadata & Schema updates for Listing Page Tabs
+  useEffect(() => {
+    let canonicalPath = '/properties';
+    let tabTitle = pageTitle || 'Property Opportunities';
+    let tabDesc = pageDescription || 'Explore verified real estate opportunities across the Vasai-to-Boisar corridor.';
+
+    if (activeTab === 'buy') {
+      canonicalPath = '/buy';
+      tabTitle = 'Properties for Sale in Vasai to Boisar | New & Resale Homes';
+      tabDesc = 'Browse verified flats, apartments, and homes for sale across Vasai Road, Virar, Nalasopara, and Palghar with Tomar Enterprises.';
+    } else if (activeTab === 'rentals' || activeTab === 'rent') {
+      canonicalPath = '/rent';
+      tabTitle = 'Rental Properties in Vasai to Boisar | Flats for Rent';
+      tabDesc = 'Find verified rental flats and family apartments across Vasai Road, Virar, Nalasopara, Palghar, and Boisar.';
+    } else if (activeTab === 'commercial') {
+      canonicalPath = '/commercial';
+      tabTitle = 'Commercial Property, Shops & Offices | Vasai to Boisar';
+      tabDesc = 'Prime commercial retail shops, corporate office suites, and business showrooms across the Western suburban corridor.';
+    } else if (activeTab === 'plots-land' || activeTab === 'plots') {
+      canonicalPath = '/plots';
+      tabTitle = 'Plots & Land for Sale | NA Plots & Industrial Land';
+      tabDesc = 'Collector sanctioned NA plots, residential bungalow land in Saphale and Kelve, and Tarapur Boisar MIDC industrial plots.';
+    } else if (activeTab === 'lease-heavy-deposit' || activeTab === 'lease') {
+      canonicalPath = '/lease';
+      tabTitle = 'Heavy Deposit & Lease Properties | Zero Rent Homes';
+      tabDesc = 'Explore verified heavy deposit and long-term lease properties across Virar, Nalasopara, and Vasai.';
+    }
+
+    const breadcrumbs = [
+      { name: 'Home', url: '/' },
+      { name: tabTitle.split('|')[0].trim(), url: canonicalPath },
+    ];
+
+    updateSeoMetadata({
+      title: tabTitle,
+      description: tabDesc,
+      canonicalPath,
+      ogType: 'website',
+      noindex: false,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          buildRealEstateAgentSchema(),
+          buildBreadcrumbSchema(breadcrumbs),
+        ],
+      },
+    });
+  }, [activeTab, pageTitle, pageDescription]);
 
   // Ensure selectedCategory is compatible with activeTab
   const effectiveCategory = useMemo(() => {

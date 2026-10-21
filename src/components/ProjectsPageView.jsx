@@ -2,11 +2,42 @@ import React from 'react';
 import { ChevronRight, Building2, CheckCircle2, Phone } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { contactInfo } from '../data/contactInfo';
+import { updateSeoMetadata, buildBreadcrumbSchema, buildRealEstateAgentSchema } from '../services/seo';
 import VideoWalkthroughSection from './VideoWalkthroughSection';
 
 export default function ProjectsPageView({ subView = 'all', onNavigate, onEnquire }) {
   const isRedevelopment = subView === 'redevelopment';
   const isNew = subView === 'new';
+
+  React.useEffect(() => {
+    const canonicalPath = isRedevelopment ? '/projects/redevelopment' : isNew ? '/projects/new-developments' : '/projects';
+    const title = isRedevelopment
+      ? 'Society Redevelopment Advisory | Virar & Vasai — Tomar Enterprises'
+      : isNew
+      ? 'New Real Estate Developments & Townships | Vasai to Palghar — Tomar Enterprises'
+      : 'Real Estate Projects & Redevelopment | Tomar Enterprises';
+    const description = isRedevelopment
+      ? 'Expert housing society redevelopment advisory in Virar and Vasai. Feasibility studies, developer selection, legal agreements, and extra carpet area optimization.'
+      : 'Explore new residential developments, gated townships, and commercial projects across the Vasai-to-Boisar corridor with Tomar Enterprises.';
+
+    updateSeoMetadata({
+      title,
+      description,
+      canonicalPath,
+      ogType: 'website',
+      noindex: false,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          buildRealEstateAgentSchema(),
+          buildBreadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: isRedevelopment ? 'Redevelopment' : isNew ? 'New Developments' : 'Projects', url: canonicalPath }
+          ]),
+        ],
+      },
+    });
+  }, [isRedevelopment, isNew]);
 
   return (
     <div className="bg-ivory min-h-screen">

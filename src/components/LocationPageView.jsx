@@ -14,6 +14,7 @@ import { getAllProperties } from '../data/properties';
 import { fetchLiveProperties, subscribeToProperties } from '../services/propertyStore';
 import { filterProperties } from '../services/propertySearch';
 import { contactInfo } from '../data/contactInfo';
+import { updateSeoMetadata, buildBreadcrumbSchema, buildRealEstateAgentSchema } from '../services/seo';
 import PropertyCard from './PropertyCard';
 
 export default function LocationPageView({ slug, onNavigate, onEnquire }) {
@@ -31,6 +32,43 @@ export default function LocationPageView({ slug, onNavigate, onEnquire }) {
       }
     });
   }, []);
+
+  // Dynamic SEO metadata & Schema updates for Location Landing Page
+  useEffect(() => {
+    if (!station) {
+      updateSeoMetadata({
+        title: 'Location Not Found',
+        noindex: true,
+      });
+      return;
+    }
+
+    const canonicalPath = `/locations/${station.slug}`;
+    const seoTitle = `${station.displayName} Real Estate & Property Listings | Tomar Enterprises`;
+    const seoDesc = `Explore verified flats, resale homes, shops, offices, and plots in ${station.displayName}. Connect with MahaRERA registered advisor Tomar Enterprises for site visits and loan guidance.`;
+
+    const breadcrumbs = [
+      { name: 'Home', url: '/' },
+      { name: 'Locations', url: '/#locations' },
+      { name: station.displayName, url: canonicalPath },
+    ];
+
+    updateSeoMetadata({
+      title: seoTitle,
+      description: seoDesc,
+      canonicalPath,
+      ogType: 'website',
+      ogImage: station.image || undefined,
+      noindex: false,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          buildRealEstateAgentSchema(),
+          buildBreadcrumbSchema(breadcrumbs),
+        ],
+      },
+    });
+  }, [station]);
 
   // Filter listings strictly matching this canonical location
   const locationListings = useMemo(() => {

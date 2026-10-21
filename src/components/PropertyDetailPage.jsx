@@ -28,6 +28,7 @@ import {
 } from '../services/userPreferences';
 import { submitEnquiry, fetchLiveProperties, subscribeToProperties } from '../services/propertyStore';
 import { buildGmailComposeUrl, buildMailtoUrl, openGmailCompose } from '../services/emailService';
+import { updateSeoMetadata, generatePropertySeo } from '../services/seo';
 import PropertyCard from './PropertyCard';
 
 export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
@@ -114,6 +115,31 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
     });
   }, [propId]);
 
+  // Dynamic SEO Metadata & Schema generation following Property Type + Intent + Locality + Verified Attributes
+  useEffect(() => {
+    if (!property) {
+      if (!isLoading) {
+        updateSeoMetadata({
+          title: 'Property Not Located',
+          description: 'The requested real estate listing does not exist or has been updated in our catalog.',
+          noindex: true,
+        });
+      }
+      return;
+    }
+
+    const seo = generatePropertySeo(property);
+    updateSeoMetadata({
+      title: seo.title,
+      description: seo.description,
+      canonicalPath: seo.canonicalPath,
+      ogType: 'article',
+      ogImage: property.image || undefined,
+      noindex: false,
+      structuredData: seo.schema,
+    });
+  }, [property, isLoading]);
+
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center py-20 px-4 bg-ivory">
@@ -156,6 +182,7 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
   const gallery = property.gallery && property.gallery.length > 0 ? property.gallery : property.propertyImages || [property.image];
   const similarProperties = getSimilarProperties(property, 3);
   const localityName = getLocationDisplayName(property.locality);
+  const seoData = generatePropertySeo(property);
 
   const isPlot = property.transactionType === 'plots-land' || property.category?.includes('plot');
 
@@ -227,34 +254,43 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
   return (
     <div className="bg-ivory min-h-screen py-8 sm:py-12">
       <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb Navigation */}
+        {/* Semantic Breadcrumb Navigation with Crawlable Anchors */}
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-muted flex-wrap">
-          <button
-            type="button"
-            onClick={() => onNavigate('/')}
-            className="hover:text-navy hover:underline transition-colors"
+          <a
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate('/');
+            }}
+            className="hover:text-navy hover:underline transition-colors font-medium"
           >
             Home
-          </button>
+          </a>
           <ChevronRight className="w-3.5 h-3.5 text-stone-dark" />
-          <button
-            type="button"
-            onClick={() => onNavigate('/properties')}
-            className="hover:text-navy hover:underline transition-colors"
+          <a
+            href="/properties"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate('/properties');
+            }}
+            className="hover:text-navy hover:underline transition-colors font-medium"
           >
             Properties
-          </button>
+          </a>
           <ChevronRight className="w-3.5 h-3.5 text-stone-dark" />
-          <button
-            type="button"
-            onClick={() => onNavigate(`/locations/${property.locality}`)}
-            className="hover:text-navy hover:underline transition-colors capitalize"
+          <a
+            href={`/locations/${property.locality}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(`/locations/${property.locality}`);
+            }}
+            className="hover:text-navy hover:underline transition-colors capitalize font-medium"
           >
             {localityName}
-          </button>
+          </a>
           <ChevronRight className="w-3.5 h-3.5 text-stone-dark" />
-          <span className="text-charcoal font-semibold truncate max-w-xs sm:max-w-md">
-            {property.title}
+          <span className="text-charcoal font-semibold truncate max-w-xs sm:max-w-md" aria-current="page">
+            {seoData.h1}
           </span>
         </nav>
 
@@ -304,9 +340,17 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
                 </span>
               </div>
 
+              {/* Exact SEO H1 (Property Type + Transaction Intent + Sublocality + Verified Attributes) */}
               <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-charcoal tracking-tight text-balance mb-2">
-                {property.title}
+                {seoData.h1}
               </h1>
+
+              {/* Distinct Property / Project Name Subtitle */}
+              {seoData.subHeading && (
+                <p className="text-base sm:text-lg font-medium text-navy/90 mb-2">
+                  {seoData.subHeading}
+                </p>
+              )}
 
               <div className="flex items-center gap-2 text-sm text-muted">
                 <MapPin className="w-4 h-4 text-brandRed flex-shrink-0" />
@@ -362,7 +406,7 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
             <div className="relative aspect-[16/9] lg:aspect-[21/9] rounded-2xl overflow-hidden bg-stone mb-3 shadow-inner">
               <img
                 src={gallery[activeImageIndex] || property.image}
-                alt={`${property.title} view ${activeImageIndex + 1}`}
+                alt={`${seoData.h1} - View ${activeImageIndex + 1} of ${gallery.length} at Tomar Enterprises`}
                 className="w-full h-full object-cover object-center transition-all duration-300"
               />
               <div className="absolute bottom-4 left-4 bg-navy-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-lg text-white text-xs flex items-center gap-2">
@@ -383,7 +427,11 @@ export default function PropertyDetailPage({ slug, onNavigate, onEnquire }) {
                       activeImageIndex === idx ? 'border-brandRed shadow-sm scale-102' : 'border-stone opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img
+                      src={img}
+                      alt={`${seoData.h1} - Thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>

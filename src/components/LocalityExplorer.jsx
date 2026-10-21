@@ -29,21 +29,19 @@ export default function LocalityExplorer({ onSelectLocality, onNavigate }) {
 
         {/* Locality Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {localities.map((loc) => (
-            <div
-              key={loc.id}
-              onClick={() => handleClick(loc)}
-              className="group cursor-pointer rounded-2xl overflow-hidden border border-stone bg-white shadow-subtle hover:shadow-card hover:border-royal/50 transition-all duration-300 flex flex-col"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+          {localities.map((loc) => {
+            const locPath = `/locations/${loc.slug || loc.id}`;
+            return (
+              <a
+                key={loc.id}
+                href={locPath}
+                onClick={(e) => {
                   e.preventDefault();
                   handleClick(loc);
-                }
-              }}
-              aria-label={`Explore properties in ${loc.name}`}
-            >
+                }}
+                className="group cursor-pointer rounded-2xl overflow-hidden border border-stone bg-white shadow-subtle hover:shadow-card hover:border-royal/50 transition-all duration-300 flex flex-col no-underline text-inherit"
+                aria-label={`Explore properties in ${loc.name}`}
+              >
               {/* Locality Image */}
               <div className="relative aspect-[16/10] overflow-hidden bg-stone/40">
                 <img
@@ -104,8 +102,9 @@ export default function LocalityExplorer({ onSelectLocality, onNavigate }) {
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            </a>
+          );
+        })}
         </div>
       </div>
     </section>

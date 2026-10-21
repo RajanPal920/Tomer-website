@@ -2,6 +2,7 @@
 // Supports clean URLs without full page reloads, browser history (back/forward), and URL query parameters.
 
 import { useState, useEffect, useCallback } from 'react';
+import { getSeoLandingPageBySlug } from '../data/seoLandingPages.js';
 
 /**
  * Parses a pathname into a structured route object
@@ -91,7 +92,14 @@ export function parseRoute(pathname = '/') {
     return { view: 'owner-dashboard', tab: dashMatch[1] || 'overview' };
   }
 
-  // 12. 404 Not Found for unrecognized URLs
+  // 12. High-Intent SEO Landing Pages (e.g., /flats-for-sale-in-vasai, /property-agent-in-virar)
+  const seoSlug = cleanPath.replace(/^\//, '').toLowerCase();
+  const seoLanding = getSeoLandingPageBySlug(seoSlug);
+  if (seoLanding) {
+    return { view: 'seo-landing', slug: seoLanding.slug };
+  }
+
+  // 13. 404 Not Found for unrecognized URLs
   return { view: 'not-found', path: cleanPath };
 }
 

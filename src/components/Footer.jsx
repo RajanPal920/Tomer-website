@@ -189,9 +189,11 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
             </h4>
             <div className="grid grid-cols-2 gap-2 text-[13.5px] font-medium text-white">
               {APPROVED_STATIONS.map((loc) => (
-                <button
+                <a
                   key={loc.locationId}
-                  onClick={() => {
+                  href={`/locations/${loc.slug}`}
+                  onClick={(e) => {
+                    e.preventDefault();
                     if (onNavigate) {
                       onNavigate(`/locations/${loc.slug}`);
                     } else if (onSelectLocality) {
@@ -202,7 +204,7 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
                 >
                   <MapPin className="w-3 h-3 text-brandRed flex-shrink-0" />
                   <span className="truncate">{loc.canonicalName}</span>
-                </button>
+                </a>
               ))}
             </div>
 
@@ -210,6 +212,126 @@ export default function Footer({ onSelectCategory, onSelectLocality, onNavigate 
               <strong className="text-white block mb-0.5">Vasai Road to Boisar:</strong>
               Continuous mainline rail corridor & highway connectivity across Palghar district.
             </div>
+          </div>
+        </div>
+
+        {/* Popular Local Real Estate Searches Strip (Crawlable Internal Links) */}
+        <div className="mt-12 pt-8 border-t border-white/10">
+          <div className="text-xs uppercase font-bold tracking-wider text-stone-300 mb-3">
+            Popular Real Estate Searches across Corridor
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-stone-300">
+            <a
+              href="/flats-for-sale-in-vasai"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/flats-for-sale-in-vasai'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Flats for Sale in Vasai Road
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/flats-for-sale-in-virar"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/flats-for-sale-in-virar'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Flats for Sale in Virar
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/new-flats-in-virar"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/new-flats-in-virar'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              New Flats in Virar
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/resale-properties-in-nalasopara"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/resale-properties-in-nalasopara'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Resale Flats in Nalasopara
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/rental-properties-in-vasai"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/rental-properties-in-vasai'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Rental Properties in Vasai
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/commercial-property-in-palghar"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/commercial-property-in-palghar'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Commercial Property in Palghar
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/residential-plots-in-saphale"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/residential-plots-in-saphale'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Residential Plots in Saphale
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/land-plots-in-kelve-road"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/land-plots-in-kelve-road'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Land & Plots in Kelve Road
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/industrial-plots-in-boisar"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/industrial-plots-in-boisar'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Industrial Plots in Boisar Tarapur MIDC
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/property-agent-in-vasai"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/property-agent-in-vasai'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Property Agent in Vasai
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/property-agent-in-virar"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/property-agent-in-virar'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Real Estate Agent in Virar
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/property-dealer-in-nalasopara"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/property-dealer-in-nalasopara'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Property Dealer in Nalasopara
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/real-estate-consultant-in-palghar"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/real-estate-consultant-in-palghar'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Real Estate Consultant in Palghar
+            </a>
+            <span className="text-white/20">&bull;</span>
+            <a
+              href="/property-broker-in-boisar"
+              onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('/property-broker-in-boisar'); }}
+              className="hover:text-white hover:underline transition-colors"
+            >
+              Property Broker in Boisar
+            </a>
           </div>
         </div>
       </div>

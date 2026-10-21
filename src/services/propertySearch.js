@@ -42,20 +42,21 @@ export function matchesCategoryTab(property, tabId) {
         property.transactionType === 'buy' ||
         property.transactionType === 'plots-land' ||
         (property.transactionType === 'commercial' &&
-          ['commercial-shop', 'commercial-office', 'commercial-property'].includes(property.category))
+          ['commercial-shop', 'commercial-office', 'commercial-property', 'commercial'].includes(property.category))
       );
 
     case 'rentals':
       return (
         property.transactionType === 'rent' ||
         property.transactionType === 'lease' ||
-        ['flat-rent', 'shop-rent', 'office-rent'].includes(property.category)
+        ['flat-rent', 'shop-rent', 'office-rent', 'lease-property'].includes(property.category)
       );
 
     case 'commercial':
       return (
         property.transactionType === 'commercial' ||
-        ['commercial-shop', 'commercial-office', 'commercial-property', 'shop-rent', 'office-rent'].includes(property.category) ||
+        property.transactionType === 'lease' ||
+        ['commercial-shop', 'commercial-office', 'commercial-property', 'commercial', 'shop-rent', 'office-rent', 'lease-property'].includes(property.category) ||
         (property.category && property.category.startsWith('commercial'))
       );
 
@@ -70,7 +71,8 @@ export function matchesCategoryTab(property, tabId) {
       return (
         property.transactionType === 'lease' ||
         property.category === 'lease-property' ||
-        property.isHeavyDeposit === true
+        property.isHeavyDeposit === true ||
+        (property.category && property.category.includes('lease'))
       );
 
     default:
@@ -87,25 +89,54 @@ export function isCategoryCompatibleWithTab(category, tabId) {
   if (normTab === 'all') return true;
 
   if (normTab === 'buy') {
-    return ['new-flat', 'resale-flat', 'residential-property', 'commercial-shop', 'commercial-office', 'commercial-property'].includes(category);
+    return [
+      'new-flat', 'resale-flat', 'residential-property', 'flats', 'flat', 'apartments',
+      'commercial-shop', 'commercial-office', 'commercial-property', 'commercial', 'shops', 'offices',
+      'residential-plot', 'na-plot', 'industrial-plot', 'plots', 'plot', 'land', 'plots-land',
+      'resale', 'resale-properties'
+    ].includes(category);
   }
   if (normTab === 'rentals') {
-    return ['flat-rent', 'shop-rent', 'office-rent'].includes(category);
+    return [
+      'flat-rent', 'shop-rent', 'office-rent', 'flats', 'flat', 'apartments',
+      'commercial-shop', 'commercial-office', 'commercial-property', 'commercial', 'shops', 'offices',
+      'rent', 'rentals', 'lease-property'
+    ].includes(category);
   }
   if (normTab === 'commercial') {
-    return ['commercial-shop', 'commercial-office', 'commercial-property', 'shop-rent', 'office-rent'].includes(category);
+    return [
+      'commercial-shop', 'commercial-office', 'commercial-property', 'commercial', 'shop-rent', 'office-rent',
+      'shops', 'offices', 'lease-property'
+    ].includes(category);
   }
   if (normTab === 'plots-land') {
-    return ['residential-plot', 'na-plot', 'industrial-plot', 'plots', 'plot', 'land', 'plots-land'].includes(category);
+    return [
+      'residential-plot', 'na-plot', 'industrial-plot', 'plots', 'plot', 'land', 'plots-land'
+    ].includes(category);
   }
   if (normTab === 'lease-heavy-deposit') {
-    return ['lease-property', 'commercial-property', 'commercial-shop', 'commercial-office'].includes(category);
+    return [
+      'lease-property', 'commercial-property', 'commercial-shop', 'commercial-office', 'commercial', 'flat-rent', 'flats'
+    ].includes(category);
   }
   return true;
 }
 
 /**
  * Evaluates whether an item matches a target sub-category, supporting grouped/synonym categories
+ * Covers all 12 property types:
+ *   1. All Properties ('all')
+ *   2. Flats / Apartments ('flats')
+ *   3. New Flats / New Homes ('new-flat')
+ *   4. Resale Properties ('resale-flat')
+ *   5. Rental Properties ('flat-rent')
+ *   6. Commercial Shops ('commercial-shop')
+ *   7. Offices ('commercial-office')
+ *   8. Commercial Spaces ('commercial')
+ *   9. Residential Plots ('residential-plot')
+ *   10. Industrial Plots ('industrial-plot')
+ *   11. Land / NA Plots ('na-plot')
+ *   12. Lease / Heavy Deposit ('lease-property')
  */
 export function isCategoryMatch(item, targetCat) {
   if (!targetCat || targetCat === 'all') return true;
@@ -116,60 +147,80 @@ export function isCategoryMatch(item, targetCat) {
   // Exact match
   if (itemCat === t) return true;
 
-  // Plots & Land grouping (handles 'plots', 'plot', 'plots-land', 'land', etc.)
-  if (t === 'plots' || t === 'plot' || t === 'plots-land' || t === 'land' || t === 'plots & land') {
+  // 1. Flats / Apartments grouping (encompasses new flats, resale flats, and rental flats)
+  if (t === 'flats' || t === 'flat' || t === 'flats / apartments' || t === 'apartments' || t === 'residential' || t === 'residential-property') {
     return (
-      itemType === 'plots-land' ||
-      itemCat.includes('plot') ||
-      ['residential-plot', 'na-plot', 'industrial-plot'].includes(itemCat)
+      ['new-flat', 'resale-flat', 'residential-property', 'flat-rent', 'flats', 'flat', 'apartments'].includes(itemCat) ||
+      itemCat.includes('flat') ||
+      itemCat.includes('apartment')
     );
   }
 
-  // Commercial grouping
-  if (t === 'commercial' || t === 'commercial-property' || t === 'commercial space') {
+  // 2. New Flats / New Homes
+  if (t === 'new-flat' || t === 'new flats / new homes' || t === 'new-flats' || t === 'new flats' || t === 'new homes' || t === 'new home') {
+    return itemCat === 'new-flat' || (itemCat.includes('flat') && itemType === 'buy' && !itemCat.includes('resale') && !itemCat.includes('rent'));
+  }
+
+  // 3. Resale Properties
+  if (t === 'resale-flat' || t === 'resale' || t === 'resale properties' || t === 'resale-properties' || t === 'resale property') {
+    return itemCat === 'resale-flat' || itemCat === 'resale' || (item.title && item.title.toLowerCase().includes('resale'));
+  }
+
+  // 4. Rental Properties
+  if (t === 'flat-rent' || t === 'rental properties' || t === 'rental property' || t === 'rent' || t === 'rentals' || t === 'rental') {
+    return itemCat === 'flat-rent' || (itemType === 'rent' && (itemCat.includes('flat') || itemCat === 'residential-property'));
+  }
+
+  // 5. Commercial Shops
+  if (t === 'commercial-shop' || t === 'commercial shops' || t === 'commercial shop' || t === 'shops' || t === 'shop' || t === 'retail') {
+    return itemCat === 'commercial-shop' || itemCat === 'shop-rent' || itemCat.includes('shop');
+  }
+
+  // 6. Offices
+  if (t === 'commercial-office' || t === 'commercial offices' || t === 'offices' || t === 'office' || t === 'corporate suite') {
+    return itemCat === 'commercial-office' || itemCat === 'office-rent' || itemCat.includes('office');
+  }
+
+  // 7. Commercial Spaces (encompasses shops, offices, commercial complexes, and retail)
+  if (t === 'commercial' || t === 'commercial-property' || t === 'commercial spaces' || t === 'commercial space') {
     return (
       itemType === 'commercial' ||
       itemCat.startsWith('commercial') ||
-      ['commercial-shop', 'commercial-office', 'commercial-property', 'shop-rent', 'office-rent'].includes(itemCat)
+      ['commercial-shop', 'commercial-office', 'commercial-property', 'commercial', 'shop-rent', 'office-rent'].includes(itemCat) ||
+      itemCat.includes('commercial')
     );
   }
 
-  // Residential / Flats grouping
-  if (t === 'residential' || t === 'residential-property' || t === 'flats' || t === 'flat' || t === 'flats / apartments' || t === 'apartments') {
-    return (
-      ['new-flat', 'resale-flat', 'residential-property', 'flat-rent'].includes(itemCat) ||
-      itemCat.includes('flat')
-    );
-  }
-
-  // Resale Properties grouping
-  if (t === 'resale' || t === 'resale properties' || t === 'resale-flat' || t === 'resale-properties') {
-    return itemCat === 'resale-flat' || (item.title && item.title.toLowerCase().includes('resale'));
-  }
-
-  // Shops grouping
-  if (t === 'shops' || t === 'shop' || t === 'retail' || t === 'commercial shops' || t === 'commercial-shop') {
-    return ['commercial-shop', 'shop-rent'].includes(itemCat) || itemCat.includes('shop');
-  }
-
-  // Offices grouping
-  if (t === 'offices' || t === 'office' || t === 'commercial offices' || t === 'commercial-office') {
-    return ['commercial-office', 'office-rent'].includes(itemCat) || itemCat.includes('office');
-  }
-
-  // Residential Plots grouping
+  // 8. Residential Plots
   if (t === 'residential-plot' || t === 'residential plots' || t === 'residential plot') {
     return itemCat === 'residential-plot';
   }
 
-  // Industrial Plots grouping
+  // 9. Industrial Plots
   if (t === 'industrial-plot' || t === 'industrial plots' || t === 'industrial plot') {
     return itemCat === 'industrial-plot';
   }
 
-  // Rentals grouping
-  if (t === 'rent' || t === 'rentals' || t === 'flat-rent') {
-    return itemType === 'rent' || ['flat-rent', 'shop-rent', 'office-rent'].includes(itemCat);
+  // 10. Land / NA Plots
+  if (t === 'na-plot' || t === 'land / na plots' || t === 'na plots' || t === 'na plot' || t === 'land' || t === 'plots' || t === 'plot' || t === 'plots-land' || t === 'plots & land') {
+    if (t === 'plots' || t === 'plot' || t === 'plots-land' || t === 'plots & land') {
+      return (
+        itemType === 'plots-land' ||
+        itemCat.includes('plot') ||
+        ['residential-plot', 'na-plot', 'industrial-plot'].includes(itemCat)
+      );
+    }
+    return itemCat === 'na-plot' || itemCat === 'land' || (itemType === 'plots-land' && !['residential-plot', 'industrial-plot'].includes(itemCat));
+  }
+
+  // 11. Lease / Heavy Deposit
+  if (t === 'lease-property' || t === 'lease / heavy deposit' || t === 'lease' || t === 'heavy deposit' || t === 'heavy-deposit') {
+    return (
+      itemCat === 'lease-property' ||
+      itemType === 'lease' ||
+      item.isHeavyDeposit === true ||
+      itemCat.includes('lease')
+    );
   }
 
   return itemCat.includes(t);
@@ -235,6 +286,17 @@ export function isLocalityMatch(itemLocality, searchLocality) {
   return false;
 }
 
+export const STATION_SEARCH_ALIASES = {
+  'vasai': ['vasai', 'vasai-road', 'vasai road', 'vasai west', 'vasai east'],
+  'virar': ['virar', 'virar west', 'virar east', 'bolinj', 'chikhal dongri'],
+  'nalasopara': ['nalasopara', 'nallasopara', 'nalla sopara', 'achole', 'patankar park', 'moregaon'],
+  'palghar': ['palghar', 'palghar west', 'palghar east', 'manor road', 'tembhode'],
+  'saphale': ['saphale', 'safale'],
+  'kelve': ['kelve', 'kelve road', 'kelva'],
+  'vaitarna': ['vaitarna'],
+  'boisar': ['boisar', 'boisar midc', 'tarapur', 'tarapur midc', 'boisar west', 'boisar east'],
+};
+
 /**
  * Evaluates whether an item matches a free-text search query.
  * Supports tokenization, common real estate synonyms, singular/plural stemming (plots <-> plot, flats <-> flat),
@@ -245,10 +307,16 @@ export function matchSearchQuery(item, rawQuery) {
 
   const q = rawQuery.toLowerCase().trim();
 
+  // Remove administrative district mentions so descriptions mentioning "Palghar District" don't misclassify Boisar, Virar or Vasai properties
+  const cleanDesc = (item.description || '')
+    .replace(/\bpalghar\s+district\b/gi, 'district')
+    .replace(/\bdistrict\s+(of\s+)?palghar\b/gi, 'district')
+    .replace(/\bpalghar\s+jilha\b/gi, 'jilha');
+
   // Full composite document for substring search
   const fullDoc = [
     item.title || '',
-    item.description || '',
+    cleanDesc,
     item.subLocation || '',
     item.locality || '',
     item.city || '',
@@ -261,8 +329,9 @@ export function matchSearchQuery(item, rawQuery) {
     Array.isArray(item.tags) ? item.tags.join(' ') : '',
   ].join(' ').toLowerCase();
 
-  // 1. Direct match check
-  if (fullDoc.includes(q)) return true;
+  // 1. Direct match check (only if query is not an explicit station name)
+  const isDirectStation = Object.keys(STATION_SEARCH_ALIASES).some((s) => s === q || STATION_SEARCH_ALIASES[s].includes(q));
+  if (!isDirectStation && fullDoc.includes(q)) return true;
 
   // 2. Tokenize with stop words removed for natural search phrasing (e.g., "search of plots", "plots in vasai")
   const stopWords = new Set([
@@ -288,19 +357,22 @@ export function matchSearchQuery(item, rawQuery) {
     return word;
   };
 
-  const stationAliases = {
-    'vasai': ['vasai', 'vasai-road', 'vasai road', 'vasai west', 'vasai east'],
-    'virar': ['virar', 'virar west', 'virar east', 'bolinj', 'chikhal dongri'],
-    'nalasopara': ['nalasopara', 'nallasopara', 'nalla sopara', 'achole', 'patankar park', 'moregaon'],
-    'palghar': ['palghar', 'palghar west', 'palghar east', 'manor road', 'tembhode'],
-    'saphale': ['saphale', 'safale'],
-    'kelve': ['kelve', 'kelve road', 'kelva'],
-    'vaitarna': ['vaitarna'],
-    'boisar': ['boisar', 'boisar midc', 'tarapur', 'tarapur midc', 'boisar west', 'boisar east'],
-  };
-
   return tokens.every((rawTok) => {
     const tok = stemToken(rawTok);
+
+    // If token represents a station name, strictly verify locality / station relevance
+    for (const [station, aliases] of Object.entries(STATION_SEARCH_ALIASES)) {
+      if (aliases.some((a) => a === tok || tok === station)) {
+        if (
+          isLocalityMatch(item.locality, station) ||
+          (item.subLocation && item.subLocation.toLowerCase().includes(tok)) ||
+          (item.title && item.title.toLowerCase().includes(tok))
+        ) {
+          return true;
+        }
+        return false;
+      }
+    }
 
     if (fullDoc.includes(tok)) return true;
 
@@ -329,15 +401,6 @@ export function matchSearchQuery(item, rawQuery) {
     if (tok === 'flat' || tok === 'apartment' || tok === 'residence') {
       if (['new-flat', 'resale-flat', 'residential-property', 'flat-rent'].includes(item.category)) {
         return true;
-      }
-    }
-
-    // Check station aliases
-    for (const [station, aliases] of Object.entries(stationAliases)) {
-      if (aliases.some((a) => a.includes(tok) || tok.includes(a))) {
-        if (isLocalityMatch(item.locality, station) || (item.subLocation && item.subLocation.toLowerCase().includes(tok))) {
-          return true;
-        }
       }
     }
 
@@ -384,9 +447,17 @@ export function filterProperties(properties, filters = {}) {
   }
   const targetTab = normalizeTabId(rawTab);
 
+  // If a specific category is chosen that conflicts with targetTab, let category intent take precedence
+  let effectiveTab = targetTab;
+  if (active.category && active.category !== 'all') {
+    if (!isCategoryCompatibleWithTab(active.category, effectiveTab)) {
+      effectiveTab = 'all';
+    }
+  }
+
   const filtered = properties.filter((item) => {
     // 0. Exclude Sold Out, Archived, and Draft listings from public available results by default
-    if (!active.includeSold && !active.includeArchived && !active.includeDrafts) {
+    if (!active.includeSold && !active.includeArchived && !active.includeDrafts && active.availabilityStatus !== 'sold') {
       const s = String(item.status || '').toLowerCase();
       if (s === 'sold' || s === 'sold_out' || s === 'sold-out' || s === 'archived' || s === 'draft') {
         return false;
@@ -394,8 +465,8 @@ export function filterProperties(properties, filters = {}) {
     }
 
     // 1. Category Tab / Transaction Filter
-    if (targetTab !== 'all') {
-      if (!matchesCategoryTab(item, targetTab)) {
+    if (effectiveTab !== 'all') {
+      if (!matchesCategoryTab(item, effectiveTab)) {
         return false;
       }
     }
@@ -451,16 +522,10 @@ export function filterProperties(properties, filters = {}) {
     }
 
     // 6. Bedrooms Filter (BHK: 1, 2, 3)
-    // Plots and commercial units inherently have no bedrooms; do not disqualify them if tab or query is plots/commercial
     if (active.bedrooms && active.bedrooms !== 'all') {
       const targetBhk = Number(active.bedrooms);
       if (!isNaN(targetBhk) && targetBhk > 0) {
-        const isPlotItem = item.transactionType === 'plots-land' || (item.category && item.category.includes('plot'));
-        const isCommercialItem = item.transactionType === 'commercial' || (item.category && item.category.startsWith('commercial'));
-
-        if (targetTab === 'plots-land' || targetTab === 'commercial' || isPlotItem || isCommercialItem) {
-          // Plots and commercial properties are exempt from residential bedroom requirements
-        } else if (item.bedrooms !== targetBhk) {
+        if (item.bedrooms !== targetBhk) {
           return false;
         }
       }

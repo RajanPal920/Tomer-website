@@ -15,7 +15,6 @@ import {
   Phone,
   ArrowRight,
   Shield,
-  HelpCircle,
   Briefcase,
   Award,
 } from 'lucide-react';
@@ -104,6 +103,12 @@ export default function Navbar({
 
     if (path && onNavigate) {
       onNavigate(path);
+      if (sectionId) {
+        setTimeout(() => {
+          const el = document.getElementById(sectionId);
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      }
       return;
     }
 
@@ -158,6 +163,13 @@ export default function Navbar({
     {
       heading: 'Agency & Support',
       items: [
+        {
+          label: 'Official Registration Certificates',
+          path: '/contact',
+          section: 'certificates',
+          icon: Award,
+          desc: 'MahaRERA & statutory certifications',
+        },
         { label: 'Why Choose Tomar Enterprises', path: null, section: 'why-us', icon: Shield, desc: 'Corridor understanding & verified advisory' },
         {
           label: 'नोंदणी प्रमाणपत्र',
@@ -778,6 +790,17 @@ export default function Navbar({
 
               {/* Company Information & Owner Portal */}
               <div className="space-y-1 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleAction('certificates', null, '/contact')}
+                  className="w-full flex items-center justify-between p-2 rounded-lg text-xs font-semibold text-charcoal hover:text-navy hover:bg-ivory text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-royal" />
+                    <span>Official Registration Certificates</span>
+                  </div>
+                  <ArrowRight className="w-3.5 h-3.5 text-stone-dark" />
+                </button>
                 <button
                   type="button"
                   onClick={() => handleAction('why-us')}
