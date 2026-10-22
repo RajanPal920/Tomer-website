@@ -160,7 +160,7 @@ export default function ContactPageView({ onNavigate }) {
   return (
     <div className="bg-ivory min-h-screen py-8 sm:py-12">
       <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-muted flex-wrap">
           <button
@@ -197,10 +197,10 @@ export default function ContactPageView({ onNavigate }) {
 
         {/* 2-Column Grid: Left Contact Info & Direct Actions | Right Business Enquiry Form */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mb-12">
-          
+
           {/* LEFT COLUMN: Sections B, C, D, E, I (Address, Phones, Email, WhatsApp, Office Hours) */}
           <div className="lg:col-span-5 space-y-6">
-            
+
             {/* Section B: Complete Office Address */}
             <div className="bg-white rounded-2xl border border-stone p-6 shadow-card">
               <div className="flex items-start gap-4">
@@ -216,7 +216,7 @@ export default function ContactPageView({ onNavigate }) {
                     Viva Jangid Complex, Manvelpada,<br />
                     Virar (East), Palghar, Maharashtra - 401305
                   </p>
-                  
+
                   <div className="mt-4 pt-4 border-t border-stone/60">
                     <a
                       href={contactInfo.googleMapsSearchUrl}
@@ -301,13 +301,13 @@ export default function ContactPageView({ onNavigate }) {
                   </div>
                   <div>
                     <a
-                      href="tel:9970355543"
+                      href="tel:9156915329"
                       className="inline-flex items-center gap-2.5 text-sm font-bold text-charcoal hover:text-royal transition-colors"
                     >
                       <span className="w-7 h-7 rounded-lg bg-navy flex items-center justify-center flex-shrink-0 shadow-xs">
                         <Phone className="w-3.5 h-3.5 text-white" />
                       </span>
-                      <span>+91 99703 55543</span>
+                      <span>+91 9156915329</span>
                     </a>
                   </div>
                 </div>
@@ -374,7 +374,7 @@ export default function ContactPageView({ onNavigate }) {
           {/* RIGHT COLUMN: Section G (Business Enquiry Form) */}
           <div className="lg:col-span-7">
             <div className="bg-white rounded-3xl border border-stone p-6 sm:p-8 lg:p-10 shadow-card h-full flex flex-col justify-between">
-              
+
               {submitSuccess ? (
                 /* Submission Confirmation State */
                 <div className="my-auto py-12 text-center space-y-6">
@@ -465,9 +465,8 @@ export default function ContactPageView({ onNavigate }) {
                       placeholder="e.g. Ramesh Sharma"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className={`w-full px-4 py-3 rounded-xl border bg-ivory text-charcoal text-sm focus:outline-none focus:ring-2 transition-all ${
-                        errors.name ? 'border-brandRed focus:ring-brandRed/30' : 'border-stone focus:ring-navy/30'
-                      }`}
+                      className={`w-full px-4 py-3 rounded-xl border bg-ivory text-charcoal text-sm focus:outline-none focus:ring-2 transition-all ${errors.name ? 'border-brandRed focus:ring-brandRed/30' : 'border-stone focus:ring-navy/30'
+                        }`}
                     />
                     {errors.name && (
                       <p className="text-xs text-brandRed mt-1 flex items-center gap-1">
@@ -490,9 +489,8 @@ export default function ContactPageView({ onNavigate }) {
                         placeholder="10-digit mobile number"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className={`w-full px-4 py-3 rounded-xl border bg-ivory text-charcoal text-sm focus:outline-none focus:ring-2 transition-all ${
-                          errors.phone ? 'border-brandRed focus:ring-brandRed/30' : 'border-stone focus:ring-navy/30'
-                        }`}
+                        className={`w-full px-4 py-3 rounded-xl border bg-ivory text-charcoal text-sm focus:outline-none focus:ring-2 transition-all ${errors.phone ? 'border-brandRed focus:ring-brandRed/30' : 'border-stone focus:ring-navy/30'
+                          }`}
                       />
                       {errors.phone && (
                         <p className="text-xs text-brandRed mt-1 flex items-center gap-1">
@@ -512,9 +510,8 @@ export default function ContactPageView({ onNavigate }) {
                         placeholder="e.g. client@example.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={`w-full px-4 py-3 rounded-xl border bg-ivory text-charcoal text-sm focus:outline-none focus:ring-2 transition-all ${
-                          errors.email ? 'border-brandRed focus:ring-brandRed/30' : 'border-stone focus:ring-navy/30'
-                        }`}
+                        className={`w-full px-4 py-3 rounded-xl border bg-ivory text-charcoal text-sm focus:outline-none focus:ring-2 transition-all ${errors.email ? 'border-brandRed focus:ring-brandRed/30' : 'border-stone focus:ring-navy/30'
+                          }`}
                       />
                       {errors.email && (
                         <p className="text-xs text-brandRed mt-1 flex items-center gap-1">
